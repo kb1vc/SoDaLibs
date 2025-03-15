@@ -1,15 +1,6 @@
 
 FIND_PACKAGE(Threads REQUIRED)
-FIND_PACKAGE(yaml-cpp QUIET)
- 
-IF(yaml-cpp_FOUND)
-  # we need to create the lib dir for yaml-cpp
-  # alas YAML_CPP_LIB_DIR isn't defined in the config file (!)
-  # we need to create it from YAML_CPP_CMAKE_DIR (!)
-  set(YAML_CPP_LIB_DIR "${YAML_CPP_CMAKE_DIR}/../../")
-ELSE()
-  message("YAML-CPP library was not found. We will not build SoDaProperties library.")
-ENDIF()
+FIND_PACKAGE(yaml-cpp REQUIRED)
 
 # Automatic CMake config generation inspired from https://github.com/jbeder/yaml-cpp.git
 INCLUDE(CMakePackageConfigHelpers)
@@ -41,6 +32,7 @@ if(NOT yaml-cpp_FOUND)
   endforeach()
 endif()
 
+
 INSTALL(FILES ${PROJECT_BINARY_DIR}/UtilsVersion.hxx DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/SoDa")
 INSTALL(FILES ${all_includes} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/SoDa")
 
@@ -69,67 +61,35 @@ INSTALL(FILES ${examp_files}
 )
 
 set(UTILS_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/SoDaUtils")
-set(EXPORT_TARGETS sodautils)
+
+include(InstallRequiredSystemLibraries)
+
+install(EXPORT SoDaUtilsTargets
+  FILE SoDaUtilsTargets.cmake
+  DESTINATION ${UTILS_CONFIG_EXPORT_DIR}
+  )
+
 
 configure_package_config_file(
   "${UTILS_SUBLIB_SOURCE_DIR}/SoDaUtilsConfig.cmake.in"
-  "${PROJECT_BINARY_DIR}/SoDaUtilsConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/SoDaUtilsConfig.cmake"
   INSTALL_DESTINATION "${UTILS_CONFIG_EXPORT_DIR}"
-  PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR UTILS_CONFIG_EXPORT_DIR
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
 )
-  write_basic_package_version_file(
-    "${PROJECT_BINARY_DIR}/SoDaUtilsConfigVersion.cmake"
-    VERSION "${SoDaUtils_VERSION}"  
-    COMPATIBILITY AnyNewerVersion)
 
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/SoDaUtilsConfigVersion.cmake"
+  VERSION "${SoDaUtils_VERSION}"
+  COMPATIBILITY AnyNewerVersion)
 
-unset(EXPORT_TARGETS)
-
-install(TARGETS sodautils
-  EXPORT sodautils-targets
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-install(EXPORT sodautils-targets
-  DESTINATION "${UTILS_CONFIG_EXPORT_DIR}")
+message("CCBD [${CMAKE_CURRENT_BINARY_DIR}] PBD [${CMAKE_CURRENT_BINARY_DIR}]")
 
 install(FILES
-  "${PROJECT_BINARY_DIR}/SoDaUtilsConfig.cmake"
-  "${PROJECT_BINARY_DIR}/SoDaUtilsConfigVersion.cmake"
-  DESTINATION "${UTILS_CONFIG_EXPORT_DIR}")
+  ${CMAKE_CURRENT_BINARY_DIR}/SoDaUtilsConfig.cmake
+  DESTINATION ${UTILS_CONFIG_EXPORT_DIR}
+)
 
-unset(CONFIG_EXPORT_DIR)
-
-if(yaml-cpp_FOUND)
-  set(CONFIG_EXPORT_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/SoDaProps")
-  set(EXPORT_TARGETS sodaprops)
-  write_basic_package_version_file(
-    "${PROJECT_BINARY_DIR}/SoDaPropsConfigVersion.cmake"
-    VERSION "${SoDaUtils_VERSION}"  
-    COMPATIBILITY AnyNewerVersion)
-
-  configure_package_config_file(
-    "${UTILS_SUBLIB_SOURCE_DIR}/SoDaPropsConfig.cmake.in"
-    "${PROJECT_BINARY_DIR}/SoDaPropsConfig.cmake"
-    INSTALL_DESTINATION "${CONFIG_EXPORT_DIR}"
-    PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR CONFIG_EXPORT_DIR
-  )
-  unset(EXPORT_TARGETS)
-  
-  install(TARGETS sodaprops
-    EXPORT sodaprops-targets
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-  install(EXPORT sodaprops-targets
-    DESTINATION "${CONFIG_EXPORT_DIR}")
-  install(FILES
-    "${PROJECT_BINARY_DIR}/SoDaPropsConfig.cmake"  
-    "${PROJECT_BINARY_DIR}/SoDaPropsConfigVersion.cmake"
-    DESTINATION "${CONFIG_EXPORT_DIR}")
-
-endif()
 
 add_subdirectory(test)
 

@@ -8,7 +8,7 @@ ENDIF()
 PROJECT(SoDaUtilsExample)
 
 FIND_PACKAGE(Threads REQUIRED)
-
+FIND_PACKAGE(yaml-cpp REQUIRED)
 
 # optimizations
 IF(NOT CMAKE_BUILD_TYPE)
@@ -21,7 +21,6 @@ SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math")
 # This is all you need to do if the SoDaUtils stuff
 # was installed correctly. 
 FIND_PACKAGE(SoDaUtils REQUIRED)
-FIND_PACKAGE(SoDaProps)
 
 ########### next target ###############
 
@@ -47,12 +46,11 @@ add_executable(BarrierExample BarrierExample.cxx)
 target_link_libraries(BarrierExample ${SoDaUtils_LIBRARIES} Threads::Threads)
 target_include_directories(BarrierExample PUBLIC ${SoDaUtils_INCLUDE_DIR})
 
-if(SoDaProps_FOUND) 
 add_executable(PropertyTreeYamlExample PropertyTreeYamlExample.cxx)
-target_link_libraries(PropertyTreeYamlExample ${SoDaUtils_LIBRARIES} ${SoDaProps_LIBRARIES}  Threads::Threads)
+target_link_libraries(PropertyTreeYamlExample ${SoDaUtils_LIBRARIES} Threads::Threads ${YAML_CPP_LIBRARIES})
 target_include_directories(PropertyTreeYamlExample 
-  PUBLIC ${SoDaUtils_INCLUDE_DIR} ${SoDaProps_INCLUDE_DIR})
-endif()
+  PUBLIC ${SoDaUtils_INCLUDE_DIR})
+
 
 
 

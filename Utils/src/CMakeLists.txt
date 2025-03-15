@@ -7,18 +7,10 @@ set(UTILS_SRCS
 	Format.cxx
 	UtilsBase.cxx
 	Barrier.cxx
+	PropertyTree.cxx    
+	PropertyTreeYAML.cxx
 )
 
-
-if(yaml-cpp_FOUND)
-  set(PROPS_SRCS
-    PropertyTree.cxx    
-    PropertyTreeYAML.cxx)    
-  add_library(sodaprops STATIC ${PROPS_SRCS})
-  add_library(sodaprops::sodaprops ALIAS sodaprops)
-  target_link_libraries(sodaprops PRIVATE ${YAML_CPP_LIBRARIES})
-  set_target_properties(sodaprops PROPERTIES VERSION ${SoDaUtils_VERSION})
-endif()	
 
 add_library(sodautils STATIC ${UTILS_SRCS})
 add_library(sodautils::sodautils ALIAS sodautils)
@@ -27,10 +19,13 @@ target_link_libraries(sodautils Threads::Threads)
 
 target_include_directories(sodautils
   PUBLIC
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-  #$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SoDa>
+  $<BUILD_INTERFACE:${CURRENT_SOURCE_DIR}/include>
   PRIVATE
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>)
+  $<BUILD_INTERFACE:${CURRENT_SOURCE_DIR}/src>
+  INTERFACE
+  $<BUILD_INTERFACE:${CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SoDa>
+)
 
 target_sources(sodautils
   PRIVATE
@@ -41,3 +36,10 @@ set_target_properties(sodautils PROPERTIES
   SOVERSION "${SoDaUtils_VERSION_MAJOR}.${SoDaUtils_VERSION_MINOR}"
   PROJECT_LABEL "SoDaUtils"
   DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
+
+set(installable_libs sodautils)
+
+install(TARGETS ${installable_libs}
+  EXPORT SoDaUtilsTargets
+  DESTINATION lib)
+

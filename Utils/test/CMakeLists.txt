@@ -29,7 +29,7 @@ target_link_libraries(OptionsTest sodautils)
 
 if(yaml-cpp_FOUND)
   add_executable(PropertyTreeYAML_Test PropertyTreeYAML_Test.cxx)
-  target_link_libraries(PropertyTreeYAML_Test sodautils sodaprops)
+  target_link_libraries(PropertyTreeYAML_Test sodautils ${YAML_CPP_LIBRARIES})
 endif()
 
 enable_testing()

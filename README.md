@@ -137,11 +137,12 @@ I've tried to make this simple.
 ### Dependencies
 
 The dependencies are limited.
-  . git -- optional, but a good idea
-  . cmake
-  . C++ -- must support C++11
-  . FFTW -- without it the build will leave out SoDa:: Signals
-  . doxygen -- without it you don't get all the documentation
+* git -- optional, but a good idea
+* cmake
+* C++ -- must support C++11
+* FFTW -- without it the build will leave out SoDa:: Signals
+* yaml-cpp -- need it for properties utility
+* doxygen -- without it you don't get all the documentation
   that I worked so hard to write.
 
 ### Build Examples
