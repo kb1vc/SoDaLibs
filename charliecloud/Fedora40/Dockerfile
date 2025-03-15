@@ -6,27 +6,18 @@ RUN dnf --assumeyes install fftw-devel
 
 RUN mkdir /soda_testbuild
 WORKDIR /soda_testbuild
-RUN git clone https://github.com/kb1vc/SoDaSignals.git
-RUN git clone https://github.com/kb1vc/SoDaUtils.git
-WORKDIR /soda_testbuild/SoDaSignals
+RUN /mnt/0/get_sodalibs.sh
+
+WORKDIR /soda_testbuild/SoDaLibs
 RUN mkdir build
-WORKDIR /soda_testbuild/SoDaSignals/build
-RUN cmake ../
-RUN make
-RUN ctest
-RUN make install
-WORKDIR /soda_testbuild/SoDaUtils
-RUN mkdir build
-WORKDIR /soda_testbuild/SoDaUtils/build
-RUN cmake ../
-RUN make
-RUN ctest -j 4
-RUN make install
-RUN mkdir /soda_testbuild/example_test
+WORKDIR /soda_testbuild/SoDaLibs/build
+RUN /mnt/0/build_sodalibs.sh
+RUN mkdir -p /soda_testbuild/example_test/SigExamps
+RUN mkdir -p /soda_testbuild/example_test/UtilExamps
 WORKDIR /soda_testbuild/example_test
-RUN cp /usr/local/share/SoDaSignals/examples/* .
-RUN mkdir build
-WORKDIR  /soda_testbuild/example_test/build
-RUN cmake ../
-RUN make
+RUN cp /usr/local/share/SoDaSignals/examples/* ./SigExamps/build
+RUN cp /usr/local/share/SoDaUtils/examples/* ./UtilExamps/build
+RUN /mnt/0/build_utils_examps.sh
+WORKDIR  /soda_testbuild/example_test/SigExamps/build
+RUN /mnt/0/build_signals_examps.sh
 

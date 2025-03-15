@@ -28,7 +28,7 @@
 
 #include "FilterSpec.hxx"
 #include <cmath>
-#include <SoDa/Format.hxx>
+#include <Utils/include/Format.hxx>
 
 namespace SoDa {
   FilterSpec::FilterSpec(float sample_rate, unsigned int taps, 
