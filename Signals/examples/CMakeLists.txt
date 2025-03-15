@@ -27,11 +27,11 @@ FIND_PACKAGE(SoDaUtils REQUIRED)
 
 set(LIB_DIRS ${SoDaSignals_LIBRARY_DIRS} ${SoDaUtils_LIBRARY_DIRS})
 set(LIBS ${SoDaSignals_LIBRARIES} ${SoDaUtils_LIBRARIES})
-set(INCLUDE_DIRS ${SoDaSignals_INCLUDE_DIRS} ${SoDaUtils_INCLUDE_DIRS})
-
+set(INCLUDE_DIRS ${SoDaSignals_INCLUDE_DIR} ${SoDaUtils_INCLUDE_DIR})
+message("INCLUDE_DIRS [${INCLUDE_DIRS}]")
 add_executable(FFTExample FFTExample.cxx)
 target_link_directories(FFTExample PUBLIC ${LIB_DIRS})
-target_link_libraries(FFTExample ${LIBS})
+target_link_libraries(FFTExample PRIVATE ${LIBS})
 target_include_directories(FFTExample PUBLIC ${INCLUDE_DIRS})
 
 add_executable(FilterExample FilterExample.cxx)

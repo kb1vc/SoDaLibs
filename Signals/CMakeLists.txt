@@ -17,36 +17,60 @@ set(SIGNALS_SUBLIB_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 CONFIGURE_FILE (
 "${SIGNALS_SUBLIB_SOURCE_DIR}/version.hxx.in"
-"${PROJECT_BINARY_DIR}/SignalsVersion.hxx"
+"${CMAKE_CURRENT_BINARY_DIR}/SignalsVersion.hxx"
   )
-INCLUDE_DIRECTORIES("${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}")
+INCLUDE_DIRECTORIES("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
-INSTALL(FILES ${PROJECT_BINARY_DIR}/SignalsVersion.hxx DESTINATION "include/SoDa")
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/SignalsVersion.hxx DESTINATION "include/SoDa")
 
 set(SIGNALS_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/SoDaSignals")
-set(EXPORT_TARGETS sodasignals)
+set(FFTW_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/SoDa_FFTW")
+
+include(InstallRequiredSystemLibraries)
+
+install(EXPORT SoDaSignalsTargets
+  FILE SoDaSignalsTargets.cmake
+  DESTINATION ${SIGNALS_CONFIG_EXPORT_DIR}
+)
+
+set(SIGNALS_SUBLIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 configure_package_config_file (
-  "${SIGNALS_SUBLIB_SOURCE_DIR}/SoDaSignalsConfigVersion.cmake.in"
-  "${PROJECT_BINARY_DIR}/SoDaSignalsConfigVersion.cmake"
+  "${SIGNALS_SUBLIB_SOURCE_DIR}/SoDaSignalsConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/SoDaSignalsConfig.cmake"
   INSTALL_DESTINATION "${SIGNALS_CONFIG_EXPORT_DIR}"
-  PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR SIGNALS_CONFIG_EXPORT_DIR
-  )  
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)  
 
-  write_basic_package_version_file(
-    "${PROJECT_BINARY_DIR}/SoDaSignalsConfigVersion.cmake"
-    VERSION "${SoDaSignals_VERSION}"  
-    COMPATIBILITY AnyNewerVersion)
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/SoDaSignalsConfigVersion.cmake"
+  VERSION "${SoDaSignals_VERSION}"  
+  COMPATIBILITY AnyNewerVersion)
   
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/SoDaSignalsConfig.cmake
+  DESTINATION ${SIGNALS_CONFIG_EXPORT_DIR}
+)
 
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${SIGNALS_SUBLIB_SOURCE_DIR}/include)
+## FFTW still doesn't have an actual find cmake package.
+## I'm usign one kindly created by Wenzel Jakop and Patrick Bos (see the LICENSE files)
+FILE(GLOB find_fftw_files ${PROJECT_SOURCE_DIR}/cmake/Modules/FindFFTW.*E*)
+INSTALL(FILES
+  ${find_fftw_files}
+  DESTINATION ${FFTW_CONFIG_EXPORT_DIR}
+)
 
-message("FFTW3f_LIBRARIES ${FFTW3f_LIBRARIES}")
-set(SIGNALS_DEP_LIBS ${FFTW3f_LIBRARIES})
-list(APPEND SIGNALS_DEP_LIBS sodautils)
+INSTALL(FILES
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindFFTW.cmake
+  DESTINATION ${FFTW_CONFIG_EXPORT_DIR}
+  RENAME SoDa_FFTWConfig.cmake
+)
+
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${SIGNALS_SUBLIB_SOURCE_DIR}/include)
 
 # redirect sodautils includes
-set(sodautils_include_dirs ${PROJECT_SOURCE_DIR}/Utils/include)
+set(sodautils_include_dirs ${CMAKE_CURRENT_SOURCE_DIR}/Utils/include)
 
 
 set(DEP_INCLS ${FFTW3f_INCLUDE_DIRS} ${sodautils_include_dirs})

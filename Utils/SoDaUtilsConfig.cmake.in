@@ -15,7 +15,8 @@ set(SoDaUtils_LIBRARIES sodautils)
 set(SoDaUtils_FOUND TRUE)
 
 include(CMakeFindDependencyMacro)
-find_dependency(yaml-cpp)
+find_dependency(yaml-cpp REQUIRED)
+find_dependency(Threads REQUIRED)
 
 # Our library dependencies (contains definitions for IMPORTED targets)
 #  include(@PACKAGE_CONFIG_EXPORT_DIR@/sodautils-targets.cmake)

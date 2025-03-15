@@ -1,13 +1,7 @@
 
 FIND_PACKAGE(Threads REQUIRED)
 
-get_property(th_imported_targets DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY IMPORTED_TARGETS)
-message("after threads imported targets [${th_imported_targets}]")
-
 FIND_PACKAGE(yaml-cpp REQUIRED)
-get_property(yaml_imported_targets DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY IMPORTED_TARGETS)
-message("after yaml imported targets [${yaml_imported_targets}]")
-
 
 # Automatic CMake config generation inspired from https://github.com/jbeder/yaml-cpp.git
 INCLUDE(CMakePackageConfigHelpers)
@@ -82,8 +76,6 @@ write_basic_package_version_file(
   VERSION "${SoDaUtils_VERSION}"
   COMPATIBILITY AnyNewerVersion)
 
-message("CCBD [${CMAKE_CURRENT_BINARY_DIR}] PBD [${CMAKE_CURRENT_BINARY_DIR}]")
-
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/SoDaUtilsConfig.cmake
   DESTINATION ${UTILS_CONFIG_EXPORT_DIR}
@@ -92,6 +84,3 @@ install(FILES
 
 add_subdirectory(test)
 
-
-get_property(imported_targets DIRECTORY "${CMAKE_SOURCE_DIR}" PROPERTY IMPORTED_TARGETS)
-message("imported targets [${imported_targets}]")
