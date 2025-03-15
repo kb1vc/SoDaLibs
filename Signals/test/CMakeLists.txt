@@ -1,31 +1,34 @@
 
 add_executable(FFTTest FFTTest.cxx)
-target_link_libraries(FFTTest sodasignals ${FFTW3_LIBRARIES} sodautils)
+
+message("this should be set: FFTW3f_LIBRARIES ${FFTW3f_LIBRARIES} dirs ${FFTW3f_LIBRARY_DIRS}")
+target_link_libraries(FFTTest  ${FFTW3f_LIBRARIES} sodasignals sodautils::sodautils)
+target_link_directories(FFTTest PUBLIC ${FFTW3f_LIBRARY_DIRS})
 target_include_directories(FFTTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 add_executable(FFTTiming FFTTiming.cxx)
-target_link_libraries(FFTTiming sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_link_libraries(FFTTiming sodasignals ${FFTW3f_LIBRARIES} sodautils)
 target_include_directories(FFTTiming PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 add_executable(FilterTest FilterTest.cxx Checker.cxx)
-target_link_libraries(FilterTest sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_link_libraries(FilterTest sodasignals ${FFTW3f_LIBRARIES} sodautils)
 target_include_directories(FilterTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 add_executable(OSFilterTest OSFilterTest.cxx Checker.cxx)
-target_link_libraries(OSFilterTest sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_link_libraries(OSFilterTest sodasignals ${FFTW3f_LIBRARIES} sodautils)
 target_include_directories(OSFilterTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 
 add_executable(PeriodogramTest PeriodogramTest.cxx)
-target_link_libraries(PeriodogramTest sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_link_libraries(PeriodogramTest sodasignals ${FFTW3f_LIBRARIES} sodautils)
 target_include_directories(PeriodogramTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 add_executable(ReSamplerTest ReSamplerTest.cxx Checker.cxx)
-target_link_libraries(ReSamplerTest sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_link_libraries(ReSamplerTest sodasignals ${FFTW3f_LIBRARIES} sodautils)
 target_include_directories(ReSamplerTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 add_executable(ReSamplerSweep ReSamplerSweep.cxx)
-target_link_libraries(ReSamplerSweep sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_link_libraries(ReSamplerSweep sodasignals ${FFTW3f_LIBRARIES} sodautils)
 target_include_directories(ReSamplerSweep PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 

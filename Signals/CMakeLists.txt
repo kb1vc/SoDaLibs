@@ -21,7 +21,7 @@ CONFIGURE_FILE (
   )
 INCLUDE_DIRECTORIES("${PROJECT_BINARY_DIR}")
 
-INSTALL(FILES ${PROJECT_BINARY_DIR}/SignalsVersion.h DESTINATION "include/SoDa")
+INSTALL(FILES ${PROJECT_BINARY_DIR}/SignalsVersion.hxx DESTINATION "include/SoDa")
 
 set(SIGNALS_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/SoDaSignals")
 set(EXPORT_TARGETS sodasignals)
@@ -41,15 +41,15 @@ configure_package_config_file (
 
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${SIGNALS_SUBLIB_SOURCE_DIR}/include)
 
-message("FFTW3_LIBRARIES ${FFTW3_LIBRARIES}")
-set(SIGNALS_DEP_LIBS ${FFTW3_LIBRARIES})
+message("FFTW3f_LIBRARIES ${FFTW3f_LIBRARIES}")
+set(SIGNALS_DEP_LIBS ${FFTW3f_LIBRARIES})
 list(APPEND SIGNALS_DEP_LIBS sodautils)
 
 # redirect sodautils includes
 set(sodautils_include_dirs ${PROJECT_SOURCE_DIR}/Utils/include)
 
 
-set(DEP_INCLS ${FFTW3_INCLUDE_DIRS} ${sodautils_include_dirs})
+set(DEP_INCLS ${FFTW3f_INCLUDE_DIRS} ${sodautils_include_dirs})
 
 set(SWIG_ENABLED 0)
 
