@@ -28,7 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VERSION_HDR
 #define VERSION_HDR
 #define SoDaSignals_VERSION "@SoDaSignals_VERSION@"
-#define SoDaSignals_GIT_ID "@SoDaSignals_GIT_ID@"
+#define SoDaSignals_GIT_ID "@SoDaLibs_GIT_ID@"
 
 #define SoDaSignals_VERSION_MAJOR @SoDaSignals_VERSION_MAJOR@
 #define SoDaSignals_VERSION_MINOR @SoDaSignals_VERSION_MINOR@
