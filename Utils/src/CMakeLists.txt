@@ -46,6 +46,3 @@ install(TARGETS ${installable_libs}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-
-get_property(imported_targets DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY IMPORTED_TARGETS)
-message("imported targets [${imported_targets}]")
