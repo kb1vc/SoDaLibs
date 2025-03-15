@@ -1,15 +1,41 @@
-# SoDa:: Utilities
+# SoDa:: Utilities and Signal libraries
 
-The sodautilities library provides some simple classes to do things like
-parse command lines and format output in a way that a sensible person might
-appreciate.
+SoDa Utilities and SoDa Signals are libraries developed as part of the
+SoDaRadio project that I've been working on for a long while. They
+are C++ libraries. No attempt has been made to make them callable
+from other languages. No attempt has been made to build them on
+non-linux platforms.  
+
+The sodautilities library provides some simple classes to do things
+like parse com mand lines and format output in a way that a sensible
+person might appreciate.
+
+The sodasignals library provides classes that do the signal
+processing required in SoDaRadio: FFT, filters, resamplers,
+and periodograms.
+
+To get to doxygen generated documentation that is more detailed than
+the following summary, build the library, install it, and go to
+{whateveryourinstallationrootis}/share/SoDaUtils/doc/html/index.html
+or go to
+{whateveryourinstallationrootis}/share/SoDaSignals/doc/html/index.html
+
+Originally these two libraries were in separate github repos. But
+SoDa Signals depends on SoDa Utils for string handling, and might
+use more in the future. Bundling the two libraries into one
+repo and, more importantly, one installation task simplifies
+things a great deal. (Yes, git and cmake folks, I am sure there
+is git and cmake magic that will do this without the repo merge.
+But I couldn't make it work reliably.)
+  
+## SoDa:: Utilities
 
 There are three pieces right now:
 * Options -- a command line parser
 * Format -- string formatting with a nice facility for "engineering notation"
 * Utils -- string functions, and perhaps other "helpful" things
 
-## SoDa::Options a simple command line / option parser
+### SoDa::Options a simple command line / option parser
 
  SoDa::Options is a class that allows the programmer to specify
  command line options (like --help, --out, --enable-deep-fry --set-sauce=Memphis)
@@ -29,7 +55,7 @@ There are three pieces right now:
  If this looks a lot like boost::program_options, then that is no
  accident.  But I just need to get rid of this piano.
 
-## SoDa::Format print stuff.
+### SoDa::Format print stuff.
 
  To get to doxygen generated documentation that is more detailed 
  than the following summary, go [here](https://kb1vc.github.io/SoDaFormat/)
@@ -74,49 +100,59 @@ instead of the grotesque
 
 Who even *thinks* like that?
 
-## Utilities
+### Utilities
 
 Right now the only "miscellaneous" stuff has to do with splitting strings.
 See the documentation for Utils.hxx for more information. 
 
-## Dependencies
+## SoDa:: Signals
 
-SoDaSignals requires very little in terms of libraries and other
-stuff.
-  . git
+
+The sodasignals library provides classes that provide
+  . SoDa::FFT I like FFTW, but the API is strictly
+  1980's FORTRAN. It needed a C++ interface.
+  . SoDa::Filter  The Filter class creates FIR filters
+  with the window filter method. It also applies an
+  apply method to run the filter on a single buffer. 
+  . SoDa::OSFilter Lots of textbooks show you how to
+  build a filter for a single buffer. But applications
+  that produce a stream of buffers to a filter require
+  something like the Overlap and Save method. OSFilter
+  does that.
+  . SoDa::Resampler  Resampling is hard. SoDa Signals
+  tries to fix that for "reasonable" ratios that include
+  all the ones that I've found important. (Like converting
+  from 1.25 MS/s to 44.1 kS/s.)
+  . SoDa::Periodogram Spectral analysis is *not* DFT.
+  The Periodogram class produces power spectral density
+  vectors using one of a set of windows. 
+
+## Building the Libraries
+
+I've tried to make this simple. 
+
+### Dependencies
+
+The dependencies are limited.
+  . git -- optional, but a good idea
   . cmake
-  . C++: Any version supporting the C++11 standard
-  
-and that's it.
+  . C++ -- must support C++11
+  . FFTW -- without it the build will leave out SoDa:: Signals
+  . doxygen -- without it you don't get all the documentation
+  that I worked so hard to write.
 
-### For Fedora 34: 
-```
-dnf install gcc-c++ 
-dnf install git cmake
-```
+### Build Examples
 
-Optionally, to get nice documentation in html form
-```
-dnf install doxygen
-```
+I've built the libraries on "current" versions of Fedora and Ubuntu.
+The scripts are part of Docker files found in the charliecloud
+directory. The scripts install the "normal" programming tools
+and FFTW.
 
-### For Unbuntu 21
+Look there. 
 
-```
-apt install g++
-apt install git
-apt install cmake
-```
+### Installing
 
-And the optional doxygen kit: 
-```
-apt install doxygen
-```
-
-
-## Installing
-
-Just like any other CMake project.  For instance, to install the
+It is just like any other CMake project.  For instance, to install the
 package in /usr/local ... From this directory
 
 ```
@@ -131,10 +167,11 @@ sudo make install
 This will install the libraries in /usr/local/lib or lib64 as appropriate
 and all the useful include files in /usr/local/include/SoDa
 
-It will also write doxygen output that starts at /usr/local/share/doc/SoDaUtils/html/index.html
+It will also write doxygen output that starts at /usr/local/share/doc/SoDaUtils/html/index.html and
+/usr/local/share/doc/SoDaSignals/html/index.html and 
 
 
-### Installing Without root
+#### Installing Without root
 It is possible to install the library in a private directory (without needing root) like this: 
 
 
@@ -156,12 +193,16 @@ cmake -DCMAKE_PREFIX_PATH=${HOME}/my_tools ../
 That will tell cmake to look in your directory for the relevant cmake
 files that describe where to find the libraries and headers.
 
+### Testing and Using it all
 
+Take a look at the Utils/Examples and Signals/Examples directories.
 
-## Testing and Using it all
+Take a look at the CMakeLists.txt files to see how to refer
+to the SoDa libraries. 
 
-Take a look at the CMakeLists.txt file and OptionsExample.cxx and FormatExample.cxx in the example
-directory.  If the installation has gone right, then you should be able to do this from this directory.  But remember, if you installed the utils in some nonstandard directory, you'll need to add
+If the installation went well, you can copy them from wherever your
+distro puts Examples.
+Then you should be able to do this from this directory.  But remember, if you installed the utils in some nonstandard directory, you'll need to add
 ```
 cmake -DCMAKE_PREFIX_PATH=${HOME}/my_tools ../
 ```
@@ -172,12 +213,6 @@ mkdir build
 cd build
 cmake ../
 make
-./OptionsExample --help
-./OptionsExample --intarg 3 --boolarg 1 --presarg --strarg "Fred and Barney" --strlistarg "Wilma" --strlistarg "Betty"
-
-./FormatExample
-
-./UtilsExample
 ```
 
 Did that work?
