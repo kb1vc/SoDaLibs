@@ -53,6 +53,12 @@ INSTALL(FILES ${examp_files}
   DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/SoDaUtils/examples  
 )
 
+target_include_directories(sodautils
+  PUBLIC
+  $<BUILD_INTERFACE:${CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
 set(UTILS_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/SoDaUtils")
 
 include(InstallRequiredSystemLibraries)

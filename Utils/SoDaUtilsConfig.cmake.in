@@ -11,8 +11,14 @@ include(${CMAKE_CURRENT_LIST_DIR}/SoDaUtilsTargets.cmake)
 
 set(SoDaUtils_INCLUDE_DIR "@CMAKE_INSTALL_PREFIX@/include")
 set(SoDaUtils_LIBRARY_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
-set(SoDaUtils_LIBRARIES sodautils)
+set(SoDaUtils_LIBRARIES "@EXPORT_TARGET@")
 set(SoDaUtils_FOUND TRUE)
+
+if(NOT TARGET sodautils)
+  add_library(sodautils INTERFACE IMPORTED)
+  target_link_libraries(sodautils INTERFACE sodautils::sodautils)
+  target_include_directories(sodautils INTERFACE ${SoDaUtils_INCLUDE_DIR})
+endif()
 
 include(CMakeFindDependencyMacro)
 find_dependency(yaml-cpp REQUIRED)

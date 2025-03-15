@@ -1,6 +1,6 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0) # this lets out really old distros like CentOS 6
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10.0) # this lets out really old distros like CentOS 6
 
-IF(CMAKE_VERSION VERSION_GREATER 3.0.0)
+IF(CMAKE_VERSION VERSION_GREATER 3.10.0)
   CMAKE_POLICY(SET CMP0048 NEW)
   SET(CMAKE_CXX_STANDARD 11)
 ENDIF()
@@ -26,30 +26,25 @@ FIND_PACKAGE(SoDaUtils REQUIRED)
 
 
 add_executable(UtilsExample UtilsExample.cxx)
-target_link_libraries(UtilsExample ${SoDaUtils_LIBRARIES})
-target_include_directories(UtilsExample PUBLIC ${SoDaUtils_INCLUDE_DIR})
+target_link_libraries(UtilsExample PRIVATE sodautils)
+
 
 add_executable(OptionsExample OptionsExample.cxx)
-target_link_libraries(OptionsExample ${SoDaUtils_LIBRARIES})
-target_include_directories(OptionsExample PUBLIC ${SoDaUtils_INCLUDE_DIR})
+target_link_libraries(OptionsExample PRIVATE sodautils)
 
 add_executable(FormatExample FormatExample.cxx)
-target_link_libraries(FormatExample ${SoDaUtils_LIBRARIES})
-target_include_directories(FormatExample PUBLIC ${SoDaUtils_INCLUDE_DIR})
+target_link_libraries(FormatExample PRIVATE sodautils)
 
 add_executable(Format_Test Format_Test.cxx)
-target_link_libraries(Format_Test ${SoDaUtils_LIBRARIES})
-target_include_directories(Format_Test PUBLIC ${SoDaUtils_INCLUDE_DIR})
+target_link_libraries(Format_Test PRIVATE sodautils)
 
 
 add_executable(BarrierExample BarrierExample.cxx)
-target_link_libraries(BarrierExample ${SoDaUtils_LIBRARIES} Threads::Threads)
-target_include_directories(BarrierExample PUBLIC ${SoDaUtils_INCLUDE_DIR})
+target_link_libraries(BarrierExample PRIVATE sodautils Threads::Threads)
 
 add_executable(PropertyTreeYamlExample PropertyTreeYamlExample.cxx)
-target_link_libraries(PropertyTreeYamlExample ${SoDaUtils_LIBRARIES} Threads::Threads)
-target_include_directories(PropertyTreeYamlExample 
-  PUBLIC ${SoDaUtils_INCLUDE_DIR})
+target_link_libraries(PropertyTreeYamlExample PRIVATE sodautils Threads::Threads)
+
 
 
 
