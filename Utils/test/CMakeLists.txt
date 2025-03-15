@@ -24,12 +24,14 @@ target_link_libraries(MailBoxTest sodautils Threads::Threads)
 add_executable(BarrierTest BarrierTest.cxx)
 target_link_libraries(BarrierTest sodautils Threads::Threads)
 
+
 add_executable(OptionsTest OptionsTest.cxx)
 target_link_libraries(OptionsTest sodautils)
 
 if(yaml-cpp_FOUND)
   add_executable(PropertyTreeYAML_Test PropertyTreeYAML_Test.cxx)
-  target_link_libraries(PropertyTreeYAML_Test sodautils ${YAML_CPP_LIBRARIES})
+  target_link_libraries(PropertyTreeYAML_Test sodautils yaml-cpp)
+
 endif()
 
 enable_testing()

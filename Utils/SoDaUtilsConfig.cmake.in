@@ -14,6 +14,8 @@ set(SoDaUtils_LIBRARY_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
 set(SoDaUtils_LIBRARIES sodautils)
 set(SoDaUtils_FOUND TRUE)
 
+include(CMakeFindDependencyMacro)
+find_dependency(yaml-cpp)
 
 # Our library dependencies (contains definitions for IMPORTED targets)
 #  include(@PACKAGE_CONFIG_EXPORT_DIR@/sodautils-targets.cmake)

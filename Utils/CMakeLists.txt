@@ -1,6 +1,13 @@
 
 FIND_PACKAGE(Threads REQUIRED)
+
+get_property(th_imported_targets DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY IMPORTED_TARGETS)
+message("after threads imported targets [${th_imported_targets}]")
+
 FIND_PACKAGE(yaml-cpp REQUIRED)
+get_property(yaml_imported_targets DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY IMPORTED_TARGETS)
+message("after yaml imported targets [${yaml_imported_targets}]")
+
 
 # Automatic CMake config generation inspired from https://github.com/jbeder/yaml-cpp.git
 INCLUDE(CMakePackageConfigHelpers)
@@ -24,14 +31,6 @@ CONFIGURE_FILE("${CMAKE_CURRENT_LIST_DIR}/version.hxx.in"
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/include ${YAML_CPP_INCLUDE_DIR})
 
 FILE(GLOB all_includes ${CMAKE_CURRENT_LIST_DIR}/include/*.hxx)
-
-if(NOT yaml-cpp_FOUND) 
-  FILE(GLOB ptree_includes ${CMAKE_CURRENT_LIST_DIR}/include/Property*.hxx)
-  foreach(pti IN LISTS ptree_includes)
-    list(REMOVE_ITEM all_includes ${pti})  
-  endforeach()
-endif()
-
 
 INSTALL(FILES ${PROJECT_BINARY_DIR}/UtilsVersion.hxx DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/SoDa")
 INSTALL(FILES ${all_includes} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/SoDa")
@@ -93,3 +92,6 @@ install(FILES
 
 add_subdirectory(test)
 
+
+get_property(imported_targets DIRECTORY "${CMAKE_SOURCE_DIR}" PROPERTY IMPORTED_TARGETS)
+message("imported targets [${imported_targets}]")
