@@ -1,0 +1,24 @@
+FROM ubuntu_sodabase
+
+RUN mkdir -p /soda_testbuild
+WORKDIR /soda_testbuild
+RUN /mnt/0/get_sodalibs.sh
+
+WORKDIR /soda_testbuild/SoDaLibs
+RUN mkdir -p build
+WORKDIR /soda_testbuild/SoDaLibs/build
+RUN /mnt/0/build_sodalibs.sh
+
+RUN mkdir -p  /soda_testbuild/example_test/SigExamps/build
+RUN mkdir -p  /soda_testbuild/example_test/UtilExamps/build
+WORKDIR /soda_testbuild/example_test
+
+RUN cp /usr/local/share/SoDaSignals/examples/* ./SigExamps/
+RUN cp /usr/local/share/SoDaUtils/examples/* ./UtilExamps/
+
+WORKDIR  /soda_testbuild/example_test/UtilExamps/build
+RUN /mnt/0/build_util_examps.sh
+
+WORKDIR  /soda_testbuild/example_test/SigExamps/build
+RUN /mnt/0/build_signal_examps.sh
+

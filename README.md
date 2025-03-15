@@ -1,4 +1,4 @@
-# SoDa:: Utilities and Signal libraries
+# SoDa Utilities and Signal libraries
 
 SoDa Utilities and SoDa Signals are libraries developed as part of the
 SoDaRadio project that I've been working on for a long while. They
@@ -28,7 +28,11 @@ things a great deal. (Yes, git and cmake folks, I am sure there
 is git and cmake magic that will do this without the repo merge.
 But I couldn't make it work reliably.)
   
-## SoDa:: Utilities
+Everything here is in the SoDa namespace. Life is complicated, and
+this keeps SoDa related code from colliding with code from other places. 
+Until somebody screws up. 
+  
+## SoDa Utilities
 
 There are three pieces right now:
 * Options -- a command line parser
@@ -105,10 +109,10 @@ Who even *thinks* like that?
 Right now the only "miscellaneous" stuff has to do with splitting strings.
 See the documentation for Utils.hxx for more information. 
 
-## SoDa:: Signals
+## SoDa Signals
 
 
-The sodasignals library provides classes that provide
+The sodasignals library is a collection of classes that provide
 
 * SoDa::FFT I like FFTW, but the API is strictly
   1980's FORTRAN. It needed a C++ interface.
@@ -145,6 +149,25 @@ The dependencies are limited.
 * doxygen -- without it you don't get all the documentation
   that I worked so hard to write.
 
+#### For Fedora:
+
+```
+dnf --assumeyes update
+dnf --assumeyes install gcc-c++ git cmake make
+dnf --assumeyes install fftw-devel
+#  Fedora apparently puts the yaml cmake support in the static kit.
+#  I sure they had a reason.  
+dnf --assumeyes install yaml-cpp-static 
+```
+
+#### For Ubuntu:
+
+```
+apt-get install -y build-essential
+apt-get install -y libfftw3-dev
+apt-get install -y git cmake make g++
+apt-get install -y libyaml-cpp-dev
+```
 ### Build Examples
 
 I've built the libraries on "current" versions of Fedora and Ubuntu.
@@ -152,7 +175,7 @@ The scripts are part of Docker files found in the charliecloud
 directory. The scripts install the "normal" programming tools
 and FFTW.
 
-Look there. 
+
 
 ### Installing
 
@@ -167,7 +190,6 @@ make
 sudo make install
 ```
 
-
 This will install the libraries in /usr/local/lib or lib64 as appropriate
 and all the useful include files in /usr/local/include/SoDa
 
@@ -177,7 +199,6 @@ It will also write doxygen output that starts at /usr/local/share/doc/SoDaUtils/
 
 #### Installing Without root
 It is possible to install the library in a private directory (without needing root) like this: 
-
 
 ```
 mkdir build
@@ -207,6 +228,7 @@ to the SoDa libraries.
 If the installation went well, you can copy them from wherever your
 distro puts Examples.
 Then you should be able to do this from this directory.  But remember, if you installed the utils in some nonstandard directory, you'll need to add
+
 ```
 cmake -DCMAKE_PREFIX_PATH=${HOME}/my_tools ../
 ```
