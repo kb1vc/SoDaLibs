@@ -1,0 +1,17 @@
+Bootstrap: localimage
+From: Fedora_CommonTools.sif
+#%environment
+ #START_SCRIPT=${START_SCRIPT:-''}
+%post
+ echo "Building new image"
+ #STEP1
+ #STEP2
+ #STEP3
+
+
+
+%help
+ This builds a fedora 37 image with the bare requisites to build the kit
+  
+
+  

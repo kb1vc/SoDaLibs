@@ -1,0 +1,24 @@
+# - Config file for the SoDaProps package
+# inspired/borrowed from https://github.com/jbeder/yaml-cpp.git
+#
+# It defines the following variables
+#  SoDaProps_INCLUDE_DIR       - include directory
+#  SoDaProps_LIBRARY_DIR       - directory containing libraries
+#  SoDaProps_SHARED_LIBS_BUILT - whether we have built shared libraries or not
+#  SoDaProps_LIBRARIES         - libraries to link against
+
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+# nope -- we built a static lib find_dependency(yaml-cpp REQUIRED)
+
+
+set_and_check(SoDaProps_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+set_and_check(SoDaProps_LIBRARY_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
+
+
+# Our library dependencies (contains definitions for IMPORTED targets)
+include(@PACKAGE_CONFIG_EXPORT_DIR@/sodaprops-targets.cmake)
+ 
+set(SoDaProps_LIBRARIES "@EXPORT_TARGETS@")
+
+check_required_components(@EXPORT_TARGETS@)
