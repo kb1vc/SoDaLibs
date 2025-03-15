@@ -35,21 +35,20 @@
 
 @PACKAGE_INIT@
 
-##include(${CMAKE_CURRENT_LIST_DIR}/getFFTW.cmake)
-
 include(${CMAKE_CURRENT_LIST_DIR}/SoDaSignalsTargets.cmake)
 
 set(SoDaSignals_INCLUDE_DIR "@CMAKE_INSTALL_PREFIX@/include")
 set(SoDaSignals_LIBRARY_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
-set(SoDaSignals_LIBRARIES sodasignals)
+#set(SoDaSignals_LIBRARIES sodasignals)
+set(SoDaSignals_LIBRARIES "@EXPORT_TARGETS@")
 set(SoDaSignals_FOUND TRUE)
 
-
-message("pre CMAKE_MODULE_PATH = [${CMAKE_MODULE_PATH}]")
-
-set(CMAKE_FIND_PACKAGE_REDIRECTS_DIR ${CMAKE_CURRENT_LIST_DIR})
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_MODULE_PATH})
-message("CMAKE_MODULE_PATH = [${CMAKE_MODULE_PATH}]")
+## borrowed from yaml-cpp config
+if(NOT TARGET sodasignals)
+  add_library(sodasignals INTERFACE IMPORTED)
+  target_link_libraries(sodasignals INTERFACE sodasignals::sodasignals)
+  target_include_directories(sodasignals INTERFACE ${SoDaSignals_INCLUDE_DIR})
+endif()
 
 include(CMakeFindDependencyMacro)
 find_dependency(SoDa_FFTW REQUIRED)

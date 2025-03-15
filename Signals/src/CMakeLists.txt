@@ -18,9 +18,15 @@ target_link_directories(sodasignals PUBLIC ${FFTW3_LIBRARY_DIRS} ${FFTW3F_LIBRAR
 set(SIGNALS_VERSION "${SoDaSignals_VERSION_MAJOR}.${SoDaSignals_VERSION_MINOR}.${SoDaSignals_VERSION_PATCH}")
 set_target_properties(sodasignals PROPERTIES VERSION ${SIGNALS_VERSION})
 
+target_include_directories(sodasignals
+  PUBLIC
+  $<BUILD_INTERFACE:${CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
 #install(TARGETS sodasignals DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(TARGETS sodasignals
   EXPORT SoDaSignalsTargets
-  DESTINATION lib
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
 

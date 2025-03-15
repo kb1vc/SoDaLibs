@@ -52,12 +52,4 @@ else()
   set(PACKAGE_VERSION_EXACT FALSE)
 endif()
 
-
-include(CMakeFindDependencyMacro)
-find_dependency(FFTW REQUIRED)
-
-+set(SoDaSignals_INCLUDE_DIR "@CMAKE_INSTALL_PREFIX@/include")
-+set(SoDaSignals_LIBRARY_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
-+set(SoDaSignals_LIBRARIES sodautils)
-+set(SoDaSignals_FOUND TRUE)
  

@@ -43,7 +43,8 @@ set(installable_libs sodautils)
 
 install(TARGETS ${installable_libs}
   EXPORT SoDaUtilsTargets
-  DESTINATION lib)
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
 
 
 get_property(imported_targets DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY IMPORTED_TARGETS)
