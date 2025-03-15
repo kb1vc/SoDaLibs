@@ -1,12 +1,3 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0) # this lets out really old distros like CentOS 6
-
-
-IF(CMAKE_VERSION VERSION_GREATER 3.0.0)
-  CMAKE_POLICY(SET CMP0048 NEW)
-  SET(CMAKE_CXX_STANDARD 11)
-ENDIF()
-
-PROJECT(SoDaSignals)
 
 INCLUDE(GNUInstallDirs)
 INCLUDE(CTest)
@@ -18,78 +9,47 @@ SET(SoDaSignals_VERSION "${SoDaSignals_VERSION_MAJOR}.${SoDaSignals_VERSION_MINO
 
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" ${CMAKE_MODULE_PATH} )
 
-# optimizations
-IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE Debug)
-ENDIF()
-
-SET(CMAKE_CXX_FLAGS_DEBUG "-g")
-SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math")
-
 MESSAGE("SoDaSignals_VERSION=[${SoDaSignals_VERSION}]")
 
-FIND_PACKAGE(Git QUIET)
+SET(DOXY_PROJECT_VERSION "${SoDaSignals_VERSION}-${SoDaUtils_GIT_ID}")
 
-IF((EXISTS "${CMAKE_SOURCE_DIR}/.git/") AND GIT_FOUND)
-  EXECUTE_PROCESS(
-    COMMAND git rev-parse --abbrev-ref HEAD
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE GIT_BRANCH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-  EXECUTE_PROCESS(
-    COMMAND git log -1 --format=%h
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE GIT_COMMIT_HASH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-  SET(SoDaSignals_GIT_ID "${GIT_BRANCH}:${GIT_COMMIT_HASH}")
-  FILE(WRITE ${CMAKE_BINARY_DIR}/saved_git_version.txt "${GIT_BRANCH}\n")
-  FILE(APPEND ${CMAKE_BINARY_DIR}/saved_git_version.txt "${GIT_COMMIT_HASH}\n")    
-elseIF(EXISTS ${CMAKE_BINARY_DIR}/saved_git_version.txt)
-  MESSAGE("Retrieving GIT version info from saved_git_version.txt")
-  FILE(STRINGS ${CMAKE_BINARY_DIR}/saved_git_version.txt git_version_strings)
-  LIST(GET git_version_strings 0 GIT_BRANCH)
-  LIST(GET git_version_strings 1 GIT_COMMIT_HASH)
-  SET(SoDaSignals_GIT_ID "${GIT_BRANCH}:${GIT_COMMIT_HASH}")
-else()
-  SET(SoDaSignals_GIT_ID "UNKNOWN")  
-ENDIF()
-
-SET(DOXY_PROJECT_VERSION "${SoDaSignals_VERSION}-${SoDaSignals_GIT_ID}")
+set(SIGNALS_SUBLIB_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 CONFIGURE_FILE (
-"${PROJECT_SOURCE_DIR}/version.h.in"
-"${PROJECT_BINARY_DIR}/SignalsVersion.h"
+"${SIGNALS_SUBLIB_SOURCE_DIR}/version.hxx.in"
+"${PROJECT_BINARY_DIR}/SignalsVersion.hxx"
   )
 INCLUDE_DIRECTORIES("${PROJECT_BINARY_DIR}")
 
 INSTALL(FILES ${PROJECT_BINARY_DIR}/SignalsVersion.h DESTINATION "include/SoDa")
 
-CONFIGURE_FILE (
-  "${PROJECT_SOURCE_DIR}/SoDaSignalsConfigVersion.cmake.in"
+set(SIGNALS_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/SoDaSignals")
+set(EXPORT_TARGETS sodasignals)
+
+configure_package_config_file (
+  "${SIGNALS_SUBLIB_SOURCE_DIR}/SoDaSignalsConfigVersion.cmake.in"
   "${PROJECT_BINARY_DIR}/SoDaSignalsConfigVersion.cmake"
-  @ONLY
+  INSTALL_DESTINATION "${SIGNALS_CONFIG_EXPORT_DIR}"
+  PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR SIGNALS_CONFIG_EXPORT_DIR
   )  
 
-INSTALL(FILES ${PROJECT_BINARY_DIR}/SoDaSignalsConfigVersion.cmake DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/SoDaSignals")
-INSTALL(FILES ${PROJECT_SOURCE_DIR}/SoDaSignalsConfig.cmake DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/SoDaSignals")
-
-
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/include)
-
-
-FIND_PACKAGE(FFTW3 REQUIRED)
-
-# Find SoDaUtils and build it if we must. 
-include(${PROJECT_SOURCE_DIR}/cmake/Modules/BuildSoDaUtils.cmake)
-
+  write_basic_package_version_file(
+    "${PROJECT_BINARY_DIR}/SoDaSignalsConfigVersion.cmake"
+    VERSION "${SoDaSignals_VERSION}"  
+    COMPATIBILITY AnyNewerVersion)
   
-set(DEP_LIBS ${FFTW3_LIBRARIES})
-list(APPEND DEP_LIBS ${SoDaUtils_LIBRARIES})
 
-set(DEP_INCLS ${FFTW3_INCLUDE_DIRS})
-list(APPEND DEP_INCLS ${SoDaUtils_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${SIGNALS_SUBLIB_SOURCE_DIR}/include)
+
+message("FFTW3_LIBRARIES ${FFTW3_LIBRARIES}")
+set(SIGNALS_DEP_LIBS ${FFTW3_LIBRARIES})
+list(APPEND SIGNALS_DEP_LIBS sodautils)
+
+# redirect sodautils includes
+set(sodautils_include_dirs ${PROJECT_SOURCE_DIR}/Utils/include)
+
+
+set(DEP_INCLS ${FFTW3_INCLUDE_DIRS} ${sodautils_include_dirs})
 
 set(SWIG_ENABLED 0)
 
@@ -98,14 +58,13 @@ set(SWIG_ENABLED 0)
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(include)
 ADD_SUBDIRECTORY(test)
-ADD_SUBDIRECTORY(cmake/Modules)
 
 FIND_PACKAGE(Doxygen QUIET)
 
 IF(DOXYGEN_FOUND)
-  CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+  CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/DoxyfileSignals @ONLY)
   ADD_CUSTOM_TARGET(doc ALL
-    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile 
+    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/DoxyfileSignals
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating API documentation with Doxygen" VERBATIM
     )

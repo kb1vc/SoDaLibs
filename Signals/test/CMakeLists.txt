@@ -1,39 +1,32 @@
 
 add_executable(FFTTest FFTTest.cxx)
-target_link_libraries(FFTTest sodasignals ${SoDaUtils_LIBRARIES})
-target_link_directories(FFTTest PUBLIC ${SoDaUtils_LIBRARY_DIRS})
-target_include_directories(FFTTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${SoDaUtils_INCLUDE_DIRS})
+target_link_libraries(FFTTest sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_include_directories(FFTTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 add_executable(FFTTiming FFTTiming.cxx)
-target_link_libraries(FFTTiming sodasignals ${SoDaUtils_LIBRARIES})
-target_link_directories(FFTTiming PUBLIC ${SoDaUtils_LIBRARY_DIRS})
-target_include_directories(FFTTiming PUBLIC ${PROJECT_SOURCE_DIR}/include ${SoDaUtils_INCLUDE_DIRS})
+target_link_libraries(FFTTiming sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_include_directories(FFTTiming PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 add_executable(FilterTest FilterTest.cxx Checker.cxx)
-target_link_libraries(FilterTest sodasignals ${SoDaUtils_LIBRARIES})
-target_link_directories(FilterTest PUBLIC ${SoDaUtils_LIBRARY_DIRS})
-target_include_directories(FilterTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${SoDaUtils_INCLUDE_DIRS})
+target_link_libraries(FilterTest sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_include_directories(FilterTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 add_executable(OSFilterTest OSFilterTest.cxx Checker.cxx)
-target_link_libraries(OSFilterTest sodasignals ${SoDaUtils_LIBRARIES})
-target_link_directories(OSFilterTest PUBLIC ${SoDaUtils_LIBRARY_DIRS})
-target_include_directories(OSFilterTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${SoDaUtils_INCLUDE_DIRS})
+target_link_libraries(OSFilterTest sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_include_directories(OSFilterTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 
 add_executable(PeriodogramTest PeriodogramTest.cxx)
-target_link_libraries(PeriodogramTest sodasignals ${SoDaUtils_LIBRARIES})
-target_link_directories(PeriodogramTest PUBLIC ${SoDaUtils_LIBRARY_DIRS})
-target_include_directories(PeriodogramTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${SoDaUtils_INCLUDE_DIRS})
+target_link_libraries(PeriodogramTest sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_include_directories(PeriodogramTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 add_executable(ReSamplerTest ReSamplerTest.cxx Checker.cxx)
-target_link_libraries(ReSamplerTest sodasignals ${SoDaUtils_LIBRARIES})
-target_link_directories(ReSamplerTest PUBLIC ${SoDaUtils_LIBRARY_DIRS})
-target_include_directories(ReSamplerTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${SoDaUtils_INCLUDE_DIRS})
+target_link_libraries(ReSamplerTest sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_include_directories(ReSamplerTest PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 add_executable(ReSamplerSweep ReSamplerSweep.cxx)
-target_link_libraries(ReSamplerSweep sodasignals ${SoDaUtils_LIBRARIES})
-target_link_directories(ReSamplerSweep PUBLIC ${SoDaUtils_LIBRARY_DIRS})
-target_include_directories(ReSamplerSweep PUBLIC ${PROJECT_SOURCE_DIR}/include ${SoDaUtils_INCLUDE_DIRS})
+target_link_libraries(ReSamplerSweep sodasignals ${FFTW3_LIBRARIES} sodautils)
+target_include_directories(ReSamplerSweep PUBLIC ${PROJECT_SOURCE_DIR}/include ${sodautils_include_dirs})
 
 
 enable_testing()
