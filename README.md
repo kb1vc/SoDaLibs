@@ -109,23 +109,26 @@ See the documentation for Utils.hxx for more information.
 
 
 The sodasignals library provides classes that provide
-  . SoDa::FFT I like FFTW, but the API is strictly
+
+* SoDa::FFT I like FFTW, but the API is strictly
   1980's FORTRAN. It needed a C++ interface.
-  . SoDa::Filter  The Filter class creates FIR filters
+* SoDa::Filter  The Filter class creates FIR filters
   with the window filter method. It also applies an
   apply method to run the filter on a single buffer. 
-  . SoDa::OSFilter Lots of textbooks show you how to
+* SoDa::OSFilter Lots of textbooks show you how to
   build a filter for a single buffer. But applications
   that produce a stream of buffers to a filter require
   something like the Overlap and Save method. OSFilter
   does that.
-  . SoDa::Resampler  Resampling is hard. SoDa Signals
+* SoDa::Resampler  Resampling is hard. SoDa Signals
   tries to fix that for "reasonable" ratios that include
   all the ones that I've found important. (Like converting
   from 1.25 MS/s to 44.1 kS/s.)
-  . SoDa::Periodogram Spectral analysis is *not* DFT.
+* SoDa::Periodogram Spectral analysis is *not* DFT.
   The Periodogram class produces power spectral density
   vectors using one of a set of windows. 
+
+See the doxygen documentation for a more detailed explanation. 
 
 ## Building the Libraries
 
