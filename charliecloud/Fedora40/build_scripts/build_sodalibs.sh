@@ -4,5 +4,5 @@ echo 'Building SoDaLibs'
 
 cmake ../
 make
-ctest
+ctest -j 4
 make install

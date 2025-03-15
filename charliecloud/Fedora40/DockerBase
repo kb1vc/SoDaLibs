@@ -1,0 +1,5 @@
+FROM fedora:40
+
+RUN dnf --assumeyes update
+RUN dnf --assumeyes install gcc-c++ git cmake make
+RUN dnf --assumeyes install fftw-devel
