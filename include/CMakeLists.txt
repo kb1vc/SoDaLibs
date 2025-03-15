@@ -1,0 +1,3 @@
+# install the header files. 
+INSTALL(DIRECTORY ./ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/SoDa"
+        FILES_MATCHING PATTERN "*.hxx")
