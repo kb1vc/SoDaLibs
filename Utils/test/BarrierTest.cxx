@@ -34,7 +34,7 @@ void threadBarrierTest(SoDa::BarrierPtr bar, int trial_count, int max_duration, 
 
 int testBarrier(int trial_count, int num_threads, int max_duration) {
   //! [create the barrier] 
-  SoDa::BarrierPtr barrier_p = SoDa::makeBarrier("test barrier", num_threads);
+  SoDa::BarrierPtr barrier_p = SoDa::Barrier::make("test barrier", num_threads);
   //! [create the barrier] 
   
   std::cerr << "Creating threads\n";

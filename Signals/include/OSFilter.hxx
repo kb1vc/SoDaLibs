@@ -141,6 +141,41 @@ namespace SoDa {
      */
     std::pair<float,float> getFilterEdges() { return filter_p->getFilterEdges(); }
 
+
+    /**
+     * @brief Build the filter from a filter spec for a bandpass filter
+     * 
+     * @param filter_spec object of class FilterSpec identifying corner frequencies and amplitudes
+     * @param buffer_size the impulse response and frequency image will be this long
+     * @param gain relative magnitude of input to output in the passband     
+     * @param window filter window choice - we're using the window filter synthesis method. Defaults to HANN
+     * @return a shared pointer to an OSFilter
+     */
+    static std::shared_ptr<OSFilter> make(FilterSpec & filter_spec, 
+					  unsigned int buffer_size,
+					  float gain = 1.0, 
+					  Filter::WindowChoice window = Filter::HANN);        
+
+    /**
+     * @brief Alternate constructor, for very simple filters
+     *
+     * @param low_cutoff lower edge of the filter
+     * @param high_cutoff upper edge of the filter
+     * @param skirt width of transition band between cutoff and stopband
+     * @param sample_rate sample rate for the input stream. 
+     * @param buffer_size size of the input buffer when apply is called
+     * @param stop_band_attenuation in dB
+     * @param gain relative magnitude of input to output in the passband
+     * @param window filter window choice - we're using the window filter synthesis method. Defaults to HANN
+     * @return a shared pointer to an OSFilter     
+     */
+    static std::shared_ptr<OSFilter> make(float low_cutoff, float high_cutoff, float skirt,
+					  float sample_rate, unsigned int buffer_size,
+					  float stop_band_attenuation = 60.0,
+					  float gain = 1.0,
+					  Filter::WindowChoice window = Filter::HANN);    
+
+    
   private:
     void makeOSFilter(FilterSpec & filter_spec, 
 		      unsigned int _buffer_size,

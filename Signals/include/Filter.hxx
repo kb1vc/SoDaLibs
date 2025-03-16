@@ -198,6 +198,55 @@ namespace SoDa {
      */
     unsigned int outLenRequired(unsigned int in_size) { return in_size; }
 
+    /**
+     * @brief Create shared pointer to a filter from a filter spec for a general filter
+     *
+     * @param filter_spec object of class FilterSpec identifying corner frequencies and amplitudes
+     * @param buffer_size the impulse response and frequency image will be this long
+     * @param gain passband gain (max gain) through filter
+     * @param window filter window choice - we're using the window filter synthesis method. Defaults to HANN
+     * @return shared pointer to a Filter     
+     */
+    static std::shared_ptr<Filter> make(FilterSpec & filter_spec, 
+					unsigned int buffer_size, 
+					float gain = 1.0, 
+					WindowChoice window = HANN);        
+
+
+    /**
+     * @brief Shared pointer: Alternate constructor, for very simple filters
+     *
+     * @param low_cutoff lower edge of the filter
+     * @param high_cutoff upper edge of the filter
+     * @param skirt width of transition band between cutoff and stopband
+     * @param sample_rate sample rate for the input stream. 
+     * @param num_taps number of taps in the filter.
+     * @param buffer_size size of the input buffer when apply is called
+     * @param gain relative magnitude of input to output in the passband
+     * @param window filter window choice - we're using the window filter synthesis method. Defaults to HANN
+     * @return shared pointer to a Filter     
+     */
+    static std::shared_ptr<Filter> make(float low_cutoff, float high_cutoff, float skirt,
+					float sample_rate,
+					unsigned int num_taps,
+					unsigned int buffer_size, 
+					float gain = 1.0, 
+					WindowChoice window = HANN);    
+
+    /**
+     * @brief Shared pointer: Alternate constructore where we just get the H proto
+     *
+     * @param H a prototype frequency domain image of the filter
+     * @param buffer_size size of the input buffer when apply is called
+     * @param gain relative magnitude of input to output in the passband
+     * @param window filter window choice - we're using the window filter synthesis method. Defaults to HANN
+     * @return shared pointer to a Filter
+     */
+    static std::shared_ptr<Filter> make(std::vector<std::complex<float>> & H, 
+					unsigned int buffer_size, 
+					float gain = 1.0,
+					WindowChoice window = HANN);
+    
   private:
     /** @brief  Build the filter from a filter spec for a bandpass filter -- common method
      * for all forms of Filter constructors. 

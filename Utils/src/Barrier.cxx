@@ -99,7 +99,7 @@ namespace SoDa {
     }
   }
 
-  std::shared_ptr<Barrier> makeBarrier(const std::string & name, unsigned int num_waiters) {
+  BarrierPtr Barrier::make(const std::string & name, unsigned int num_waiters) {
     return std::make_shared<Barrier>(name, num_waiters);
   }
   

@@ -456,9 +456,10 @@ namespace SoDa {
     return std::make_shared<MailBox<T>>(mname);
   }
 
+  // You'd think we could use a typedef here, but typedefs and
+  // templates don't play well together.  Soo...
   template<typename T>
   using MailBoxPtr = std::shared_ptr<MailBox<T>>;
-
 }
 
 

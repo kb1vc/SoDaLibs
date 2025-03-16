@@ -119,7 +119,7 @@ int testObjMessage(int msg_count, int num_threads, int num_trials, bool no_echo)
   //! [create a barrier]
   // each thread will wait at the barrier until everyone has finished
   // subscribing.
-  auto barrier_p = SoDa::makeBarrier("subscription_barrier", num_threads);
+  auto barrier_p = SoDa::Barrier::make("subscription_barrier", num_threads);
   //! [create a barrier]  
   
   std::cerr << "Creating threads\n";

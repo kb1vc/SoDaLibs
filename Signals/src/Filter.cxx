@@ -307,4 +307,42 @@ namespace SoDa {
 			   .addS(st)
 			   .str()) { }
   
+    
+  std::shared_ptr<Filter> Filter::make(FilterSpec & filter_spec, 
+				       unsigned int buffer_size, 
+				       float gain,
+				       WindowChoice window) {
+    return std::make_shared<Filter>(filter_spec, 
+				    buffer_size, 
+				    gain, 
+				    window);
+  }
+
+
+
+  std::shared_ptr<Filter> Filter::make(float low_cutoff, 
+				       float high_cutoff, 
+				       float skirt,
+				       float sample_rate,
+				       unsigned int num_taps,
+				       unsigned int buffer_size, 
+				       float gain,
+				       WindowChoice window) {
+    return std::make_shared<Filter>(low_cutoff,
+				    high_cutoff,
+				    skirt,
+				    sample_rate,
+				    num_taps,
+				    buffer_size,
+				    gain,
+				    window);
+  }
+
+  std::shared_ptr<Filter> Filter::make(std::vector<std::complex<float>> & H, 
+				       unsigned int buffer_size, 
+				       float gain,
+				       WindowChoice window) {
+    return std::make_shared<Filter>(H, buffer_size, gain, window);
+  }
+
 }

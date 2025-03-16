@@ -139,6 +139,10 @@ namespace SoDa {
    *
    */
 
+  class Barrier;
+  
+  typedef std::shared_ptr<Barrier> BarrierPtr;  
+  
   class Barrier : public NoCopy {
   public:
     /**
@@ -240,6 +244,20 @@ namespace SoDa {
      */
     void wait(const std::chrono::duration<long, std::milli> & timeout); 
 
+    /**
+     * @brief Make a barrier and return a shared pointer to it. 
+     *
+     * This is a safer way of creating barrier, as it ensures that
+     * the barrier will live even after it "goes out of scope" in the
+     * thing that created the it and spawned the threads that use
+     * it. Sure we could rely on good behavior, but why? 
+     *
+     * @param name Name of the barrier
+     * @param num_waiters number of threads that will wait at this barrier.
+     * @returns shared pointer to a barrier object
+     */ 
+    static BarrierPtr make(const std::string & name, unsigned int num_waiters);
+    
   private:
     std::string name;
     unsigned int num_waiters;
@@ -254,21 +272,6 @@ namespace SoDa {
   };
 
 
-  typedef std::shared_ptr<Barrier> BarrierPtr;  
-  /**
-   * @brief Make a barrier and return a shared pointer to it. 
-   *
-   * This is a safer way of creating barrier, as it ensures that
-   * the barrier will live even after it "goes out of scope" in the
-   * thing that created the it and spawned the threads that use
-   * it. Sure we could rely on good behavior, but why? 
-   *
-   * @param name Name of the barrier
-   * @param num_waiters number of threads that will wait at this barrier.
-   * @returns shared pointer to a barrier object
-   */ 
-  
-  std::shared_ptr<Barrier> makeBarrier(const std::string & name, unsigned int num_waiters);
 }
 
 

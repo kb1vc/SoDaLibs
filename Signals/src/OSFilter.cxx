@@ -169,5 +169,31 @@ namespace SoDa {
 			   .addI(req)
 			   .addS(st)
 			   .str()) { }
-  
+
+  std::shared_ptr<OSFilter> OSFilter::make(FilterSpec & filter_spec, 
+					   unsigned int buffer_size,
+					   float gain, 
+					   Filter::WindowChoice window) {
+    return std::make_shared<OSFilter>(filter_spec, buffer_size,
+				      gain, window);
+  }
+
+  std::shared_ptr<OSFilter> OSFilter::make(float low_cutoff, 
+					   float high_cutoff, 
+					   float skirt,
+					   float sample_rate, 
+					   unsigned int buffer_size,
+					   float stop_band_attenuation,
+					   float gain,
+					   Filter::WindowChoice window) {
+    return std::make_shared<OSFilter>(low_cutoff,
+				      high_cutoff,
+				      skirt,
+				      sample_rate, 
+				      buffer_size,
+				      stop_band_attenuation, 
+				      gain,
+				      window);
+    
+  }
 }

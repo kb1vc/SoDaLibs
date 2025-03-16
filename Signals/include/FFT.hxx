@@ -27,6 +27,12 @@
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <cstdint>
+#include <memory>
+#ifdef SODA_LIB_BUILD
+#include <Utils/include/Exception.hxx>
+#else
+#include <SoDa/Exception.hxx>
+#endif
 
 ///
 ///  @file FFT.hxx
@@ -34,7 +40,7 @@
 ///  Inspired by the numpy fft functions. Limitied to "float" types. 
 ///
 ///  @author M. H. Reilly (kb1vc)
-///  @date   July 2022
+///  @date   Mar, 2025
 ///
 
 #include <complex>
@@ -53,10 +59,10 @@ namespace SoDa {
     /**
      * @class UnmatchedSizes
      *
-     * @brief a subclass of std::runtime_error thrown when the input and output buffer sizes
+     * @brief a subclass of SoDa::Exception thrown when the input and output buffer sizes
      * passed to FFT::fft or FFT::ifft don't match. 
      */
-    class UnmatchedSizes : public std::runtime_error {
+    class UnmatchedSizes : public SoDa::Exception {
     public:
       /**
        * @brief constructor
@@ -71,10 +77,10 @@ namespace SoDa {
     /**
      * @class BadSize
      *
-     * @brief a subclass of std::runtime_error thrown when the input buffer size does not
+     * @brief a subclass of SoDa::Exception thrown when the input buffer size does not
      * match the original size passed to the constructor. 
      */
-    class BadSize : public std::runtime_error {
+    class BadSize : public SoDa::Exception {
     public:
       /**
        * @brief constructor
@@ -176,6 +182,20 @@ namespace SoDa {
      */
     void ishift(std::vector<std::complex<float>> & in, 
 	     std::vector<std::complex<float>> & out);
+
+
+
+    /**
+     * @brief create a pointer to an FFT object
+     *
+     * @param len the length of the buffer on which this FFT will operate.
+     * The buffer length is fixed for all time. That's the way fftw works -- it
+     * needs to know the buffer sizes in order to optimize the operation.
+     * @param opt select how aggressive fftw will be in its attempt to
+     * optimize fft and ifft. See ::FFTOpt.
+     * @return a shared pointer to an FFT widget.
+     */
+    static std::shared_ptr<FFT> make(unsigned int len, FFTOpt opt = ESTIMATE); 
     
   protected:
     
