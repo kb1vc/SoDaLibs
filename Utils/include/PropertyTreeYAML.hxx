@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /**
- * @page SoDa::PropertyTreeYAML A simple property tree widget built from a
+ * @page SoDa::PropertyTreeYAML PropertyTreeYAML: A simple property tree widget built from a
  * YAML file.   
  *
  * This inherits the storage and retrieval methods from PropTree.

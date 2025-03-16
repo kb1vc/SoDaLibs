@@ -35,7 +35,7 @@
  */
 
 /**
- * @page SoDa::NoCopy A base class for non-copyable classes
+ * @page SoDa::NoCopy NoCopy: A base class for non-copyable classes
  *
  *
  * Certain objects contain state that is "shared" or visible to

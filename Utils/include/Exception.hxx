@@ -39,7 +39,7 @@
  */
 
 /**
- * @page SoDa::Exception A base class for Exceptions
+ * @page SoDa::Exception Exception: A base class for Exceptions
  *
  * The SoDa::Exception class is just a wrapper for std::runtime_error. 
  * However, this makes for a simpler way to catch any SoDa generated 

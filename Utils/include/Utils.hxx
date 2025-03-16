@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SoDa {
 
 /**
- * @page Utils Useful functions and such that fill in some gaps
+ * @page Utils Utils: Useful functions and such that fill in some gaps
  * 
  * Utils is a basket of little classes, functions, definitions, and
  * such that aren't normally provided in C++11 and its standard libraries. 

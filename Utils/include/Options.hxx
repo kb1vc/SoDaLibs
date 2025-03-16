@@ -50,7 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SoDa {
 
 /**
- * @page Options  A simple command line parser
+ * @page SoDa::Options Options: A simple command line parser
  * 
  * Options is a class that allows the programmer to specify
  * command line options (like --help, --out, --enable-deep-fry --set-sauce=Memphis)

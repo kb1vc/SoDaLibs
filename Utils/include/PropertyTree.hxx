@@ -46,7 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /**
- * @page SoDa::PropTree A simple property tree widget with
+ * @page SoDa::PropertyTree PropertyTree A simple property tree widget with
  * documentation. 
  * 
  * This is meant to be subclassed for file formats like XML and YAML.
