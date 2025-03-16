@@ -26,7 +26,7 @@ int main(int argc, char ** argv) {
   int num_threads = 5; // we'll create five threads
   // each thread will wait at the barrier, and so will this main thread. 
   int num_waiters = num_threads + 1;
-  SoDa::BarrierPtr barrier_p = SoDa::makeBarrier("test barrier", num_waiters);
+  SoDa::BarrierPtr barrier_p = SoDa::Barrier::make("test barrier", num_waiters);
   //! [create the barrier] 
 
   //! [create threads]
