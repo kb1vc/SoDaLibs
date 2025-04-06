@@ -58,6 +58,7 @@ int main(int argc, char * argv[])
   //! [SO describe the command line]
 
   //! [SO parse it]
+  
   if(!cmd.parse(argc, argv)) exit(-1);
   //! [SO parse it]
 
@@ -79,7 +80,8 @@ int main(int argc, char * argv[])
     std::cout << "ARG[" << i << "] = [" << argv[i] << "]\n";
   }
 
-  //! [SO test for presence]  
+  //! [SO test for presence]
+  
   std::cerr << (cmd.isPresent("intarg") ? "An" : "No") << " intarg option was present\n";
   //! [SO test for presence]
   

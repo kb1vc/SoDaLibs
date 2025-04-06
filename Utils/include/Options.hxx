@@ -117,8 +117,8 @@ posargs =
  * ObsoleteOptions "Obsolete Interface" The interface was based on the
  * Boost::program_options class. That was a bad choice.
  *
- * The opetions object stores *pointers* to variables that the application
- * wishes to be set from the command line. The each pointer and the storage it points to
+ * The Options object stores *pointers* to variables that the application
+ * wishes to be set from the command line. Then each pointer and the storage it points to
  * is created by the cmd object, so the pointer won't become invalid until the cmd object
  * goes out of scope.
  *

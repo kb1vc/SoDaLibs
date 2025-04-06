@@ -63,6 +63,7 @@ int main(int argc, char * argv[])
   //! [describe the command line]
 
   //! [parse it]
+  
   if(!cmd.parse(argc, argv)) exit(-1);
   //! [parse it]
 
