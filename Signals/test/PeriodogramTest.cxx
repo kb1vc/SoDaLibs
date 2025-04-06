@@ -159,13 +159,22 @@ int main(int argc, char ** argv) {
     std::cout << "FAIL - bad command options\n";
     exit(-1);
   }
+
+  std::cerr << SoDa::Format("PeriodogramTest pdg_size %0 vec_size %1 fsamp %2 ftest %3\n")
+    .addI(pdg_size)
+    .addI(vec_size)
+    .addF(Fs)
+    .addF(Fr)
+    ;
   
-  CVec pdg_in(vec_size); 
+  CVec pdg_in(vec_size);
 
   SoDa::Periodogram pdg(pdg_size); 
 
   makeSigVector(pdg_in, Fs, Fr);
 
+
+  
   makePDG(pdg, pdg_in);
   
   bool pass = checkPDG(pdg, Fs, Fr); 

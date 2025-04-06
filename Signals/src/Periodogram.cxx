@@ -78,6 +78,8 @@ namespace SoDa {
     beta = 1.0 - alpha;
   }
 
+  int acc_in_count = 0;
+  
   void Periodogram::accumulate(const std::vector<std::complex<float>> & in) {
     size_t curpos = 0; 
 

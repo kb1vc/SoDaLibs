@@ -2,6 +2,7 @@
 #include "../include/Options.hxx"
 #include <iostream>
 #include <cmath>
+#include <type_traits>
 
 int si_val;
 int u_val;
@@ -109,8 +110,8 @@ int main(int argc, char ** argv) {
     .add<int>(&u_val, "uint", 'U')    
     .add<float>(&f0_val, "fva0", 'f')
     .add<float>(&f1_val, "fva1", 'F')    
-    .add<std::string>(&s_val, "sva", 's')
-    .add<std::string>(&sind_val, "s-ind", 'c')    
+    .add(&s_val, "sva", 's')
+    .add(&sind_val, "s-ind", 'c')    
     .addV<std::string>(&s_val_list, "sla", 'l')
     .addV<int>(&a_val_list, "ala", 'L');
 

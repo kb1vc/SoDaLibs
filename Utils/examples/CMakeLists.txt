@@ -32,6 +32,9 @@ target_link_libraries(UtilsExample PRIVATE sodautils)
 add_executable(OptionsExample OptionsExample.cxx)
 target_link_libraries(OptionsExample PRIVATE sodautils)
 
+add_executable(SafeOptionsExample SafeOptionsExample.cxx)
+target_link_libraries(SafeOptionsExample PRIVATE sodautils)
+
 add_executable(FormatExample FormatExample.cxx)
 target_link_libraries(FormatExample PRIVATE sodautils)
 

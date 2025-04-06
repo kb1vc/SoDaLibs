@@ -72,8 +72,9 @@ namespace SoDa {
 
     return os; 
   }
+  
 
-  const std::vector<std::string> & Options::getPosArgs() {
+  std::vector<std::string> Options::getPosArgs() {
     return pos_arg_vec; 
   }
 
@@ -292,6 +293,15 @@ namespace SoDa {
     ab_map[ab_name] = arg_p;       
   }  
 
+  void Options::reset() {
+    // set all the options to their default values.
+    for(auto lme : long_map) {
+      lme.second->reset();
+    }
+    // clear the positional values
+    pos_arg_vec.clear();
+    
+  }
   std::ostream & Options::OptBase::printHelp(std::ostream & os) {
     os << doc_str;
     return os; 

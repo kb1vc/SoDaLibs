@@ -40,62 +40,74 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char * argv[])
 {
-  int int_arg;
-  bool bool_arg, pres_arg;
-  std::string str_arg;
-  std::vector<std::string> strvec_arg; 
 
-  //! [describe the command line]
+  //! [SO describe the command line]
   SoDa::Options cmd;  
-  cmd
-    .addP(&pres_arg, "presarg", 'p')    
-    .add<bool>(&bool_arg, "boolarg", 'b', false, "<true/false/zero/non-zero>")
-    .add<std::string>(&str_arg, "strarg", 's', "", "<string>") // , "Not Specified")
-    .addV<std::string>(&strvec_arg, "strvecarg", 'l', "<string>")
+  auto pres_arg_p = cmd.addP("presarg", 'p');
+  auto bool_arg_p = cmd.add<bool>("boolarg", 'b', false, "<true/false/zero/non-zero>");
+  auto str_arg_p = cmd.add<std::string>("strarg", 's', "", "<string>"); 
+  auto strvec_arg_p = cmd.addV<std::string>("strvecarg", 'l', "<string>");
 
-    .add<int>(&int_arg, "intarg", 'i', 0,
-	       "An integer argument between -5 and 5 inclusive", 
-	       [](int v) { return (v >= -5) && (v <= 5); },
-	       "Please pick something from -5 to 5.")
+  auto int_arg_p = cmd.add<int>("intarg", 'i', 0, 
+				"An integer argument between -5 and 5 inclusive", 
+				[](int v) { return (v >= -5) && (v <= 5); },
+				"Please pick something from -5 to 5.");
         
-    .addInfo("\nusage:\tOptionsExample [options] [posargs]")
-    .addInfo("\n\tA simple demonstration of the SoDa::Options parser");
-  //! [describe the command line]
+  cmd.addInfo("\nusage:\tSafeOptionsExample [options] [posargs]");
+  cmd.addInfo("\n\tA simple demonstration of the safe interface to SoDa::Options parser");
+  //! [SO describe the command line]
 
-  //! [parse it]
+  //! [SO parse it]
   if(!cmd.parse(argc, argv)) exit(-1);
-  //! [parse it]
+  //! [SO parse it]
 
   std::cerr << "SoDaUtils version [" << cmd.getVersion() << "]\n";
   std::cerr << "SoDaUtils git id [" << cmd.getGitID() << "]\n";
-  
-  std::cout << "intarg = " << int_arg << "\n";
-  std::cout << "boolarg = " << bool_arg << "\n";
-  std::cout << "pres_arg = " << pres_arg << "\n";
-  std::cout << "str_arg = [" << str_arg << "]\n";
-  std::cout << "strvecarg s = \n";
-  for(auto sa : strvec_arg) {
+
+  //! [SO print the values]
+  std::cout << "intarg = " << *int_arg_p << "\n";
+  std::cout << "boolarg = " << *bool_arg_p << "\n";
+  std::cout << "pres_arg_p = " << *pres_arg_p << "\n";
+  std::cout << "str_arg = [" << *str_arg_p << "]\n";
+  std::cout << "strvec_arg s = \n";
+  for(auto sa : *strvec_arg_p) {
     std::cout << "\t[" << sa << "]\n";
   }
+  //! [SO print the values]
 
   for(int i = 0; i < argc; i++) {
     std::cout << "ARG[" << i << "] = [" << argv[i] << "]\n";
   }
+
+  //! [SO test for presence]  
   std::cerr << (cmd.isPresent("intarg") ? "An" : "No") << " intarg option was present\n";
+  //! [SO test for presence]
   
   std::cout << "posargs = \n";
-  for(int i = 0; i < cmd.numPosArgs(); i++) {
-    std::cout << "\t" << i << "\t" << cmd.getPosArg(i) << "\n";
-  }
 
+  //! [SO get positional arguments]
+  int i = 0;
+  auto posargs = cmd.getPosArgs();
+  for(auto pa : posargs) {
+    std::cout << "\t" << i++ << "\t[" << pa << "]\n";
+  }
+  //! [SO get positional arguments]
+
+  //! [SO reset]
+  // set all values to their default state, clear the posargs list
+  cmd.reset();
+  //! [SO reset]
+  
+  //! [SO string input]
   // now try it with a string
   if(!cmd.parse(std::string("-i 3 -s \"this is a test\""))) exit(-1);
 
-  std::cout << "intarg = " << int_arg << "\n";
-  std::cout << "boolarg = " << bool_arg << "\n";
-  std::cout << "pres_arg = " << pres_arg << "\n";
-  std::cout << "str_arg = [" << str_arg << "]\n";
+  std::cout << "intarg = " << *int_arg_p << "\n";
+  std::cout << "boolarg = " << *bool_arg_p << "\n";
+  std::cout << "pres_arg = " << *pres_arg_p << "\n";
+  std::cout << "str_arg = [" << *str_arg_p << "]\n";
   std::cout << "strvecarg s = \n";
+  //! [SO string input]
   
   exit(0);
 }

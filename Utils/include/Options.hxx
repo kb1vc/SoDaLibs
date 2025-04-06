@@ -4,7 +4,7 @@
 /*
 BSD 2-Clause License
 
-Copyright (c) 2021, 2022, Matt Reilly - kb1vc
+Copyright (c) 2021, 2022, 2025 Matt Reilly - kb1vc
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /**
  * @file Options.hxx
  * @author Matt Reilly (kb1vc)
- * @date Feb 10, 2021
+ * @date April 5, 2025
  */
 
 #include <map>
@@ -107,7 +107,67 @@ posargs =
 	4	ringo
 \endverbatim
  *
- * This is how we might build that: 
+ * This is how we might build that:
+ *
+ * \section SafeOptions Safe Clean Modern Options
+ *
+ * The first several versions of SoDa::Options used a scheme that is
+ * terrifying in retrospect. If you are stuck dealing with some older
+ * code, you can see how all that worked down below in \ref
+ * ObsoleteOptions "Obsolete Interface" The interface was based on the
+ * Boost::program_options class. That was a bad choice.
+ *
+ * The opetions object stores *pointers* to variables that the application
+ * wishes to be set from the command line. The each pointer and the storage it points to
+ * is created by the cmd object, so the pointer won't become invalid until the cmd object
+ * goes out of scope.
+ *
+ * So let's look at how a command line object is created
+ *
+ * \snippet SafeOptionsExample.cxx SO describe the command line
+ *
+ * Note that the ```add``` and ```addP``` methods all return a shared pointer.
+ * The example uses "auto" here, because an explicit definition doesn't really add
+ * anything to the code, does it?
+ *
+ * The Options object can parse the standard ```argc``` ```argv``` stuff. Before Options::parse
+ * is called, all values are set to their defaults, and ```isPresent``` will return false for all
+ * option strings.
+ *
+ * \snippet SafeOptionsExample.cxx SO parse it
+ *
+ * The values are all accessed through the pointers returned by ```add``` and ```addP```
+ *
+ * \snippet SafeOptionsExample.cxx SO print the values
+ *
+ * The test for presence is pretty straightforward.
+ *
+ * \snippet SafeOptionsExample.cxx SO test for presence
+ *
+ * Positional arguments are returned as a vector of objects (not references)
+ * The vector will outlive the Options object. 
+ *
+ * \snippet SafeOptionsExample.cxx SO get positional arguments
+ *
+ * The Options object may be re-used. A call to ```reset``` sets the value
+ * of all optional parameters to their default. It also clears the posarg list.
+ *
+ * \snippet SafeOptionsExample.cxx SO reset
+ *
+ * SoDa::Options can also parse a string, like this:
+ *
+ * \snippet SafeOptionsExample.cxx SO string input
+ *
+ * So that's it.  Use this new safer interface to the SoDa::Options object.
+ * 
+ * 
+ * \section ObsoleteOptions Caution: The scheme described here is OBSOLETE, but remains supported.
+ *
+ * The original options code counted on the validity of all pointers passed into the ```add``` methods.
+ * This has the obvious liability that a call to "parse" could reference an invalid pointer.
+ * New code should use the add methods that return a shared pointer to an appropriate type. this is
+ * described in Section \ref SafeOptions "Safe Options Interface."
+ * 
  * \snippet OptionsExample.cxx describe the command line
  * 
  * The example creates a Options object, and then decorates it with options. 
@@ -208,7 +268,9 @@ posargs =
     /**
      * @brief Add an option specifier to the command line that sets
      * a target variable to the argument for the option. 
-     * 
+     *
+     * This form is OBSOLETE See \ref SafeOptions "Safe Options" done the right way.
+     *
      * Each option is specified by a long name (e.g. "--set")
      * and a short name (e.g. "-s").  Each option will set a 
      * variable specified by the caller.  An argument may be
@@ -229,44 +291,72 @@ posargs =
     template <typename T>
     Options & add(T * val,
 		  const std::string & long_name,
-		  char ab_name, 
-		  T def_val,
+		  char ab_name,
+		  const T def_val = T(),
 		  const std::string & doc_str = std::string(""),
 		  const std::function<bool(T)> & test_func = [](T v){ return true; },
 		  const std::string & err_msg = std::string("")) {
 
-      // create an arg object and push it. 
-      OptBase_p arg_p = std::make_shared<Opt<T>>(val, 
-						 def_val,
+      // create an arg object and push it.
+      OptBase_p arg_p = std::make_shared<Opt<T>>(val,
 						 std::is_signed<T>::value,
+						 def_val,
 						 doc_str, test_func, err_msg);
 
+      *val = def_val; 
       registerOpt(arg_p, long_name, ab_name);
       return *this;      
     }
 
+    
+    /**
+     * @brief Add an option specifier to the command line that sets
+     * a target variable to the argument for the option. 
+     * 
+     * Each option is specified by a long name (e.g. "--set")
+     * and a short name (e.g. "-s").  Each option will set a 
+     * variable specified by the caller.  An argument may be
+     * a std::string, or any type that can be read from a stream.
+     * 
+     * @param long_name the long version of the option name 
+     * @param ab_name the short (one character) version of the option name
+     * @param def_val the default value for *val
+     * @param doc_str describes the meaning of the option
+     * @param test_func returns true if the value supplied on the command 
+     * line is acceptable. 
+     * @param err_msg message to be printed if the argument value is unacceptable
+     * 
+     * @return shared pointer to a value of type T that may be referenced at any time. 
+     */
     template <typename T>
-    Options & add(T * val,
-		  const std::string & long_name,
-		  char ab_name, 
-		  const std::string & doc_str = std::string(""),
-		  const std::function<bool(T)> & test_func = [](T v){ return true; },
-		  const std::string & err_msg = std::string("")) {
-
-      // create an arg object and push it. 
-      OptBase_p arg_p = std::make_shared<Opt<T>>(val, std::is_signed<T>::value,
+    std::shared_ptr<T> add(const std::string & long_name,
+			   char ab_name,
+			   T def_val = T(),
+			   const std::string & doc_str = std::string(""),
+			   const std::function<bool(T)> & test_func = [](T v){ return true; },
+			   const std::string & err_msg = std::string("")) {
+      
+      // create a pointer to an object of type T and initialize it with the default value
+      auto val_ptr = std::make_shared<T>(def_val);
+	
+      // create an arg object and push it.	
+      OptBase_p arg_p = std::make_shared<Opt<T>>(val_ptr,
+						 std::is_signed<T>::value,
+						 def_val,
 						 doc_str, test_func, err_msg);
 
+      *val_ptr = def_val; 
       registerOpt(arg_p, long_name, ab_name);
-      return *this;      
+      return val_ptr;
     }
+
     
     /**
      * @brief Add an option specifier to the command line that takes no
      * argument, but may be tested for its "presence" on the command line. 
      * 
      * 
-     * @param val pointer to variable that will be set if/when 
+     * @param present_p pointer to variable that will be set if/when 
      * this option is found on a command line. 
      * @param long_name the long version of the option name 
      * @param ab_name the short (one character) version of the option name
@@ -274,13 +364,71 @@ posargs =
      * 
      * @return Options object
      */
-    Options & addP(bool * val,
+    Options & addP(bool * present_p, 
 		   const std::string & long_name, 
 		   char ab_name, 
 		   const std::string & doc_str = std::string("")) {
-      OptBase_p arg_p = std::make_shared<OptPresent>(val, doc_str);
+      auto val_ptr = std::make_shared<bool>(false);
+      OptBase_p arg_p = std::make_shared<OptPresent>(present_p, doc_str);
       registerOpt(arg_p, long_name, ab_name);
-      return *this;      
+      return *this;
+    }
+
+    /**
+     * @brief Add an option specifier to the command line that takes no
+     * argument, but may be tested for its "presence" on the command line. 
+     * 
+     * 
+     * @param long_name the long version of the option name 
+     * @param ab_name the short (one character) version of the option name
+     * @param doc_str describes the meaning of the option
+     * 
+     * @return present_p shared pointer to variable that will be set if/when 
+     * this option is found on a command line. 
+     */
+    std::shared_ptr<bool> addP(const std::string & long_name, 
+			       char ab_name, 
+			       const std::string & doc_str = std::string("")) {
+      auto val_ptr = std::make_shared<bool>(false);
+      OptBase_p arg_p = std::make_shared<OptPresent>(val_ptr, doc_str);
+      registerOpt(arg_p, long_name, ab_name);
+      return val_ptr; 
+    }
+    
+    /**
+     * @brief Add an option specifier to the command line that sets
+     * a target variable to the argument for the option. Multiple 
+     * instances of the option may be specified. The supplied value
+     * is pushed to the end of the target variable. 
+     * 
+     * Each option is specified by a long name (e.g. "--set")
+     * and a short name (e.g. "-s").  Each option will set a 
+     * variable specified by the caller.  An argument may be
+     * a std::string, or any type that can be read from a stream.
+     * 
+     * @param vec_ptr pointer to variable that will be set if/when 
+     * this option is found on a command line. 
+     * @param long_name the long version of the option name 
+     * @param ab_name the short (one character) version of the option name
+     * @param doc_str describes the meaning of the option
+     * @param test_func returns true if the value supplied on the command 
+     * line is acceptable. 
+     * @param err_msg message to be printed if the argument value is unacceptable
+     * 
+     * @return Options object
+     */
+    template <typename T>
+    Options & addV(std::vector<T> * vec_ptr, 
+		   const std::string & long_name, 
+		   char ab_name, 
+		   const std::string & doc_str = std::string(""),
+		   const std::function<bool(T)> & test_func = [](T val){ return true; },
+		   const std::string & err_msg = std::string("")) {
+      
+      OptBase_p arg_p = std::make_shared<OptVec<T>>(vec_ptr, doc_str, test_func, err_msg);
+      registerOpt(arg_p, long_name, ab_name);
+      
+      return *this;
     }
 		   
     /**
@@ -294,8 +442,6 @@ posargs =
      * variable specified by the caller.  An argument may be
      * a std::string, or any type that can be read from a stream.
      * 
-     * @param val pointer to variable that will be set if/when 
-     * this option is found on a command line. 
      * @param long_name the long version of the option name 
      * @param ab_name the short (one character) version of the option name
      * @param doc_str describes the meaning of the option
@@ -303,20 +449,21 @@ posargs =
      * line is acceptable. 
      * @param err_msg message to be printed if the argument value is unacceptable
      * 
-     * @return Options object
+     * @return val pointer to a list that will accumulate values from the command line.
      */
     template <typename T>
-    Options & addV(std::vector<T> * val,
-		   const std::string & long_name, 
-		   char ab_name, 
-		   const std::string & doc_str = std::string(""),
-		   const std::function<bool(T)> & test_func = [](T val){ return true; },
-		   const std::string & err_msg = std::string("")) {
+    std::shared_ptr<std::vector<T>> addV(const std::string & long_name, 
+					 char ab_name, 
+					 const std::string & doc_str = std::string(""),
+					 const std::function<bool(T)> & test_func = [](T val){ return true; },
+					 const std::string & err_msg = std::string("")) {
 
-      OptBase_p arg_p = std::make_shared<OptVec<T>>(val, doc_str, test_func, err_msg);
+      auto val_ptr = std::make_shared<std::vector<T>>();
+
+      OptBase_p arg_p = std::make_shared<OptVec<T>>(val_ptr, doc_str, test_func, err_msg);
       registerOpt(arg_p, long_name, ab_name);
       
-      return *this;
+      return val_ptr; 
     }
 		   
 		   
@@ -366,6 +513,13 @@ posargs =
     std::ostream & printHelp(std::ostream & ostr); 
 
     /**
+     * @brief reset the object
+     *
+     *
+     */
+    void reset();
+    
+    /**
      * @brief test for appearance of an option. 
      * 
      * @param long_name long name of the option
@@ -384,9 +538,12 @@ posargs =
     /**
      * @brief return a vector of the positional arguments. 
      *
-     * @return a reference to a const vector containing the positional arguments 
+     * A vector is returned, rather than a reference, so that the
+     * vector's values outlive the cmd object, and outlive a call to reset.
+     *
+     * @return a reference to a  vector containing the positional arguments 
      */
-    const std::vector<std::string> & getPosArgs();
+    std::vector<std::string> getPosArgs();
 
 
     /**
@@ -486,6 +643,8 @@ posargs =
       }
       
       virtual bool hasDefault() { return has_default; }
+
+      virtual void reset() { }
       
       std::string long_name;
       char ab_name;
@@ -544,37 +703,67 @@ posargs =
     template <typename T> 
     class Opt : public OptBase {
     public:
-      Opt(T * val,
+      Opt(T * u_val_ptr,
+	  bool is_signed,
 	  T def_val,
-	  bool is_signed, 
 	  const std::string & doc_str = std::string(""),
 	  const std::function<bool(T)> & test_func = allGood,
 	  const std::string & err_msg = std::string("")) : 
-	OptBase(doc_str, err_msg, is_signed, true), val_p(val), test_func(test_func)
+	OptBase(doc_str, err_msg, is_signed, false), 
+	def_val(def_val),
+	u_val_ptr(u_val_ptr), 
+	test_func(test_func)
       {
-	*val = def_val; 
+	s_val_ptr = nullptr; 
       }
 
-      Opt(T * val,
-	  bool is_signed, 	  
+      
+      Opt(std::shared_ptr<T> s_val_ptr,
+	  bool is_signed,
+	  T def_val,
 	  const std::string & doc_str = std::string(""),
 	  const std::function<bool(T)> & test_func = allGood,
 	  const std::string & err_msg = std::string("")) : 
-	OptBase(doc_str, err_msg, is_signed, false), val_p(val), test_func(test_func)
+	OptBase(doc_str, err_msg, is_signed, false), 
+	s_val_ptr(s_val_ptr), 
+	test_func(test_func), 
+	def_val(def_val)
       {
-	*val = T();
+	u_val_ptr = nullptr;
+
       }
-      
+
       bool setVal(const std::string & vstr) {
-	setValBase(*val_p, vstr);
-	if (!test_func(*val_p)) {
+	T new_val;
+	setValBase(new_val, vstr);
+	
+	if(u_val_ptr != nullptr) {
+	  *u_val_ptr = new_val; 
+	}
+	else {
+	  *s_val_ptr = new_val; 
+	}
+	
+	if (!test_func(new_val)) {
 	  throw BadOptValueException(long_name, vstr, err_msg); 	  
 	}
 	return setPresent(); 
       }
 
+
+      void reset() {
+	if(s_val_ptr != nullptr) {
+	  *s_val_ptr = def_val;
+	}
+
+	if(u_val_ptr != nullptr) {
+	  *u_val_ptr = def_val; 
+	}
+      }
     protected: 
-      T * val_p;
+      T * u_val_ptr;
+      T def_val;
+      std::shared_ptr<T> s_val_ptr;
       std::function<bool(T)> test_func; 
     };
 
@@ -582,16 +771,28 @@ posargs =
     template <typename T>
     class OptVec : public OptBase {
     public:
-      OptVec(std::vector<T> * v_vec,
+      OptVec(std::vector<T> * v_vec_ptr,
 	     const std::string & doc_str, 
 	     const std::function<bool(T)> & test_func = allGood, 
 	     const std::string & err_msg = std::string("")) :
 	OptBase(doc_str, err_msg, false), 
-	argvec_p(v_vec), 
+	u_arg_vec_ptr(v_vec_ptr), 
 	test_func(test_func)
       {
+	s_arg_vec_ptr = nullptr; 
       }
 
+      OptVec(std::shared_ptr<std::vector<T>> v_vec_ptr,
+	     const std::string & doc_str, 
+	     const std::function<bool(T)> & test_func = allGood, 
+	     const std::string & err_msg = std::string("")) :
+	OptBase(doc_str, err_msg, false), 
+	s_arg_vec_ptr(v_vec_ptr), 
+	test_func(test_func)
+      {
+	u_arg_vec_ptr = nullptr; 
+      }
+      
       bool setVal(const std::string & vstr) {
 	T v;
 	setValBase(v, vstr);
@@ -600,48 +801,101 @@ posargs =
 	  throw BadOptValueException(long_name, vstr, err_msg);
 	}
 
-	argvec_p->push_back(v);
+	if(u_arg_vec_ptr != nullptr) {
+	  u_arg_vec_ptr->push_back(v);
+	}
+	else if(s_arg_vec_ptr != nullptr) {
+	  s_arg_vec_ptr->push_back(v); 
+	}
 
 	present = true; 	
 
 	return true; 
       }
 
-      std::vector<T> * argvec_p;
+      void reset() {
+	if(s_arg_vec_ptr != nullptr) {
+	  s_arg_vec_ptr->clear();
+	}
+	if(u_arg_vec_ptr != nullptr) {
+	  u_arg_vec_ptr->clear();
+	}
+      }
+
+      std::shared_ptr<std::vector<T>> s_arg_vec_ptr;
+      std::vector<T> * u_arg_vec_ptr; 
       std::function<bool(T)> test_func;       
     };
 
     class OptPresent : public OptBase {
     public:
-      OptPresent(bool * val,
+      OptPresent(bool * val_p, 
 		 const std::string & doc_str = std::string(""))
-	: OptBase(doc_str, "", false) {
-	*val = false; 
-	val_p = val; 
+	: OptBase(doc_str, "", false), u_val_ptr(val_p) {
+	s_val_ptr = nullptr; 
+	*u_val_ptr = false; 
       }
-
+      OptPresent(std::shared_ptr<bool> val_p, 
+		 const std::string & doc_str = std::string(""))
+	: OptBase(doc_str, "", false), s_val_ptr(val_p) {
+	u_val_ptr = nullptr; 
+	*s_val_ptr = false; 
+      }
+      
       bool isPresentOpt() { 
-	return true; 
+	if(s_val_ptr != nullptr) {
+	  return *s_val_ptr; 
+	}
+	if(u_val_ptr != nullptr) {
+	  return *u_val_ptr;
+	}
+	return false; 
       }
 
       bool setVal(const std::string & vstr) { 
-	*val_p = true; 
+	if(s_val_ptr != nullptr) {
+	  *s_val_ptr = true; 
+	}
+	if(u_val_ptr != nullptr) {
+	  *u_val_ptr = true; 
+	}
+
 	present = true; 
 	return true; 
       }
 
       bool setPresent() {
-	*val_p = true;
+	if(s_val_ptr != nullptr) {
+	  *s_val_ptr = true; 
+	}
+	if(u_val_ptr != nullptr) {
+	  *u_val_ptr = true; 
+	}
+
 	return OptBase::setPresent();
       }
       
-      bool * val_p; 
+      void reset() {
+	if(s_val_ptr != nullptr) {
+	  *s_val_ptr = false; 
+	}
+	if(u_val_ptr != nullptr) {
+	  *u_val_ptr = false; 
+	}
+	present = false;
+
+      }
+      
+      std::shared_ptr<bool> s_val_ptr; 
+      bool * u_val_ptr; 
     };
 
     void registerOpt(OptBase_p arg_p, 
 		  const std::string & long_name, 
 		  char ab_name); 
 
+
+    
     OptBase_p findOpt(char c);
 
     OptBase_p findOpt(const std::string & key);
@@ -660,5 +914,5 @@ posargs =
     bool is_kvp; 
     bool waiting_for_signed; 
   };
-  
+
 }
