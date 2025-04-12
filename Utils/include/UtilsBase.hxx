@@ -130,17 +130,26 @@
  * @author Matt Reilly (kb1vc)
  */
 
-/**
- * @page SoDa::UtilsBase Utils: provide version info to all Utils classes
- */
 namespace SoDa {
   class UtilsBase {
   public:
     UtilsBase() {
     }
 
+    /**
+     * @brief provide version info to all Utils classes
+     *
+     * @return a string in the form "MajorVID.MinorVID.BumpID" like 4.0.0
+     */
     std::string getVersion();
 
+    /**
+     * @brief provied the git hash id from the SoDaLibs git repository that
+     * built this version of the library.
+     *
+     * @return id of the form "<branch_name>:<short_git_hash>" like
+     * "main:232864b"
+     */
     std::string getGitID();
   };
 }

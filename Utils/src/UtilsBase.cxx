@@ -3,7 +3,7 @@
 /*
 BSD 2-Clause License
 
-Copyright (c) 2021, Matt Reilly - kb1vc
+Copyright (c) 2021,2025 Matt Reilly - kb1vc
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /**
  * @file UtilsBase.cxx
  * @author Matt Reilly (kb1vc)
- * @date Feb 19, 2022
+ * @date April 5, 2025
  */
 
 
