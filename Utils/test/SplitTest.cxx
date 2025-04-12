@@ -29,17 +29,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
-std::string comma_test = "this,that,the other thing";
-std::vector<std::string> comma_ref = {"this", "that", "the other thing" };
-
 
 int main() {
-  
+  std::string comma_test = "this,that,the other thing";
+  std::vector<std::string> comma_ref = {"this", "that", "the other thing" };
+
   auto sv = SoDa::splitVec(comma_test, ",");
   auto sl = SoDa::split(comma_test, ",");
   
   bool pass = true; 
-
 
   for(int i = 0; i < comma_ref.size(); i++) {
     if(sv[i] != comma_ref[i]) {
@@ -55,6 +53,32 @@ int main() {
     }
     i++; 
   }
+
+  std::string blank_bug_test = "";
+  std::string one_space_test = " ";
+  // split should return an empty list for empty strings
+  auto bbt = SoDa::split(blank_bug_test, ",");
+  if(bbt.size() != 0) {
+    std::cerr << "split of empty string yielded vector of non-zero length.\n";
+    pass = false;
+  }
+  auto bbtv = SoDa::splitVec(blank_bug_test, ",");  
+  if(bbtv.size() != 0) {
+    std::cerr << "splitVec of empty string yielded vector of non-zero length.\n";
+    pass = false;
+  }
+
+  auto ost = SoDa::split(one_space_test, ",");
+  if(ost.size() != 0) {
+    std::cerr << "split of string with one space yielded vector of non-zero length.\n";
+    pass = false;
+  }
+  auto ostv = SoDa::splitVec(one_space_test, ",");  
+  if(ostv.size() != 0) {
+    std::cerr << "splitVec of string with one space yielded vector of non-zero length.\n";
+    pass = false;
+  }
+  
   
   if(pass) {
     std::cerr << "PASS\n";
