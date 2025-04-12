@@ -41,13 +41,25 @@ namespace SoDa {
 
   std::string squashSpaces(const std::string & str) {
     std::string ret = str;
-
     size_t pos = 0;
 
+    if(ret.size() == 0) {
+      return ret;
+    }
+
     // trim the string. 
-    while(ret.front() == ' ') ret.erase(0, 1);
-    while(ret.back() == ' ') ret.pop_back();
-    
+    while((ret.size() != 0) && (ret.front() == ' ')) {
+      ret.erase(0, 1);
+    }
+    if(ret.size() == 0) {
+      return ret;
+    }
+
+    while((ret.size() != 0) && (ret.back() == ' ')) ret.pop_back();
+    if(ret.size() == 0)  {
+      return ret;
+    }
+
     while((pos = ret.find(' ', pos)) != std::string::npos) {
       if((pos < ret.length() - 1) && (ret[pos+1] == ' ')) {
 	ret.erase(pos, 1);
