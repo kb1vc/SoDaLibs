@@ -96,14 +96,14 @@ int main(int argc, char * argv[]) {
   double points = 2.0 * ((double) vsize) * ((double) trials);
   double elapsed = ns;
 
-  std::cout << "# Vector_Size Config_Time Num_Trials Elapsed_Time Time_per_point\n";
+  std::cout << "# Vector_Size Num Trials  Elapsed_Time(ns) Time_per_point(ns) Config Time (ns)\n";
   
   // vsize, trials, elapsed, time-per-pt
   std::cout << vsize
 	    << " " << trials
-	    << " " << (elapsed * 1e-9)
-	    << " " << ((elapsed / points) * 1e-9)
-	    << " " << (config_ns * 1e-9)
+	    << " " << (elapsed)
+	    << " " << (elapsed / points)
+	    << " " << (config_ns)
 	    << "\n";
   
   

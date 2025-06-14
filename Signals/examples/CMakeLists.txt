@@ -45,6 +45,10 @@ add_executable(FilterTest FilterTest.cxx)
 target_link_libraries(FilterTest ${LIBS})
 
 
+add_executable(ReSamplerExample ReSamplerExample.cxx)
+target_link_libraries(ReSamplerExample ${LIBS})
+
+
 
 ############################################################################
 #
