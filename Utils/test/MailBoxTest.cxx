@@ -194,8 +194,8 @@ void testMBoxConversion() {
   try {
     SoDa::MailBoxPtr<int> nmmp = SoDa::MailBoxBase::convert<SoDa::MailBox<int>>(mb_p, "MessageMailbox", true);
   }
-  catch (SoDa::MailBoxBase::Exception & e) {
-    std::cerr << e.what() << "\n";
+  catch (SoDa::MailBoxBase::BadConversion & e) {
+    std::cerr << "Got what I expected: [" << e.what() << "]\n";
     found_problem = true;
   }
 
@@ -211,6 +211,7 @@ void testMBoxConversion() {
     exit(-1);
   }
 }
+
 
 int main(int argc, char ** argv) {
   // create a mailbox
