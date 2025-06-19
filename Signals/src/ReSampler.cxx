@@ -47,7 +47,12 @@ namespace SoDa {
     }
   }
 
-
+  ReSamplerPtr ReSampler::make(float FS_in,
+			       float FS_out,
+			       float time_span_min) {
+    return std::make_shared<ReSampler>(FS_in, FS_out, time_span_min); 
+  }
+  
   ReSampler::ReSampler(float FS_in,
 		       float FS_out,
 		       float time_span_min) {

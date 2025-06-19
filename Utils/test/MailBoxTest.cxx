@@ -59,9 +59,11 @@ public:
   int from, v;
 };
 
+typedef std::shared_ptr<MyMsg> MyMsgPtr; 
+
 unsigned int MyMsg::tot_active = 0;
 
-int objMailBoxTest(SoDa::MailBoxPtr<MyMsg> mailbox_p, 
+int objMailBoxTest(SoDa::MailBoxPtr<MyMsgPtr> mailbox_p, 
 		   int num_msgs, int num_threads, 
 		   int my_id, 
 		   std::shared_ptr<SoDa::Barrier> barrier_p, 
@@ -97,8 +99,8 @@ int objMailBoxTest(SoDa::MailBoxPtr<MyMsg> mailbox_p,
 
     for(int i = 0; i < expected_msgs;) {
       //! [get message]
-      auto p = mailbox_p->get(subs);
-      if(p != nullptr) {
+      MyMsgPtr p; 
+      if(mailbox_p->get(subs, p)) {
 	i++;
 	msg_sum += p->v;
 	sender_sum += p->from;
@@ -122,7 +124,7 @@ int objMailBoxTest(SoDa::MailBoxPtr<MyMsg> mailbox_p,
   }
 
   std::shared_ptr<MyMsg> p; 
-  while((p = mailbox_p->get(subs)) != nullptr) {
+  while(mailbox_p->get(subs, p)) {
     std::cerr << SoDa::Format("subscriber %0 got extra message from subscriber %1 : %2\n")
       .addI(my_id)
       .addI(p->v);
@@ -136,13 +138,13 @@ int objMailBoxTest(SoDa::MailBoxPtr<MyMsg> mailbox_p,
   
 int testObjMessage(int msg_count, int num_threads, int num_trials, bool no_echo) {
   //! [create a mailbox]
-  SoDa::MailBoxPtr<MyMsg> mailbox_p = SoDa::makeMailBox<MyMsg>("MessageMailbox");
+  SoDa::MailBoxPtr<MyMsgPtr> mailbox_p = SoDa::MailBox<MyMsgPtr>::make("MessageMailbox");  
   //! [create a mailbox]
 
   // Just testing the pointer conversion to make sure we can build
   // tables of mailboxes that do the right thing. 
   std::shared_ptr<SoDa::MailBoxBase> mb_p = mailbox_p;
-  SoDa::MailBoxPtr<MyMsg> nmm_p = SoDa::MailBoxBase::convert<SoDa::MailBox<MyMsg>>(mb_p);
+  SoDa::MailBoxPtr<MyMsgPtr> nmm_p = SoDa::MailBoxBase::convert<SoDa::MailBox<MyMsgPtr>>(mb_p, "MessageMailbox");
 
   //! [create a barrier]
   // each thread will wait at the barrier until everyone has finished
@@ -179,18 +181,18 @@ int testObjMessage(int msg_count, int num_threads, int num_trials, bool no_echo)
 }
 
 void testMBoxConversion() {
-  SoDa::MailBoxPtr<MyMsg> mailbox_p = SoDa::makeMailBox<MyMsg>("MessageMailbox");
+  SoDa::MailBoxPtr<MyMsgPtr> mailbox_p = SoDa::makeMailBox<MyMsgPtr>("MessageMailbox");
 
   // Just testing the pointer conversion to make sure we can build
   // tables of mailboxes that do the right thing. 
   std::shared_ptr<SoDa::MailBoxBase> mb_p = mailbox_p;
-  SoDa::MailBoxPtr<MyMsg> nmm_p = SoDa::MailBoxBase::convert<SoDa::MailBox<MyMsg>>(mb_p);
+  SoDa::MailBoxPtr<MyMsgPtr> nmm_p = SoDa::MailBoxBase::convert<SoDa::MailBox<MyMsgPtr>>(mb_p, "MessageMailbox");
   
   // now make sure we get a conversion failure if we try to convert to the
   // wrong kind of mailbox
   bool found_problem = false; 
   try {
-    SoDa::MailBoxPtr<int> nmmp = SoDa::MailBoxBase::convert<SoDa::MailBox<int>>(mb_p);
+    SoDa::MailBoxPtr<int> nmmp = SoDa::MailBoxBase::convert<SoDa::MailBox<int>>(mb_p, "MessageMailbox", true);
   }
   catch (SoDa::MailBoxBase::Exception & e) {
     std::cerr << e.what() << "\n";
@@ -199,6 +201,13 @@ void testMBoxConversion() {
 
   if(!found_problem) {
     std::cerr << "testMBoxConversion: bad pointer conversion did not throw an exception\n";
+    exit(-1);
+  }
+
+  // make sure we get nullptr for bad conversion that doesn't throw
+  auto should_be_null = SoDa::MailBoxBase::convert<SoDa::MailBox<float>>(mb_p, "MessageMailbox");
+  if(should_be_null != nullptr) {
+    std::cerr << "testMBoxConversion: bad pointer conversion did not return nullptr\n";
     exit(-1);
   }
 }

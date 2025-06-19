@@ -30,10 +30,16 @@
 #include <complex>
 #include <vector>
 #include <cstdint>
-#include <fftw3.h>
+#include <memory>
+
 #include "Filter.hxx"
+#include "FFT.hxx"
 
 namespace SoDa {
+  // create pointer type
+  class ReSampler;
+  typedef std::shared_ptr<ReSampler> ReSamplerPtr;
+  
   /**
    * Rational Resampler
    *
@@ -106,6 +112,20 @@ namespace SoDa {
 	      float output_sample_rate,
 	      float time_span);
 
+
+    /**
+     * @brief make a resampler and return a shared pointer to it. (Nobody should
+     * ever use "new" again.)
+     *
+     * @param input_sample_rate
+     * @param output_sample_rate
+     * @param time_span how many samples (in time) should a buffer hold? 
+     *
+     */ 
+    static ReSamplerPtr make (float input_sample_rate,
+			      float output_sample_rate,
+			      float time_span);
+    
     /**
      * @brief take the resampler apart.
      */

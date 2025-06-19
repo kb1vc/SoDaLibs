@@ -43,13 +43,15 @@
 #include <iostream>
 #include <complex>
 #include <vector>
-#include <fftw3.h>
 #include "FilterSpec.hxx"
 #include "FFT.hxx"
 #include <stdexcept>
 #include "Filter.hxx"
 
 namespace SoDa {
+
+  class OSFilter;
+  typedef std::shared_ptr<OSFilter> OSFilterPtr;
   
   class OSFilter {
   public:
@@ -92,8 +94,6 @@ namespace SoDa {
 	     float gain = 1.0,
 	     Filter::WindowChoice window = Filter::HANN);    
 
-    
-
     /**
      * @brief Some subclasses of OSFilter don't have much to say
      * at construction time.
@@ -104,23 +104,27 @@ namespace SoDa {
      * @brief run the filter on a complex input stream
      * @param in_buf the input buffer I/Q samples (complex)
      * @param out_buf the output buffer I/Q samples (complex)
+     * @param gain applied to the output buffer
      * @return the length of the input buffer
      *
      * Throws OSFilter::BadRealOSFilter if the original filter spec was not "real"            
      */
     unsigned int apply(std::vector<std::complex<float>> & in_buf, 
-		       std::vector<std::complex<float>> & out_buf);
+		       std::vector<std::complex<float>> & out_buf,
+		       float gain = 1.0);
 
 
     /**
      * @brief run the filter on a real input stream
      * @param in_buf the input buffer samples
      * @param out_buf the output buffer samples (this can overlap the in_buf vector)
+     * @param gain applied to the output buffer     
      *
      * Throws OSFilter::BadRealOSFilter if the original filter spec was not "real"
      */
     unsigned int apply(std::vector<float> & in_buf, 
-		       std::vector<float> & out_buf);
+		       std::vector<float> & out_buf, 
+		       float gain = 1.0);
 
 
     /**

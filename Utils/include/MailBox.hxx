@@ -67,7 +67,7 @@
  * would be written down and then printed on "paper." Many sheets of
  * paper would be stuck together, almost like a book -- but
  * thinner. (For an example of a "book" see a museum near you. It
- * might be called *the something* Library.) These not-quite-books
+ * might be called "*the something* Library.") These not-quite-books
  * would be carried to each person who paid for it, *subscribers* on a
  * regular basis. They would be left at each subscriber's house kinda like
  * Amazon's *subscribe and save* thing.)
@@ -163,61 +163,78 @@ namespace SoDa {
    * pointers, we need some way of storing a pointer without knowing
    * what the datatype in the mailbox is going to be. 
    */
+  class MailBoxBase;
+  typedef std::shared_ptr<MailBoxBase> MailBoxBasePtr;
+  
   class MailBoxBase {
   public:
     MailBoxBase(const std::string name) : name(name) { }
     virtual ~MailBoxBase() = default;
 
-  /**
-   * @brief Catch this when you don't care why the MailBox threw an exception
-   */
-  class Exception : public SoDa::Exception {
-  public:
-    Exception(std::string name, const std::string & problem) :
-      SoDa::Exception("SoDa::MailBox[" + name + "] " + problem) {
-    }
-  };
+    /**
+     * @brief Catch this when you don't care why the MailBox threw an exception
+     */
+    class Exception : public SoDa::Exception {
+    public:
+      Exception(std::string name, const std::string & problem) :
+	SoDa::Exception("SoDa::MailBox[" + name + "] " + problem) {
+      }
+    };
 
   
-  /**
-   * @brief The subscriber ID was invalid. 
-   */
-  class MissingSubscriber : public Exception {
-  public:
-    MissingSubscriber(std::string name, const std::string & operation, int sub_id) :
-      Exception(name, "::" + operation + " Subscriber ID " + std::to_string(sub_id) + " not found.") {
-    }
-  };
+    /**
+     * @brief The subscriber ID was invalid. 
+     */
+    class MissingSubscriber : public Exception {
+    public:
+      MissingSubscriber(std::string name, const std::string & operation, int sub_id) :
+	Exception(name, "::" + operation + " Subscriber ID " + std::to_string(sub_id) + " not found.") {
+      }
+    };
 
-  class SubscriptionMismatch : public Exception {
-  public:
-    SubscriptionMismatch(const std::string & should_be
-			 , const std::string & was) : 
-      Exception(should_be, SoDa::Format("caller specified the wrong mailbox")
-		       .addS(was).str()) {
-    }
-  }; 
+    class SubscriptionMismatch : public Exception {
+    public:
+      SubscriptionMismatch(const std::string & should_be
+			   , const std::string & was) : 
+	Exception(should_be, SoDa::Format("caller specified the wrong mailbox")
+		  .addS(was).str()) {
+      }
+    }; 
 
-  class BadConversion : public Exception {
-  public:
-    BadConversion(const std::string & name, 
-		  const std::string & from_type,
-		  const std::string & to_type) : 
-      Exception(name,
-		       SoDa::Format("MailBoxBase::convert attempted to promote from %0 to %1. That isn't right.\n")
-		       .addS(from_type).addS(to_type).str()) {
-    }
-  }; 
+    class BadConversion : public Exception {
+    public:
+      BadConversion(const std::string & name, 
+		    const std::string & from_type,
+		    const std::string & to_type) : 
+	Exception(name,
+		  SoDa::Format("MailBoxBase::convert attempted to promote from %0 to %1. That isn't right.\n")
+		  .addS(from_type).addS(to_type).str()) {
+      }
+    }; 
+
+    class GetFromEmpty : public Exception {
+    public:
+      GetFromEmpty(const std::string & name) :
+	Exception(name,
+		  "MailBoxBase::get attempted on empty buffer queue.\n") {
+      }
+    }; 
     
-    template<typename T>
-    static std::shared_ptr<T> convert(std::shared_ptr<MailBoxBase> p)
+    
+    template<typename MBoxT>
+    static std::shared_ptr<MBoxT> convert(std::shared_ptr<MailBoxBase> p, const std::string & mbname, bool throw_on_fail = false)
     {
-      auto ret = std::dynamic_pointer_cast<T>(p);
-      if(ret == nullptr) {
+      if(mbname != p->getName()) {
+	// name mismatch is not a failure. 
+	return nullptr; 
+      }
+      
+      auto ret = std::dynamic_pointer_cast<MBoxT>(p);
+      if((ret == nullptr) && (throw_on_fail)) {
 	int st1, st2; 
 	// this demangling is pretty dicey... 
 	throw BadConversion(p->name, abi::__cxa_demangle(typeid(p).name(), 
-						nullptr, nullptr, &st1), 
+							 nullptr, nullptr, &st1), 
 			    abi::__cxa_demangle(typeid(ret).name(), 
 						nullptr, nullptr, &st2));
       }
@@ -248,16 +265,16 @@ namespace SoDa {
     /**
      * @brief Create a mailbox. All mailboxes can put and get 
      * messages from the mailbox. 
-     *
-     * Messages are assumed to be std::shared_ptr as a message pointer
-     * will be released from the message queue when a subscriber takes
-     * posesion of it.
      * 
      * Each subscriber gets  message queue.  It is up to the subscriber
      * to "read the mail"
      */
     MailBox(std::string name) : MailBoxBase(name) {
-      subscription_counter = 0; 
+	subscription_counter = 0; 
+      }
+
+    static std::shared_ptr<MailBox<T>> make(std::string name) {
+      return std::make_shared<MailBox<T>>(name);
     }
 
     ~MailBox() {
@@ -310,7 +327,7 @@ namespace SoDa {
 					  subscription_counter));
 
       // make a subscriber queue
-      message_queues[subscription_counter] = std::queue<std::shared_ptr<T>>();
+      message_queues[subscription_counter] = std::queue<T>();
       
       subscription_counter++;
       return ret;
@@ -322,19 +339,19 @@ namespace SoDa {
      * 
      * @param subs each user of a mailbox must have subscribed to the mailbox. 
      * (I know, we're mixing metaphors here... sigh.)
-     * @returns The oldest object in the subscriber's mailbox. 
+     * @param obj set to oldest object. Undefined on empty
+     * @returns true if the queue was not empty ('obj' is valid)
      */
-    std::shared_ptr<T> get(Subscription & subs) {
+    bool get(Subscription & subs, T & obj) {
       std::lock_guard<std::mutex> lock(mtx);	      
       auto & mqueue = getQueue(subs); 
       if(mqueue.empty()) {
-	return nullptr;
+	return false;
       }
       else {
-
-	auto ret = mqueue.front();
+	obj = mqueue.front();
 	mqueue.pop();
-	return ret;
+	return true;
       }
     }
 
@@ -347,7 +364,7 @@ namespace SoDa {
      * @param subs If supplied, messages will *not* be enqueued to the sender's 
      * message queue. 
      */
-    void put(std::shared_ptr<T> msg, const Subscription & subs = nullptr) {
+    void put(T msg, const Subscription & subs = nullptr) {
       std::lock_guard<std::mutex> lock(mtx);            
       int omit_key = subscription_counter; // points past last allocted subscription id
       if(subs != nullptr) {
@@ -378,6 +395,14 @@ namespace SoDa {
       }
     }
 
+    /**
+     * @brief check message queue for current messages
+     *
+     * @return true on empty
+     */
+    bool empty(Subscription & subs) {
+      return readyCount(subs) == 0;
+    }
     /**
      * Return the smallest number of waiting messages in 
      * the queue for all subscribers
@@ -421,17 +446,17 @@ namespace SoDa {
       return message_queues.size();
     }
   protected:
-    std::map<int, std::queue<std::shared_ptr<T>>> message_queues; 
+    std::map<int, std::queue<T>> message_queues; 
     int subscription_counter; 
 
-    std::queue<std::shared_ptr<T>> & getQueue(int idx) {
+    std::queue<T> & getQueue(int idx) {
       if(message_queues.count(idx) == 0) {
 	throw MissingSubscriber(getName(), "get()", idx);
       }
       return message_queues[idx];       
     }
     
-    std::queue<std::shared_ptr<T>> & getQueue(Subscription & subs) {
+    std::queue<T> & getQueue(Subscription & subs) {
       int idx = subs->getIndex(this);
       return getQueue(idx);
     }

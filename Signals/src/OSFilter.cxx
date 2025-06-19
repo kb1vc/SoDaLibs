@@ -115,7 +115,8 @@ namespace SoDa {
 
 
   unsigned int OSFilter::apply(std::vector<std::complex<float>> & in_buf, 
-			       std::vector<std::complex<float>> & out_buf) {
+			       std::vector<std::complex<float>> & out_buf,
+			       float gain) {
     if((in_buf.size() != buffer_size) || (out_buf.size() != buffer_size)) {
       throw BadBufferSize("applyVCF", in_buf.size(), out_buf.size(), buffer_size); 
     }
@@ -135,14 +136,15 @@ namespace SoDa {
 
     // throw away the early samples
     for(int i = 0;  i < out_buf.size(); i++) {
-      out_buf.at(i) = y_augmented.at(i + save_buf.size());
+      out_buf.at(i) = y_augmented.at(i + save_buf.size()) * gain;
     }
 
     return out_buf.size(); 
   }
 
   unsigned int OSFilter::apply(std::vector<float> & in_buf, 
-			       std::vector<float> & out_buf) {
+			       std::vector<float> & out_buf, 
+			       float gain) {
     if((in_buf.size() != buffer_size) || (out_buf.size() != buffer_size)) {
       throw BadBufferSize("applyVF", in_buf.size(), out_buf.size(), buffer_size); 
     }
@@ -151,7 +153,7 @@ namespace SoDa {
       real_in.at(i) = std::complex<float>(in_buf.at(i), 0.0);
     }
     
-    apply(real_in, real_out);
+    apply(real_in, real_out, gain);
     
     for(int i = 0; i < out_buf.size(); i++) {
       out_buf.at(i) = real_out.at(i).real();
