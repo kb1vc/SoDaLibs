@@ -203,11 +203,21 @@ void testMBoxConversion() {
   // Just testing the pointer conversion to make sure we can build
   // tables of mailboxes that do the right thing. 
   std::shared_ptr<SoDa::MailBoxBase> mb_p = mailbox_p;
-  SoDa::MailBoxPtr<MyMsgPtr> nmm_p = SoDa::MailBoxBase::convert<SoDa::MailBox<MyMsgPtr>>(mb_p, "MessageMailbox");
+  SoDa::MailBoxPtr<MyMsgPtr> nmm_p;
+  SoDa::MailBoxBase::connect<SoDa::MailBox<MyMsgPtr>>(mb_p,
+						     "MessageMailbox",
+						     nmm_p);
+  bool found_problem = false;
+  
+  if(nmm_p == nullptr) {
+    std::cerr << "MailBoxBase::connect failed to set a pointer\n";
+    found_problem = true; 
+  }
+  //SoDa::MailBoxPtr<MyMsgPtr> nmm_p = SoDa::MailBoxBase::convert<SoDa::MailBox<MyMsgPtr>>(mb_p, "MessageMailbox");
   
   // now make sure we get a conversion failure if we try to convert to the
   // wrong kind of mailbox
-  bool found_problem = false; 
+
   try {
     SoDa::MailBoxPtr<int> nmmp = SoDa::MailBoxBase::convert<SoDa::MailBox<int>>(mb_p, "MessageMailbox", true);
   }
