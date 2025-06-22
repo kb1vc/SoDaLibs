@@ -311,7 +311,7 @@ namespace SoDa {
     };
 
   public:
-    typedef std::unique_ptr<SubscriptionCl> Subscription; 
+    typedef std::shared_ptr<SubscriptionCl> Subscription; 
     
     /**
      * @brief Subscribe the caller to a mailbox.  There may be 

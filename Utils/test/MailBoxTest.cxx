@@ -39,6 +39,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 std::mutex mtx;
 
+class PrivTest {
+private:
+  PrivTest(const std::string & foo) { msg = foo; }
+public:
+  static std::shared_ptr<PrivTest> make(const std::string & foo) {
+    auto ret = std::shared_ptr<PrivTest>(new PrivTest(foo));
+    ret->self = ret;
+    return ret;
+  }
+  
+  std::string getMsg() { return msg; }
+  
+  std::string msg; 
+  
+  std::weak_ptr<PrivTest> self; 
+};
+  
 class MyMsg {
 public:
   MyMsg(int from, int v) : from(from), v(v) {
@@ -214,6 +231,19 @@ void testMBoxConversion() {
 
 
 int main(int argc, char ** argv) {
+
+  auto ptp = PrivTest::make("This");
+
+  std::shared_ptr<PrivTest> optp;
+
+  std::cerr << "ptp message:\n";
+  std::cerr << ptp->getMsg();
+
+  optp = std::shared_ptr<PrivTest>(ptp->self.lock());
+
+  std::cerr << "optp message:\n";
+  std::cerr << optp->getMsg();
+  
   // create a mailbox
   SoDa::Options cmd;
 
