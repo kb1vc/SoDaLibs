@@ -241,6 +241,22 @@ namespace SoDa {
       return ret; 
     }
 
+    // return true if we made the connection. false if the
+    // stream was already set, or there was no mailbox match
+    /**
+     * @tparam MBoxT the mailbox type we're looking for.
+     */
+    template<typename MBoxT>
+    static bool connect(std::shared_ptr<MailBoxBase> mbase,
+			const std::string & mbname,
+			std::shared_ptr<MBoxT> & stream) {
+      if(stream == nullptr) {
+	stream = convert<MBoxT>(mbase, mbname, true);
+	return true; 
+      }
+      return false;
+    }
+    
     /**
      * @brief What is the name of this mailbox? 
      * @return the name.
@@ -311,7 +327,7 @@ namespace SoDa {
     };
 
   public:
-    typedef std::unique_ptr<SubscriptionCl> Subscription; 
+    typedef std::shared_ptr<SubscriptionCl> Subscription; 
     
     /**
      * @brief Subscribe the caller to a mailbox.  There may be 

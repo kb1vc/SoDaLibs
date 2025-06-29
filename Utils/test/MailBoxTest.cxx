@@ -39,6 +39,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 std::mutex mtx;
 
+class PrivTest {
+private:
+  PrivTest(const std::string & foo) { msg = foo; }
+public:
+  static std::shared_ptr<PrivTest> make(const std::string & foo) {
+    auto ret = std::shared_ptr<PrivTest>(new PrivTest(foo));
+    ret->self = ret;
+    return ret;
+  }
+  
+  std::string getMsg() { return msg; }
+  
+  std::string msg; 
+  
+  std::weak_ptr<PrivTest> self; 
+};
+  
 class MyMsg {
 public:
   MyMsg(int from, int v) : from(from), v(v) {
@@ -186,16 +203,26 @@ void testMBoxConversion() {
   // Just testing the pointer conversion to make sure we can build
   // tables of mailboxes that do the right thing. 
   std::shared_ptr<SoDa::MailBoxBase> mb_p = mailbox_p;
-  SoDa::MailBoxPtr<MyMsgPtr> nmm_p = SoDa::MailBoxBase::convert<SoDa::MailBox<MyMsgPtr>>(mb_p, "MessageMailbox");
+  SoDa::MailBoxPtr<MyMsgPtr> nmm_p;
+  SoDa::MailBoxBase::connect<SoDa::MailBox<MyMsgPtr>>(mb_p,
+						     "MessageMailbox",
+						     nmm_p);
+  bool found_problem = false;
+  
+  if(nmm_p == nullptr) {
+    std::cerr << "MailBoxBase::connect failed to set a pointer\n";
+    found_problem = true; 
+  }
+  //SoDa::MailBoxPtr<MyMsgPtr> nmm_p = SoDa::MailBoxBase::convert<SoDa::MailBox<MyMsgPtr>>(mb_p, "MessageMailbox");
   
   // now make sure we get a conversion failure if we try to convert to the
   // wrong kind of mailbox
-  bool found_problem = false; 
+
   try {
     SoDa::MailBoxPtr<int> nmmp = SoDa::MailBoxBase::convert<SoDa::MailBox<int>>(mb_p, "MessageMailbox", true);
   }
-  catch (SoDa::MailBoxBase::Exception & e) {
-    std::cerr << e.what() << "\n";
+  catch (SoDa::MailBoxBase::BadConversion & e) {
+    std::cerr << "Got what I expected: [" << e.what() << "]\n";
     found_problem = true;
   }
 
@@ -212,7 +239,21 @@ void testMBoxConversion() {
   }
 }
 
+
 int main(int argc, char ** argv) {
+
+  auto ptp = PrivTest::make("This");
+
+  std::shared_ptr<PrivTest> optp;
+
+  std::cerr << "ptp message:\n";
+  std::cerr << ptp->getMsg();
+
+  optp = std::shared_ptr<PrivTest>(ptp->self.lock());
+
+  std::cerr << "optp message:\n";
+  std::cerr << optp->getMsg();
+  
   // create a mailbox
   SoDa::Options cmd;
 

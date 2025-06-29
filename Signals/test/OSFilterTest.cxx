@@ -82,7 +82,7 @@ bool test() {
   double Fs = 48.0e3;
   double flo = -2.0e3;
   double fhi = 10.0e3;
-  uint32_t buflen = 16384;
+  uint32_t buflen = 2304;
   float skirt = 2.0e3;
 
   SoDa::OSFilter filt(flo, fhi, skirt, Fs, buflen, 60.0);

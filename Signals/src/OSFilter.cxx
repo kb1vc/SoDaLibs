@@ -176,8 +176,9 @@ namespace SoDa {
 					   unsigned int buffer_size,
 					   float gain, 
 					   Filter::WindowChoice window) {
-    return std::make_shared<OSFilter>(filter_spec, buffer_size,
-				      gain, window);
+    auto ret = std::make_shared<OSFilter>(filter_spec, buffer_size,
+					  gain, window);
+    return ret; 
   }
 
   std::shared_ptr<OSFilter> OSFilter::make(float low_cutoff, 
@@ -188,7 +189,7 @@ namespace SoDa {
 					   float stop_band_attenuation,
 					   float gain,
 					   Filter::WindowChoice window) {
-    return std::make_shared<OSFilter>(low_cutoff,
+    auto ret = std::make_shared<OSFilter>(low_cutoff,
 				      high_cutoff,
 				      skirt,
 				      sample_rate, 
@@ -196,6 +197,7 @@ namespace SoDa {
 				      stop_band_attenuation, 
 				      gain,
 				      window);
+    return ret; 
     
   }
 }
