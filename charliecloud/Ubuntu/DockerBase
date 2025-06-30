@@ -29,7 +29,7 @@ RUN apt-get update -y
 RUN apt-get install -y build-essential
 RUN apt-get install -y libfftw3-dev
 RUN apt-get install -y git cmake make g++
-RUN apt-get install -y libyaml-cpp-dev
+RUN apt-get install -y libjsoncpp-dev
 
 
 

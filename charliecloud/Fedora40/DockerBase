@@ -29,7 +29,6 @@ FROM fedora:40
 RUN dnf --assumeyes update
 RUN dnf --assumeyes install gcc-c++ git cmake make
 RUN dnf --assumeyes install fftw-devel
-#  Fedora apparently puts the yaml cmake support in the static kit.
-#  I sure they had a reason.  
-RUN dnf --assumeyes install yaml-cpp-static 
+RUN dnf --assumeyes install jsoncpp-devel
+
 
