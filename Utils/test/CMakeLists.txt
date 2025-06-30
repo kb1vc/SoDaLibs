@@ -28,11 +28,9 @@ target_link_libraries(BarrierTest sodautils Threads::Threads)
 add_executable(OptionsTest OptionsTest.cxx)
 target_link_libraries(OptionsTest sodautils)
 
-if(yaml-cpp_FOUND)
-  add_executable(PropertyTreeYAML_Test PropertyTreeYAML_Test.cxx)
-  target_link_libraries(PropertyTreeYAML_Test sodautils yaml-cpp)
+add_executable(PropertyTree_Test PropertyTree_Test.cxx)
+target_link_libraries(PropertyTree_Test sodautils jsoncpp)
 
-endif()
 
 enable_testing()
 
@@ -72,10 +70,9 @@ add_test(NAME FormatNaN
 add_test(NAME OptionsTestSimple 
   COMMAND $<TARGET_FILE:OptionsTest>)
 
-if(yaml-cpp_FOUND) 
-  add_test(NAME PropertyTreeYAMLTest1
-    COMMAND $<TARGET_FILE:PropertyTreeYAML_Test> ${CMAKE_CURRENT_LIST_DIR}/test1.yaml)
-endif()
+add_test(NAME PropertyTreeTest1
+  COMMAND $<TARGET_FILE:PropertyTree_Test> ${CMAKE_CURRENT_LIST_DIR}/test1.yaml)
+
 
 
 add_test(NAME SplitTest

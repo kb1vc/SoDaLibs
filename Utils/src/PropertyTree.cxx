@@ -1,12 +1,15 @@
 #include "PropertyTree.hxx"
 #include <iostream>
-#include <sstream>
+#include <fstream>
+#include <memory>
+
 #include "Utils.hxx"
+#include "Format.hxx"
 
 /*
 BSD 2-Clause License
 
-Copyright (c) 2022, Matt Reilly - kb1vc
+Copyright (c) 2022, 2025 Matt Reilly - kb1vc
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,130 +37,268 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SoDa {
   PropertyTree::PropertyTree() {
-    root = new PropNode(nullptr, "root", false);
+    // nothing to do. 
   }
 
-  std::string PropertyTree::PropNode::getPathName() {
-    std::string ret;
-    if(parent != nullptr) {
-      ret = parent->getPathName() + ":" + val_string;
+  PropertyTree::PropertyTree(const std::string & fname) {
+    readFile(fname);
+  }
+
+  Json::Value * PropertyTree::getJsonNode(bool & found, 
+					  const std::string & path, 
+					  bool create, 
+					  bool throw_exception) {
+    // first split the path
+    auto pathv = SoDa::split(path, ":", true);
+
+    auto current_node_p = &root; 
+
+    // stride down the pathlist
+    for(auto pe : pathv) {
+      // don't attempt to index into a terminal value 
+      bool is_indexable = !(current_node_p->isNumeric() || current_node_p->isString());
+
+
+      if(current_node_p == nullptr) {
+	found = false;
+	return &root;
+      }
+
+      // is it a member?            
+      if(is_indexable && current_node_p->isMember(pe)) {
+	current_node_p = &((*current_node_p)[pe]);
+      }
+      else if(is_indexable && create) {
+	(*current_node_p)[pe] = Json::Value();
+	current_node_p = &((*current_node_p)[pe]);
+      }
+      else if(throw_exception) {
+	throw PropertyNotFound(path);
+      }
+      else {
+	found = false;
+	return &root; // gotta return something
+      }
+    }
+
+    found = true; 
+    return current_node_p; 
+  }
+
+  bool PropertyTree::get(unsigned long & v, 
+			 const std::string & pathname, 
+			 bool throw_exception) {
+    bool found; 
+    auto node = getJsonNode(found, pathname, false, throw_exception);
+    if(!found) return false;
+    
+    if(node->isUInt64()) {
+      v = node->asUInt64();
+      return true; 
+    }
+    else if(throw_exception) {
+      throw BadPropertyType(pathname, "Unsigned Long", node);
     }
     
-    return ret; 
-  }
-  
-				  
-  PropertyTree::PropNode::PropNode(PropNode * parent, 
-				   const std::string & val_string,
-				   bool is_terminal) : 
-    parent(parent), val_string(val_string), is_terminal(is_terminal)
-  {
-    // nothing much to do. 
-  }
-  
-  
-  
-  PropertyTree::PropNode * 
-  PropertyTree::PropNode::getProp(const std::string & pathname, 
-				  bool throw_exception) {
-    // first split the first chunk of the pathname -- up to the :
-    std::list<std::string> pathlist = SoDa::split(pathname, ":"); 
-    return getPropRecursive(pathlist, pathname, throw_exception); 
+    return false;
   }
 
-  PropertyTree::PropNode * 
-  PropertyTree::PropNode::getPropRecursive(std::list<std::string> & pathlist, 
-					   const std::string & orig_pathname, 
-					   bool throw_exception) {
-    if(pathlist.size() == 0) {
-      return this; 
+  bool PropertyTree::get(double & v, 
+			 const std::string & pathname, 
+			 bool throw_exception) {
+    bool found; 
+    auto node = getJsonNode(found, pathname, false, throw_exception);
+
+    if(!found) return false;
+    
+    if(node->isDouble()) {
+      v = node->asDouble();
+      return true; 
     }
-    else if(dictionary.find(pathlist.front()) != dictionary.end()) {
-	pathlist.pop_front();
-	return getPropRecursive(pathlist, orig_pathname, throw_exception);
+    else if(throw_exception) {
+      throw BadPropertyType(pathname, "Double", node);
+    }
+    
+    return false;
+  }
+  
+
+  bool PropertyTree::get(long & v, 
+			 const std::string & pathname, 
+			 bool throw_exception) {
+    bool found; 
+    auto node = getJsonNode(found, pathname, false, throw_exception);
+    if(!found) return false;
+    
+    if(node->isInt64()) {
+      v = node->asInt64();
+      return true; 
+    }
+    else if(throw_exception) {
+      throw BadPropertyType(pathname, "Long", node);
+    }
+    
+    return false;
+  }
+
+    
+  bool PropertyTree::get(std::string & v, 
+			 const std::string & pathname, 
+			 bool throw_exception) {
+    bool found; 
+    auto node = getJsonNode(found, pathname, false, throw_exception);
+    if(!found) return false;
+
+    if(node->isString()) {
+      v = node->asString();
+      return true; 
+    }
+    else if(throw_exception) {
+      throw BadPropertyType(pathname, "String", node);
+    }
+    
+    return false;
+  }
+
+  bool PropertyTree::put(unsigned long v, 
+			 const std::string & pathname,
+			 bool create,
+			 bool throw_exception) {
+    bool found; 
+    auto node = getJsonNode(found, pathname, create, throw_exception);
+    if(found) {
+      *node = v; 
+      return true; 
     }
     else {
-      if(throw_exception) {
-	throw PropertyNotFound(orig_pathname); 
-      }
+      return false; 
     }
+  }
 
-    return nullptr; 
+
+  bool PropertyTree::put(long  v, 
+			 const std::string & pathname, 
+			 bool create,
+			 bool throw_exception) {
+    bool found; 
+    auto node = getJsonNode(found, pathname, create, throw_exception);
+    if(found) {
+      *node = v; 
+      return true; 
+    }
+    else {
+      return false; 
+    }
+  }
+
+
+  bool PropertyTree::put(double  v, 
+			 const std::string & pathname, 
+			 bool create,
+			 bool throw_exception) {
+    bool found; 
+    auto node = getJsonNode(found, pathname, create, throw_exception);
+    
+    if(found) {
+      *node = v;
+      return true; 
+    }
+    else {
+      return false; 
+    }
   }
   
-  std::list<PropertyTree::PropNode *> PropertyTree::PropNode::getList() {
-    return prop_list; 
+    
+  bool PropertyTree::put(std::string  v, 
+			 const std::string & pathname, 
+			 bool create,
+			 bool throw_exception) {
+
+    bool found; 
+    auto node = getJsonNode(found, pathname, create, throw_exception);
+    if(found) {
+      *node = v;
+      return true; 
+    }
+    else {
+      return false; 
+    }
   }
   
-  std::list<std::string> PropertyTree::PropNode::getKeys() {
-    std::list<std::string> keys; 
-    for(auto a : dictionary) {
-      keys.push_back(a.first); 
+
+  std::string convertNodeType(Json::Value * node) {
+    if(node->isArray()) {
+      return "[Json array]";
     }
-    return keys; 
-  }
-
-
-  std::ostream & PropertyTree::dump(std::ostream & os) {
-    return root->dump(os, "");
-  }
-
-  std::ostream & PropertyTree::PropNode::dump(std::ostream & os, std::string indent) {
-    
-    if(is_terminal) {
-      os << indent << val_string << "\n";
-      return os;
-    }
-
-    if(!prop_list.empty()) {
-      os << "<<<PROPLIST>>>\n";      
-      for(auto v : prop_list) {
-	if(v->is_terminal) {
-	  os << indent << v->val_string << "\n";
-	}
-	else {
-	  v->dump(os, indent + "  ");
-	}
-      }
-    }
-
-    if(!dictionary.empty()) {
-      os << "<<<DICTIONARY>>>\n";
-      for(auto v : dictionary) {
-	os << indent << v.first << ":  "; 
-	if(v.second->is_terminal) {
-	  os << v.second->val_string << "\n";
-	}
-	else {
-	  os << "\n";
-	  v.second->dump(os, indent + "  ");
-	}
-      }
-    }
-    
-    return os; 
+    else return node->asString(); 
   }
   
   PropertyTree::FileNotFound::FileNotFound(const std::string & str) :
-    Exception(SoDa::Format("PropertyTree::PropNode::FileNotFound \"%0\"")
+    Exception(SoDa::Format("PropertyTree::FileNotFound Could not open \"%0\" for input")
 	      .addS(str).str())
   {
   }
-  PropertyTree::PropNode::PropertyNotFound::PropertyNotFound(const std::string & str) :
-    Exception(SoDa::Format("PropertyTree::PropNode::PropertyNotFound \"%0\"")
+
+  PropertyTree::FileNotWriteable::FileNotWriteable(const std::string & str) :
+    Exception(SoDa::Format("PropertyTree::FileNotWritable Could not open \"%0\" for output")
+	      .addS(str).str())
+  {
+  }
+
+  PropertyTree::FileParseError::FileParseError(const std::string & str, const std::string & errs) :
+    Exception(SoDa::Format("PropertyTree::FileParseError Could not parse \"%0\" as valid Json [%1]")
+	      .addS(str)
+	      .addS(errs)
+	      .str())
+  {
+  }
+  
+  PropertyTree::PropertyNotFound::PropertyNotFound(const std::string & str) :
+    Exception(SoDa::Format("PropertyTree::PropertyNotFound \"%0\"")
 	      .addS(str)
 	      .str())
   {
   }
 
-  PropertyTree::PropNode::BadPropertyType::BadPropertyType(const std::string & path_name, 
+  PropertyTree::BadPropertyType::BadPropertyType(const std::string & path_name, 
 							   const std::string & type_name, 
-							   const std::string & val_string) :
-    Exception(SoDa::Format("PropertyTree::PropNode::BadPropertyType at node name \"%0\" with value string \"%1\" which cannot be converted to type \"2\"")
+							   Json::Value * node) :
+    Exception(SoDa::Format("PropertyTree::BadPropertyType at node name \"%0\" with value string \"%1\" which cannot be converted to type \"2\"")
 	      .addS(path_name)
-	      .addS(val_string)
+	      .addS(convertNodeType(node))
 	      .addS(type_name)
 	      .str()) {
+
+  }
+
+  void PropertyTree::readFile(const std::string & filename) {
+    std::ifstream ifs(filename);
+    if(ifs.is_open()) {
+      Json::CharReaderBuilder builder;
+      std::string errs;
+      if(!parseFromStream(builder, ifs, &root, &errs)) {
+	ifs.close();
+	// we got some kind of error	
+	throw FileParseError(filename, errs);
+      }
+    }
+    else {
+      throw FileNotFound(filename); 
+    }
+    ifs.close();
+  }
+
+  void PropertyTree::writeFile(const std::string & filename) {
+    std::ofstream ofs(filename);
+    if(ofs.is_open()) {
+      Json::StreamWriterBuilder builder;
+      // make it this way so that it gets closed when we're done
+      const std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+      writer->write(root, &ofs);
+    }
+    else {
+      throw FileNotWriteable(filename); 
+    }
   }
   
 }

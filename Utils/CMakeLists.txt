@@ -26,7 +26,7 @@
 
 FIND_PACKAGE(Threads REQUIRED)
 
-FIND_PACKAGE(yaml-cpp REQUIRED)
+FIND_PACKAGE(jsoncpp REQUIRED)
 
 # Automatic CMake config generation inspired from https://github.com/jbeder/yaml-cpp.git
 INCLUDE(CMakePackageConfigHelpers)
@@ -35,8 +35,9 @@ INCLUDE(CheckCXXCompilerFlag)
 INCLUDE(GNUInstallDirs)
 INCLUDE(CTest)
 
-SET(SoDaUtils_VERSION_MAJOR 4)
-SET(SoDaUtils_VERSION_MINOR 1)
+# version 5 adds PropertyTree
+SET(SoDaUtils_VERSION_MAJOR 5)
+SET(SoDaUtils_VERSION_MINOR 0)
 SET(SoDaUtils_VERSION_PATCH 0)
 SET(SoDaUtils_VERSION "${SoDaUtils_VERSION_MAJOR}.${SoDaUtils_VERSION_MINOR}.${SoDaUtils_VERSION_PATCH}")
 

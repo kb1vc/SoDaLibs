@@ -8,7 +8,6 @@ set(UTILS_SRCS
 	UtilsBase.cxx
 	Barrier.cxx
 	PropertyTree.cxx    
-	PropertyTreeYAML.cxx
 )
 
 
@@ -37,7 +36,7 @@ set_target_properties(sodautils PROPERTIES
   PROJECT_LABEL "SoDaUtils"
   DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
 
-target_link_libraries(sodautils PUBLIC yaml-cpp)
+target_link_libraries(sodautils PUBLIC jsoncpp)
 
 set(installable_libs sodautils)
 

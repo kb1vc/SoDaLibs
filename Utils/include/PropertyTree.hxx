@@ -1,20 +1,14 @@
 #pragma once
 #include <string>
-#include <exception>
-#include <stdexcept>
-#include <iostream>
-#include <sstream>
-#include <ios>
-#include <map>
-#include <list>
-#include <typeinfo>
+#include <memory>
+#include <json/json.h>
 #include "Exception.hxx"
-#include "Format.hxx"
+
 
 /*
 BSD 2-Clause License
 
-Copyright (c) 2022 Matt Reilly - kb1vc
+Copyright (c) 2022, 2025 Matt Reilly - kb1vc
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -42,15 +36,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /**
  * @file PropertyTree.hxx
  * @author Matt Reilly (kb1vc)
- * @date December 31, 2020
+ * @date Jun 29, 2025
  */
 
 /**
  * @page SoDa::PropertyTree PropertyTree A simple property tree widget with
- * documentation. 
+ * documentation. It is a wrapper around jsoncpp.
  * 
- * This is meant to be subclassed for file formats like XML and YAML.
- *
  * So, here is SoDa::PropertyTree -- 
  */
 
@@ -70,7 +62,13 @@ namespace SoDa {
   
     /**
      * @class PropertyTree 
-     * @brief Hold 
+     * @brief Create a property tree from a filename or create
+     * a bare property tree.
+     *
+     * Though this property tree is built upon jsoncpp and uses Json as its
+     * representation/container, it does *not* support arrays. Any attempt to set
+     * a node value replaces the old value: it does not append. 
+     *
      */
   
   class PropertyTree {
@@ -81,6 +79,15 @@ namespace SoDa {
      * Create a property tree.  There won't be anything in it. 
      */
     PropertyTree();
+    
+    /**
+     * @brief The constructor.
+     *
+     * Create a property tree from an input Json file.
+     *
+     * @param filename the name of a json file containing the properties
+     */
+    PropertyTree(const std::string & filename);
 
 
 
@@ -88,13 +95,12 @@ namespace SoDa {
      * @brief Read a property file
      *
      * Add the stuff in "filename" to the property tree in this
-     * object. 
+     * object.
      *
      * @param filename the name of the property file to be read
      * @throws SoDa::FileNotFound (a subclass of SoDa::Exception)
-     * @throws SoDa::PropertyTree::BadSyntax
      */
-    virtual void readFile(const std::string & filename) = 0;
+    void readFile(const std::string & filename);
 
     /**
      * @brief Write a property file
@@ -104,166 +110,175 @@ namespace SoDa {
      *
      * @param filename the name of the file to be written
      * @throws SoDa::NoFileCreated (a subclass of SoDa::Exception)     
-     * @throws SoDa::PropertyTree::BadSyntax
      */
-    virtual void writeFile(const std::string & filename) = 0;
+    void writeFile(const std::string & filename);
 
     /**
-     * @brief dump the tree in a somewhat readable format. 
-     *
-     */
-    std::ostream & dump(std::ostream & os); 
-    
-    
-    /**
-     * @brief get an attribute from the tree
-     * @param v the value to be read from the attribute
+     * @brief get a double attribute from the tree
+     * @param v the double to be read from the attribute
      * @param pathname the heirarchical path name to the attribute.
      * Levels in the tree are separated with ":" as in "top:next:leaf"
      * @param throw_exception throws an exception if the pathname is not
-     * found or if the type of the value cannot be read from the property
-     * string at that node.
-     * @returns true if the value was found and was readable from the property string. 
+     * found or if the type of the value cannot be read from the property at that node.
+     * @returns true if the value was found and was readable from the property node, false otherwise. 
      * @throws SoDa::PropertyTree::PropertyNotFound 
      * @throws SoDa::PropertyTree::BadPropertyType
      */
-    template<typename T> bool get(T & v, 
-				  const std::string & pathname, 
-				  bool throw_exception = false) {
-      PropNode * pn = root->getProp(pathname, throw_exception); 
-      
-      if(pn == nullptr) {
-	throw PropNode::PropertyNotFound(pathname); 
-      }
-      
-      return pn->get<T>(v, throw_exception);
-    }
+    bool get(double & v, 
+	     const std::string & pathname, 
+	     bool throw_exception = false);
+
+
+    /**
+     * @brief get a unsigned long attribute from the tree
+     * @param v the unsigned long to be read from the attribute
+     * @param pathname the heirarchical path name to the attribute.
+     * Levels in the tree are separated with ":" as in "top:next:leaf"
+     * @param throw_exception throws an exception if the pathname is not
+     * found or if the type of the value cannot be read from the property at that node.
+     * @returns true if the value was found and was readable from the property node, false otherwise. 
+     * @throws SoDa::PropertyTree::PropertyNotFound 
+     * @throws SoDa::PropertyTree::BadPropertyType
+     */
+    bool get(unsigned long & v, 
+	     const std::string & pathname, 
+	     bool throw_exception = false);
+
+
+    /**
+     * @brief get a long attribute from the tree
+     * @param v the long to be read from the attribute
+     * @param pathname the heirarchical path name to the attribute.
+     * Levels in the tree are separated with ":" as in "top:next:leaf"
+     * @param throw_exception throws an exception if the pathname is not
+     * found or if the type of the value cannot be read from the property at that node.
+     * @returns true if the value was found and was readable from the property node, false otherwise. 
+     * @throws SoDa::PropertyTree::PropertyNotFound 
+     * @throws SoDa::PropertyTree::BadPropertyType
+     */
+    bool get(long & v, 
+	     const std::string & pathname, 
+	     bool throw_exception = false);
+
     
-  public:
-    class PropNode {
-    public:
-      // create a key-value pair, dictionary, list, or string (leaf)
-      PropNode(PropNode * parent, 
-	       const std::string & val_string, 
-	       bool is_terminal); 
+    /**
+     * @brief get a string attribute from the tree
+     * @param v the string to be read from the attribute
+     * @param pathname the heirarchical path name to the attribute.
+     * Levels in the tree are separated with ":" as in "top:next:leaf"
+     * @param throw_exception throws an exception if the pathname is not
+     * found or if the type of the value cannot be read from the property at that node.
+     * @returns true if the value was found and was readable from the property node, false otherwise. 
+     * @throws SoDa::PropertyTree::PropertyNotFound 
+     * @throws SoDa::PropertyTree::BadPropertyType
+     */
+    bool get(std::string & v, 
+	     const std::string & pathname, 
+	     bool throw_exception = false);
 
-      PropNode * parent; 
-      std::string val_string;
-      bool is_terminal; 
-      std::list<PropNode *> prop_list;
-      std::map<std::string, PropNode *> dictionary;
-      
-    public:
-      /**
-       * @brief Translate the value string of this property
-       * into a value of a specified type.
-       *
-       * @param v reference to the value we'll set
-       * @param throw_exception if true we'll throw an exception when
-       * bad things happen. 
-       * @returns true if we found a valid value. false if the value
-       * string did not contain a value of type "T"
-       * @throws SoDa::PropertyTree::BadPropertyType
-       */
-      template<typename T> bool get(T & v, bool throw_exception = false) {
-	std::stringstream ss(val_string, std::ios_base::in);
-	ss >> v; 
-	if(ss.fail()) {
-	  if(throw_exception) {
-	    throw PropertyTree::PropNode::BadPropertyType(getPathName(), typeid(v).name(), val_string);
-	      }
-	  else return false; 
-	}
-	return true; 
-      }
+    /**
+     * @brief put a unsigned long attribute from the tree
+     * @param v the unsigned long to be read from the attribute
+     * @param pathname the heirarchical path name to the attribute.
+     * Levels in the tree are separated with ":" as in "top:next:leaf"
+     * @param create if true, create the path to this attribute if it doesn't exist. (default true)
+     * @param throw_exception throws an exception if the pathname is not
+     * found and if create is false. (default false)
+     * @returns true if the value was found and was writable, false otherwise. 
+     * @throws SoDa::PropertyTree::PropertyNotFound 
+     */
+    bool put(unsigned long v, 
+	     const std::string & pathname, 
+	     bool create = true,
+	     bool throw_exception = false);
 
-      /**
-       * @brief find the path name that led us to this node
-       */
-      std::string getPathName();
-      
-      /**
-       * @brief get a property node from this node's dictionary
-       * @param pathname the heirarchical path name to the attribute.
-       * Levels in the tree are separated with ":" as in "top:next:leaf"
-       * @param throw_exception throws an exception if the pathname is not
-       * found.
-       * @returns the property node, nullptr if not found
-       * @throws SoDa::PropertyTree::PropertyNotFound
-       * @throws SoDa::PropertyTree::NotADictionary
-       */
-      PropNode * getProp(const std::string & pathname, 
-			 bool throw_exception = false);
 
-      
-      /**
-       * @brief Get a list of properties from this node.
-       *
-       * @returns a list of all nodes in this node's prop_list
-       * Returns an empty list if this node has no nodes in its nodelist
-       * or is not a list.
-       */
-      std::list<PropNode *> getList(); 
+    /**
+     * @brief put a long attribute from the tree
+     * @param v the long to be read from the attribute
+     * @param pathname the heirarchical path name to the attribute.
+     * Levels in the tree are separated with ":" as in "top:next:leaf"
+     * @param create if true, create the path to this attribute if it doesn't exist. (default true)
+     * @param throw_exception throws an exception if the pathname is not
+     * found and if create is false. (default false)
+     * @returns true if the value was found and was writable, false otherwise. 
+     * @throws SoDa::PropertyTree::PropertyNotFound 
+     */
+    bool put(long v, 
+	     const std::string & pathname,
+	     bool create = true,	     
+	     bool throw_exception = false);
 
-      /**
-       * @brief Get a list of keys from this node's dictionary.
-       *
-       * @returns a list of all key strings in this node's dictionary
-       * Returns an empty list if this node is not a dictionary
-       * or has no nodes in its dictionary.
-       */
-      std::list<std::string> getKeys(); 
 
-      /**
-       * @brief dump the tree in a somewhat readable format. 
-       *
-       */
-      std::ostream & dump(std::ostream & os, std::string indent); 
-      
-     public: 
-      
+    /**
+     * @brief put a double attribute from the tree
+     * @param v the double to be read from the attribute
+     * @param pathname the heirarchical path name to the attribute.
+     * Levels in the tree are separated with ":" as in "top:next:leaf"
+     * @param create if true, create the path to this attribute if it doesn't exist. (default true)
+     * @param throw_exception throws an exception if the pathname is not
+     * found and if create is false. (default false)
+     * @returns true if the value was found and was writable, false otherwise. 
+     * @throws SoDa::PropertyTree::PropertyNotFound 
+     */
+    bool put(double v, 
+	     const std::string & pathname,
+	     bool create = true,	     
+	     bool throw_exception = false);
 
-      class PropertyNotFound : public SoDa::Exception {
-      public:	
-	PropertyNotFound(const std::string & path); 
-      }; 
+    
+    /**
+     * @brief put a string attribute from the tree
+     * @param v the string to be read from the attribute
+     * @param pathname the heirarchical path name to the attribute.
+     * Levels in the tree are separated with ":" as in "top:next:leaf"
+     * @param create if true, create the path to this attribute if it doesn't exist. (default true)
+     * @param throw_exception throws an exception if the pathname is not
+     * found and if create is false. (default false)
+     * @returns true if the value was found and was writable, false otherwise. 
+     * @throws SoDa::PropertyTree::PropertyNotFound 
+     */
+    bool put(std::string v, 
+	     const std::string & pathname,
+	     bool create = true,	     
+	     bool throw_exception = false);
 
-      class BadPropertyType : public SoDa::Exception {
-      public:	
-	BadPropertyType(const std::string & path_name, 
-			const std::string & type_name, 
-			const std::string & val_string); 
-      }; 
-      
-    protected: 
-      /**
-       * @brief get a property node from this node's dictionary
-       * @param pathlist the original pathname split into 
-       * parts by the ':' delimiter. 
-       * @param orig_pathname the pathname before it got split up
-       * @param throw_exception throws an exception if the pathname is not
-       * found.
-       * @returns the property node, nullptr if not found
-       * @throws SoDa::PropertyTree::PropertyNotFound
-       * @throws SoDa::PropertyTree::NotADictionary
-       */
-      PropNode * getPropRecursive(std::list<std::string> & pathlist, 
-				  const std::string & orig_pathname, 
-				  bool throw_exception = false);
+    
+    class PropertyNotFound : public SoDa::Exception {
+    public:	
+      PropertyNotFound(const std::string & path); 
+    }; 
 
-      
-    };
+    class BadPropertyType : public SoDa::Exception {
+    public:	
+      BadPropertyType(const std::string & path_name, 
+		      const std::string & type_name, 
+		      Json::Value * val_string); 
+    }; 
 
-  public:
     class FileNotFound : public SoDa::Exception {
     public:
       FileNotFound(const std::string & fname);
     }; 
 
-  protected:
-    PropNode * root; 
-  };
+    class FileNotWriteable : public SoDa::Exception {
+    public:
+      FileNotWriteable(const std::string & fname);
+    }; 
+
+    class FileParseError : public SoDa::Exception {
+    public:
+      FileParseError(const std::string & fname, const std::string & errs);
+    }; 
     
+  protected:
+    Json::Value * getJsonNode(bool & found,
+			      const std::string & path,
+			      bool create = false,
+			      bool throw_exception = false);
+
+    Json::Value root; 
+  };
 }
 
 
