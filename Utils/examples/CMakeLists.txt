@@ -8,7 +8,7 @@ ENDIF()
 PROJECT(SoDaUtilsExample)
 
 FIND_PACKAGE(Threads REQUIRED)
-FIND_PACKAGE(jsoncpp REQUIRED)
+## taken care of by sodautils package FIND_PACKAGE(jsoncpp REQUIRED)
 
 # optimizations
 IF(NOT CMAKE_BUILD_TYPE)
