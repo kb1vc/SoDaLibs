@@ -1,6 +1,6 @@
-#include "../include/PropertyTree.hxx"
-#include "../include/Format.hxx"
-#include "../include/Options.hxx"
+#include <SoDa/PropertyTree.hxx>
+#include <SoDa/Format.hxx>
+#include <SoDa/Options.hxx>
 
 #include <iostream>
 #include <fstream>
