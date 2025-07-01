@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
-#include <json/json.h>
+
 #include "Exception.hxx"
 
 
@@ -45,6 +45,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * So, here is SoDa::PropertyTree -- 
  */
+
+namespace Json {
+class Value;
+}
+
 
 /**
  * @namespace SoDa
@@ -277,7 +282,7 @@ namespace SoDa {
 			      bool create = false,
 			      bool throw_exception = false);
 
-    Json::Value root; 
+    Json::Value * root_p; 
   };
 }
 

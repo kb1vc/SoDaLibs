@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include <json/json.h>
 
 #include "Utils.hxx"
 #include "Format.hxx"
@@ -37,10 +38,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SoDa {
   PropertyTree::PropertyTree() {
+    root_p = new Json::Value; 
     // nothing to do. 
   }
 
   PropertyTree::PropertyTree(const std::string & fname) {
+    root_p = new Json::Value; 
     readFile(fname);
   }
 
@@ -51,7 +54,7 @@ namespace SoDa {
     // first split the path
     auto pathv = SoDa::split(path, ":", true);
 
-    auto current_node_p = &root; 
+    auto current_node_p = root_p; 
 
     // stride down the pathlist
     for(auto pe : pathv) {
@@ -61,7 +64,7 @@ namespace SoDa {
 
       if(current_node_p == nullptr) {
 	found = false;
-	return &root;
+	return root_p;
       }
 
       // is it a member?            
@@ -77,7 +80,7 @@ namespace SoDa {
       }
       else {
 	found = false;
-	return &root; // gotta return something
+	return root_p; // gotta return something
       }
     }
 
@@ -276,7 +279,7 @@ namespace SoDa {
     if(ifs.is_open()) {
       Json::CharReaderBuilder builder;
       std::string errs;
-      if(!parseFromStream(builder, ifs, &root, &errs)) {
+      if(!parseFromStream(builder, ifs, root_p, &errs)) {
 	ifs.close();
 	// we got some kind of error	
 	throw FileParseError(filename, errs);
@@ -294,7 +297,7 @@ namespace SoDa {
       Json::StreamWriterBuilder builder;
       // make it this way so that it gets closed when we're done
       const std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
-      writer->write(root, &ofs);
+      writer->write(*root_p, &ofs);
     }
     else {
       throw FileNotWriteable(filename); 
