@@ -28,8 +28,8 @@
 
 echo "Retrieving SoDaLibs kit"
 git clone https://github.com/kb1vc/SoDaLibs.git
-cd SoDaLibs
-git checkout -f charliecloud
+cd SoDaLibs/Utils
+git checkout charliecloud
 
 
 
