@@ -8,6 +8,12 @@ ENDIF()
 
 PROJECT(SoDaLibs)
 
+
+SET(SoDaLibs_VERSION_MAJOR 5)
+SET(SoDaLibs_VERSION_MINOR 0)
+SET(SoDaLibs_VERSION_PATCH 0)
+SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDaLibs_VERSION_PATCH}")
+
 INCLUDE(GNUInstallDirs)
 INCLUDE(CTest)
   
@@ -59,6 +65,7 @@ ADD_SUBDIRECTORY(Signals)
 IF(BUILD_RPM OR BUILD_DEB)
   INCLUDE(cmake/BuildPackage.cmake)
 ENDIF()
+
 
 ############################################################################
 #

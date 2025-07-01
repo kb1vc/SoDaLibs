@@ -21,7 +21,7 @@ if(NOT TARGET sodautils)
 endif()
 
 include(CMakeFindDependencyMacro)
-find_dependency(jsoncpp REQUIRED)
+#find_dependency(jsoncpp REQUIRED)
 find_dependency(Threads REQUIRED)
 
 # Our library dependencies (contains definitions for IMPORTED targets)
