@@ -32,7 +32,12 @@ RUN /mnt/0/get_sodalibs.sh
 WORKDIR /soda_testbuild/SoDaLibs
 RUN mkdir -p build
 WORKDIR /soda_testbuild/SoDaLibs/build
-RUN /mnt/0/build_sodalibs.sh
+RUN cmake -DBUILD_DEB=1 ../
+RUN make
+RUN ctest -j 4
+RUN make install
+RUN make package
+RUN mv *.deb /mnt/1/
 
 RUN mkdir -p  /soda_testbuild/example_test/SigExamps/build
 RUN mkdir -p  /soda_testbuild/example_test/UtilExamps/build
