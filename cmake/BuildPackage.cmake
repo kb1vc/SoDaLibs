@@ -36,14 +36,14 @@ IF( EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake" )
     "${CMAKE_PROJECT_NAME}_${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}" )
 
   # omit if not required
-  set( CPACK_RPM_PACKAGE_REQUIRES "jsoncpp-devel, gcc-g++ >= 5.0.0")
+  set( CPACK_RPM_PACKAGE_REQUIRES "fftw-devel >= 1.0.0, jsoncpp-devel >= 1.0.0, gcc-g++ >= 5.0.0")
   set( CPACK_RPM_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR} )
   
   set( CPACK_DEBIAN_PACKAGE_PRIORITY "optional" )
   set( CPACK_DEBIAN_PACKAGE_SECTION "devel" )
   set( CPACK_DEBIAN_PACKAGE_MAINTAINER "kb1vc@kb1vc.org")
   set( CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR} )
-  set( CPACK_DEBIAN_PACKAGE_DEPENDS "jsoncpp-devel, gcc-g++ >= 5.0.0")  
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "libfftw3-dev >= 1.0.0, libjsoncpp-dev >= 1.0.0, gcc-g++ >= 5.0.0")  
   
   set( MYCMAKE_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake")
   message("MYCMAKE_DIR [${MYCMAKE_DIR}]")
