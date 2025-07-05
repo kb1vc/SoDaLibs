@@ -1,4 +1,4 @@
-#!/bin/bash
+FROM ubuntu:latest
 # BSD 2-Clause License
 # 
 # Copyright (c) 2025, kb1vc
@@ -25,6 +25,36 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-echo 'Building Utilities examples'
-cmake -DCMAKE_MODULE_PATH=/usr/local/share ../
-make
+RUN apt-get update -y
+# these were needed, but I may have fixed the install
+RUN apt-get install -y build-essential
+RUN apt-get install -y git cmake make g++
+RUN apt-get install -y pkg-config
+## these are taken care of
+# RUN apt-get install -y libfftw3-dev
+# RUN apt-get install -y libjsoncpp-dev
+
+RUN ls /mnt/1
+#RUN rm -r /var/lib/apt/lists/*
+#RUN apt clean -y
+#RUN apt update -y
+RUN apt-get install -y /mnt/1/SoDaLibs_5.0.0_6.14.5-100.fc40.x86_64.deb
+RUN mkdir -p /mnt/1/utils-examples
+RUN cd /mnt/1/utils-examples
+RUN cp /usr/share/SoDaUtils/examples/* .
+RUN mkdir build
+RUN cd build
+RUN cmake ../
+RUN make
+RUN mkdir -p /mnt/1/signals-examples
+RUN cd /mnt/1/signals-examples
+RUN cp /usr/share/SoDaSignals/examples/* .
+RUN mkdir build
+RUN cd build
+RUN cmake ../
+RUN make
+
+
+
+
+

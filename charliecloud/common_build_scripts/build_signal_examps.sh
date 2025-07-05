@@ -26,5 +26,5 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 echo 'Building Signals examples'
-cmake ../
+cmake -DCMAKE_MODULE_PATH=/usr/local/share ../
 make
