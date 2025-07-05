@@ -28,8 +28,8 @@ FROM ubuntu_sodabase
 RUN mkdir -p /soda_testbuild
 WORKDIR /soda_testbuild
 RUN /mnt/0/get_sodalibs.sh
-
 WORKDIR /soda_testbuild/SoDaLibs
+RUN git checkout charliecloud
 RUN mkdir -p build
 WORKDIR /soda_testbuild/SoDaLibs/build
 RUN cmake -DBUILD_DEB=1 ../

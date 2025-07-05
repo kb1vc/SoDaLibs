@@ -26,5 +26,4 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 export CH_IMAGE_STORAGE=`pwd`/images
-ch-image build -t ubuntu_sodabase -f DockerBase .
-ch-image build --rebuild --bind=`pwd`/../common_build_scripts:/mnt/0 --bind=`pwd`/:/mnt/1 -t ubuntu_sodasignals -f DockerKit .
+ch-image build --rebuild --bind=`pwd`/../common_build_scripts:/mnt/0 --bind=`pwd`/:/mnt/1 -t ubuntu_debtest -f DockerDEBTest .
