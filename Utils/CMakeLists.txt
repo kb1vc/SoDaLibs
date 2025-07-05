@@ -86,10 +86,12 @@ target_include_directories(sodautils
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-set(UTILS_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/SoDaUtils")
+# do this because "LIBDIR" in ubuntu is all screwed up. 
+set(UTILS_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_DATADIR}/cmake/SoDaUtils")
 
 include(InstallRequiredSystemLibraries)
 
+message("******* Installing Utils to [${UTILS_CONFIG_EXPORT_DIR}]")
 install(EXPORT SoDaUtilsTargets
   FILE SoDaUtilsTargets.cmake
   DESTINATION ${UTILS_CONFIG_EXPORT_DIR}

@@ -49,11 +49,13 @@ INCLUDE_DIRECTORIES("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
   
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/SignalsVersion.hxx DESTINATION "include/SoDa")
 
-set(SIGNALS_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/SoDaSignals")
-set(FFTW_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/SoDa_FFTW")
+# do this because "LIBDIR" in ubuntu is all screwed up. 
+set(SIGNALS_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_DATADIR}/cmake/SoDaSignals")
+set(FFTW_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_DATADIR}/cmake/SoDa_FFTW")
 
 include(InstallRequiredSystemLibraries)
 
+message("******* Installing Signals to [${SIGNALS_CONFIG_EXPORT_DIR}]")
 install(EXPORT SoDaSignalsTargets
   FILE SoDaSignalsTargets.cmake
   DESTINATION ${SIGNALS_CONFIG_EXPORT_DIR}
