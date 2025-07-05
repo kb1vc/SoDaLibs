@@ -10,7 +10,8 @@ IF( EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake" )
   if(BUILD_RPM) 
     list(APPEND CPACK_GENERATOR "RPM" )
     set(KIT_GEN_STRING "CC_FED")
-  elseif(BUILD_DEB)
+  endif()
+  if(BUILD_DEB)
     list(APPEND CPACK_GENERATOR "DEB" )
     set(KIT_GEN_STRING "CC_UBUNTU")    
   endif()
@@ -49,7 +50,14 @@ IF( EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake" )
     CMAKE_HOST_SYSTEM
     CMAKE_SYSTEM_PROCESSOR
     CPACK_PACKAGE_FILE_NAME
-    CPACK_SOURCE_PACKAGE_FILE_NAM
+    CPACK_SOURCE_PACKAGE_FILE_NAME
+    CMAKE_INSTALL_SYSCONFDIR
+    CMAKE_INSTALL_LIBDIR
+    CMAKE_INSTALL_DATAROOTDIR
+    CMAKE_INSTALL_DATADIR
+    CMAKE_INSTALL_INFODIR
+    CMAKE_INSTALL_DOCDIR
+    CMAKE_INSTALL_LIBEXECDIR
   )
 
   foreach(ps ${vardump})
@@ -65,7 +73,7 @@ IF( EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake" )
   set( CPACK_DEBIAN_PACKAGE_SECTION "devel" )
   set( CPACK_DEBIAN_PACKAGE_MAINTAINER "kb1vc@kb1vc.org")
   set( CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR} )
-  set( CPACK_DEBIAN_PACKAGE_DEPENDS "libfftw3-dev, libjsoncpp-dev, pkg-config, gcc, g++, build-essential, git cmake make")  
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "libfftw3-dev, libjsoncpp-dev, pkg-config, gcc, g++, build-essential, git, cmake, make")  
   
   set( MYCMAKE_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake")
   message("MYCMAKE_DIR [${MYCMAKE_DIR}]")
