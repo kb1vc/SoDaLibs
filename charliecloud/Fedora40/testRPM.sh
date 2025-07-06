@@ -26,4 +26,4 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 export CH_IMAGE_STORAGE=`pwd`/images
-ch-image build  --bind `pwd`/../common_build_scripts:/mnt/0 -t fedora40_sodarpm -f DockerRPMTest .
+ch-image build  --bind `pwd`:/mnt/1 -t fedora40_sodarpm -f DockerRPMTest .

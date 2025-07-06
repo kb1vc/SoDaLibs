@@ -30,5 +30,7 @@ RUN dnf --assumeyes update
 RUN dnf --assumeyes install gcc-c++ git cmake make
 RUN dnf --assumeyes install fftw-devel
 RUN dnf --assumeyes install jsoncpp-devel
+RUN dnf --assumeyes install rpm-build
+
 
 

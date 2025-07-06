@@ -28,18 +28,28 @@ FROM fedora40_sodabase
 RUN mkdir -p /soda_testbuild
 WORKDIR /soda_testbuild
 RUN /mnt/0/get_sodalibs.sh
-
 WORKDIR /soda_testbuild/SoDaLibs
+RUN git checkout charliecloud
 RUN mkdir -p build
 WORKDIR /soda_testbuild/SoDaLibs/build
-RUN /mnt/0/build_sodalibs.sh
+RUN cmake -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_RPM=1 ../
+RUN make
+RUN ctest -j 4
+RUN make install
+RUN cpack -G RPM
+RUN mv *.rpm /mnt/1/
+
+
 RUN mkdir -p  /soda_testbuild/example_test/SigExamps/build
 RUN mkdir -p  /soda_testbuild/example_test/UtilExamps/build
 WORKDIR /soda_testbuild/example_test
-RUN cp /usr/local/share/SoDaSignals/examples/* ./SigExamps/
-RUN cp /usr/local/share/SoDaUtils/examples/* ./UtilExamps/
+
+RUN cp /usr/share/SoDaSignals/examples/* ./SigExamps/
+RUN cp /usr/share/SoDaUtils/examples/* ./UtilExamps/
+
 WORKDIR  /soda_testbuild/example_test/UtilExamps/build
 RUN /mnt/0/build_util_examps.sh
+
 WORKDIR  /soda_testbuild/example_test/SigExamps/build
 RUN /mnt/0/build_signal_examps.sh
 

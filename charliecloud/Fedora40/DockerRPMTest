@@ -28,8 +28,21 @@ FROM fedora:40
 
 RUN dnf --assumeyes update
 RUN dnf --assumeyes install  git cmake make
-RUN ls /mnt/0
-RUN dnf --assumeyes install /mnt/0/SoDaLibs_5.0.0_6.14.5-100.fc40.x86_64.rpm
+RUN ls /mnt/1
+RUN dnf --assumeyes install /mnt/1/SoDaLibs_5.0.0_6.14.5-100.fc40.x86_64.rpm
 
-
+# now do example builds
+RUN mkdir -p /mnt/1/utils-examples
+RUN cp /usr/share/SoDaUtils/examples/*.* /mnt/1/utils-examples/
+RUN mkdir -p /mnt/1/utils-examples/build
+WORKDIR /mnt/1/utils-examples/build
+RUN pwd
+RUN cmake ../
+RUN make
+RUN mkdir -p /mnt/1/signals-examples
+RUN cp /usr/share/SoDaSignals/examples/*.* /mnt/1/signals-examples/
+RUN mkdir -p /mnt/1/signals-examples/build
+WORKDIR /mnt/1/signals-examples/build
+RUN cmake ../
+RUN make
 
