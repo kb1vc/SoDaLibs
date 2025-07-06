@@ -36,7 +36,7 @@ RUN cmake -DBUILD_DEB=1 ../
 RUN make
 RUN ctest -j 4
 RUN make install
-RUN make package
+RUN cpack -G DEB
 RUN mv *.deb /mnt/1/
 
 RUN mkdir -p  /soda_testbuild/example_test/SigExamps/build

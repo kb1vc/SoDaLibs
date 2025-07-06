@@ -60,9 +60,9 @@ IF( EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake" )
     CMAKE_INSTALL_LIBEXECDIR
   )
 
-  foreach(ps ${vardump})
-    message("@@@ ${ps} = [${${ps}}]")
-  endforeach()
+#  foreach(ps ${vardump})
+#    message("@@@ ${ps} = [${${ps}}]")
+#  endforeach()
 
   
   # omit if not required
@@ -75,9 +75,19 @@ IF( EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake" )
   set( CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR} )
   set( CPACK_DEBIAN_PACKAGE_DEPENDS "libfftw3-dev, libjsoncpp-dev, pkg-config, gcc, g++, build-essential, git, cmake, make")  
   
-  set( MYCMAKE_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake")
-  message("MYCMAKE_DIR [${MYCMAKE_DIR}]")
-  list(APPEND CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION ${MYCMAKE_DIR})
 
-  INCLUDE( CPack )
+#  set( MYCMAKE_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake")
+#  message("MYCMAKE_DIR [${MYCMAKE_DIR}]")
+#  list(APPEND CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION ${MYCMAKE_DIR})
+
+INCLUDE( CPack )
+
+message(STATUS "\n\n\n\n-----------------\n")
+get_cmake_property(_varNames VARIABLES)
+list(SORT _varNames)
+foreach(_varName ${_varNames})
+  message(STATUS ${_varName}=${${_varName}}")
+endforeach()
+
+
 ENDIF()
