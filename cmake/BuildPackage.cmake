@@ -82,12 +82,5 @@ IF( EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake" )
 
 INCLUDE( CPack )
 
-message(STATUS "\n\n\n\n-----------------\n")
-get_cmake_property(_varNames VARIABLES)
-list(SORT _varNames)
-foreach(_varName ${_varNames})
-  message(STATUS "${_varName}=${${_varName}}")
-endforeach()
-
 
 ENDIF()

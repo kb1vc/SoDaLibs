@@ -1,26 +1,26 @@
   1* FROM ubuntu:latest
  28. RUN.S apt-get update -y
-copying image from cache ...
+updating existing image ...
 --force: RUN: new command: ['/bin/sh', '-c', 'apt-get -o APT::Sandbox::User=root update -y']
-Get:1 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
-Get:2 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
-Get:3 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1221 kB]
+Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:2 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:3 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1122 kB]
 Get:4 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
 Get:5 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
-Get:6 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
-Get:7 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
-Get:8 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1708 kB]
-Get:9 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [23.0 kB]
-Get:10 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1122 kB]
-Get:11 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
-Get:12 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
-Get:13 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [28.1 kB]
-Get:14 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1766 kB]
-Get:15 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1432 kB]
-Get:16 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1547 kB]
+Get:6 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1221 kB]
+Get:8 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [23.0 kB]
+Get:9 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1708 kB]
+Get:10 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:11 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1432 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1547 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1766 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [28.1 kB]
 Get:17 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [31.8 kB]
 Get:18 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.0 kB]
-Fetched 31.1 MB in 4s (7604 kB/s)
+Fetched 31.1 MB in 4s (7655 kB/s)
 Reading package lists...
  30. RUN.S apt-get install -y build-essential
 --force: RUN: new command: ['/bin/sh', '-c', 'apt-get -o APT::Sandbox::User=root install -y build-essential']
@@ -206,7 +206,7 @@ Get:115 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libldap-common
 Get:116 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libsasl2-modules amd64 2.1.28+dfsg1-5ubuntu3.1 [69.9 kB]
 Get:117 http://archive.ubuntu.com/ubuntu noble/main amd64 manpages-dev all 6.7-2 [2013 kB]
 debconf: delaying package configuration, since apt-utils is not installed
-Fetched 94.0 MB in 11s (8628 kB/s)
+Fetched 94.0 MB in 10s (9364 kB/s)
 Selecting previously unselected package liblocale-gettext-perl.
 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4381 files and directories currently installed.)
 Preparing to unpack .../0-liblocale-gettext-perl_1.07-6ubuntu5_amd64.deb ...
@@ -770,7 +770,7 @@ Get:32 http://archive.ubuntu.com/ubuntu noble/main amd64 liberror-perl all 0.170
 Get:33 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 git-man all 1:2.43.0-1ubuntu7.2 [1100 kB]
 Get:34 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 git amd64 1:2.43.0-1ubuntu7.2 [3679 kB]
 debconf: delaying package configuration, since apt-utils is not installed
-Fetched 34.8 MB in 4s (8290 kB/s)
+Fetched 34.8 MB in 4s (8534 kB/s)
 Selecting previously unselected package openssl.
 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 13968 files and directories currently installed.)
 Preparing to unpack .../00-openssl_3.0.13-0ubuntu3.5_amd64.deb ...
@@ -939,7 +939,7 @@ Get:2 http://archive.ubuntu.com/ubuntu noble/main amd64 pkgconf-bin amd64 1.8.1-
 Get:3 http://archive.ubuntu.com/ubuntu noble/main amd64 pkgconf amd64 1.8.1-2build1 [16.8 kB]
 Get:4 http://archive.ubuntu.com/ubuntu noble/main amd64 pkg-config amd64 1.8.1-2build1 [7264 B]
 debconf: delaying package configuration, since apt-utils is not installed
-Fetched 75.4 kB in 0s (161 kB/s)
+Fetched 75.4 kB in 0s (153 kB/s)
 Selecting previously unselected package libpkgconf3:amd64.
 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 19168 files and directories currently installed.)
 Preparing to unpack .../libpkgconf3_1.8.1-2build1_amd64.deb ...
@@ -965,7 +965,9 @@ DockerKit
 SoDaLibs_5.0.0_6.14.5-100.fc40.x86_64.deb
 build.log
 build.sh
+cmake-cpack-example
 images
+signals-examples
 testDEB.log
 testDEB.sh
 utils-examples
@@ -983,9 +985,9 @@ The following NEW packages will be installed:
   libfftw3-bin libfftw3-dev libfftw3-double3 libfftw3-long3 libfftw3-quad3
   libfftw3-single3 libjsoncpp-dev sodalibs
 0 upgraded, 8 newly installed, 0 to remove and 1 not upgraded.
-Need to get 5173 kB/6400 kB of archives.
+Need to get 5173 kB/6399 kB of archives.
 After this operation, 30.3 MB of additional disk space will be used.
-Get:1 /mnt/1/SoDaLibs_5.0.0_6.14.5-100.fc40.x86_64.deb sodalibs amd64 5.0.0 [1227 kB]
+Get:1 /mnt/1/SoDaLibs_5.0.0_6.14.5-100.fc40.x86_64.deb sodalibs amd64 5.0.0 [1226 kB]
 Get:2 http://archive.ubuntu.com/ubuntu noble/main amd64 libfftw3-double3 amd64 3.3.10-1ubuntu3 [838 kB]
 Get:3 http://archive.ubuntu.com/ubuntu noble/main amd64 libfftw3-long3 amd64 3.3.10-1ubuntu3 [374 kB]
 Get:4 http://archive.ubuntu.com/ubuntu noble/main amd64 libfftw3-quad3 amd64 3.3.10-1ubuntu3 [658 kB]
@@ -994,7 +996,7 @@ Get:6 http://archive.ubuntu.com/ubuntu noble/main amd64 libfftw3-bin amd64 3.3.1
 Get:7 http://archive.ubuntu.com/ubuntu noble/main amd64 libfftw3-dev amd64 3.3.10-1ubuntu3 [2372 kB]
 Get:8 http://archive.ubuntu.com/ubuntu noble/main amd64 libjsoncpp-dev amd64 1.9.5-6build1 [23.0 kB]
 debconf: delaying package configuration, since apt-utils is not installed
-Fetched 5173 kB in 1s (3893 kB/s)
+Fetched 5173 kB in 1s (9026 kB/s)
 Selecting previously unselected package libfftw3-double3:amd64.
 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 19201 files and directories currently installed.)
 Preparing to unpack .../0-libfftw3-double3_3.3.10-1ubuntu3_amd64.deb ...
@@ -1032,7 +1034,7 @@ Processing triggers for libc-bin (2.39-0ubuntu8.4) ...
  42. RUN.S mkdir -p /mnt/1/utils-examples
  43. RUN.S cd /mnt/1/utils-examples
  44. RUN.S cp /usr/share/SoDaUtils/examples/* .
- 45. RUN.S mkdir build
+ 45. RUN.S mkdir -p build
  46. RUN.S cd build
  47. RUN.S cmake ../
 -- The C compiler identification is GNU 13.3.0
@@ -1050,15 +1052,60 @@ Processing triggers for libc-bin (2.39-0ubuntu8.4) ...
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
 -- Found Threads: TRUE  
-CMake Error at sr/lib/cmake/SoDaUtils/SoDaUtilsConfig.cmake:17 (include):
-  include could not find requested file:
-
-    /usr/lib/cmake/SoDaUtils/SoDaUtilsTargets.cmake
-Call Stack (most recent call first):
-  CMakeLists.txt:23 (FIND_PACKAGE)
-
-
--- Configuring incomplete, errors occurred!
-something went wrong, rolling back ...
-HEAD is now at 3304f36 RUN.S cd build
-error: build failed: RUN command exited with 1
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /
+ 48. RUN.S make
+[  7%] Building CXX object CMakeFiles/UtilsExample.dir/UtilsExample.cxx.o
+[ 14%] Linking CXX executable //UtilsExample
+[ 14%] Built target UtilsExample
+[ 21%] Building CXX object CMakeFiles/OptionsExample.dir/OptionsExample.cxx.o
+[ 28%] Linking CXX executable //OptionsExample
+[ 28%] Built target OptionsExample
+[ 35%] Building CXX object CMakeFiles/SafeOptionsExample.dir/SafeOptionsExample.cxx.o
+[ 42%] Linking CXX executable //SafeOptionsExample
+[ 42%] Built target SafeOptionsExample
+[ 50%] Building CXX object CMakeFiles/FormatExample.dir/FormatExample.cxx.o
+[ 57%] Linking CXX executable //FormatExample
+[ 57%] Built target FormatExample
+[ 64%] Building CXX object CMakeFiles/Format_Test.dir/Format_Test.cxx.o
+[ 71%] Linking CXX executable //Format_Test
+[ 71%] Built target Format_Test
+[ 78%] Building CXX object CMakeFiles/BarrierExample.dir/BarrierExample.cxx.o
+[ 85%] Linking CXX executable //BarrierExample
+[ 85%] Built target BarrierExample
+[ 92%] Building CXX object CMakeFiles/PropertyTreeExample.dir/PropertyTreeExample.cxx.o
+[100%] Linking CXX executable //PropertyTreeExample
+[100%] Built target PropertyTreeExample
+ 49. RUN.S mkdir -p /mnt/1/signals-examples
+ 50. RUN.S cd /mnt/1/signals-examples
+ 51. RUN.S cp /usr/share/SoDaSignals/examples/* .
+ 52. RUN.S mkdir -p build
+ 53. RUN.S cd build
+ 54. RUN.S cmake ../
+-- Found PkgConfig: /usr/bin/pkg-config (found version "1.8.1") 
+-- Found SoDa_FFTW: /usr/include   
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /
+ 55. RUN.S make
+[  8%] Building CXX object CMakeFiles/TestLink.dir/FilterExample.cxx.o
+[ 16%] Linking CXX executable //TestLink
+[ 16%] Built target TestLink
+[ 25%] Building CXX object CMakeFiles/FFTExample.dir/FFTExample.cxx.o
+[ 33%] Linking CXX executable //FFTExample
+[ 33%] Built target FFTExample
+[ 41%] Building CXX object CMakeFiles/FilterExample.dir/FilterExample.cxx.o
+[ 50%] Linking CXX executable //FilterExample
+[ 50%] Built target FilterExample
+[ 58%] Building CXX object CMakeFiles/FFTTiming.dir/FFTTiming.cxx.o
+[ 66%] Linking CXX executable //FFTTiming
+[ 66%] Built target FFTTiming
+[ 75%] Building CXX object CMakeFiles/FilterTest.dir/FilterTest.cxx.o
+[ 83%] Linking CXX executable //FilterTest
+[ 83%] Built target FilterTest
+[ 91%] Building CXX object CMakeFiles/ReSamplerExample.dir/ReSamplerExample.cxx.o
+[100%] Linking CXX executable //ReSamplerExample
+[100%] Built target ReSamplerExample
+--force=seccomp: modified 5 RUN instructions
+grown in 21 instructions: ubuntu_debtest

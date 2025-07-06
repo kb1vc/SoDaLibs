@@ -42,14 +42,14 @@ RUN apt-get install -y /mnt/1/SoDaLibs_5.0.0_6.14.5-100.fc40.x86_64.deb
 RUN mkdir -p /mnt/1/utils-examples
 RUN cd /mnt/1/utils-examples
 RUN cp /usr/share/SoDaUtils/examples/* .
-RUN mkdir build
+RUN mkdir -p build
 RUN cd build
 RUN cmake ../
 RUN make
 RUN mkdir -p /mnt/1/signals-examples
 RUN cd /mnt/1/signals-examples
 RUN cp /usr/share/SoDaSignals/examples/* .
-RUN mkdir build
+RUN mkdir -p build
 RUN cd build
 RUN cmake ../
 RUN make
