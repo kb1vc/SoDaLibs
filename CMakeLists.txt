@@ -8,9 +8,9 @@ ENDIF()
 
 PROJECT(SoDaLibs)
 
-
+# version 5.1.0 adds charlicloud builds and RPM and DEB package builds
 SET(SoDaLibs_VERSION_MAJOR 5)
-SET(SoDaLibs_VERSION_MINOR 0)
+SET(SoDaLibs_VERSION_MINOR 1)
 SET(SoDaLibs_VERSION_PATCH 0)
 SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDaLibs_VERSION_PATCH}")
 
