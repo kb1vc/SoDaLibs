@@ -113,8 +113,7 @@ write_basic_package_version_file(
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/SoDaUtilsConfig.cmake
-  #  DESTINATION ${UTILS_CONFIG_EXPORT_DIR}
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SoDaUtils/
+  DESTINATION ${UTILS_CONFIG_EXPORT_DIR}
 )
 
 add_subdirectory(test)
