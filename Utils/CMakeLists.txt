@@ -26,8 +26,6 @@
 
 FIND_PACKAGE(Threads REQUIRED)
 
-FIND_PACKAGE(jsoncpp REQUIRED)
-
 # Automatic CMake config generation inspired from https://github.com/jbeder/yaml-cpp.git
 INCLUDE(CMakePackageConfigHelpers)
 INCLUDE(CMakeDependentOption)
@@ -47,8 +45,7 @@ SET(DOXY_PROJECT_VERSION "${SoDaUtils_VERSION}-${SoDaUtils_GIT_ID}")
 CONFIGURE_FILE("${CMAKE_CURRENT_LIST_DIR}/version.hxx.in"
   "${PROJECT_BINARY_DIR}/UtilsVersion.hxx")
 
-get_target_property(JSON_INC_PATH jsoncpp_lib INTERFACE_INCLUDE_DIRECTORIES)
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/include ${JSON_INC_PATH})
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/include)
 
 FILE(GLOB all_includes ${CMAKE_CURRENT_LIST_DIR}/include/*.hxx)
 

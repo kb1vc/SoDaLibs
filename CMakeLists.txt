@@ -9,8 +9,12 @@ ENDIF()
 PROJECT(SoDaLibs)
 
 # version 5.1.0 adds charlicloud builds and RPM and DEB package builds
+# version 5.2.0 removes the external jsoncpp-devel requirement -
+# the jsoncpp library is built as a part of this build. It is the
+# only way I could figure out how to keep the dependency away from
+# client applications. dumb.
 SET(SoDaLibs_VERSION_MAJOR 5)
-SET(SoDaLibs_VERSION_MINOR 1)
+SET(SoDaLibs_VERSION_MINOR 2)
 SET(SoDaLibs_VERSION_PATCH 0)
 SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDaLibs_VERSION_PATCH}")
 
@@ -55,6 +59,26 @@ else()
   SET(SoDaLibs_GIT_ID "UNKNOWN")  
 ENDIF()
 
+# we depend on jsoncpp but I don't want to depend on the
+# local system to have it.  Not sure how well this is
+# going to work...
+include(ExternalProject)
+set(EXTERNAL_INSTALL_PREFIX ${PROJECT_BINARY_DIR}/externs)
+
+ExternalProject_Add(jsoncpp-proj
+  GIT_REPOSITORY    https://github.com/open-source-parsers/jsoncpp.git
+  GIT_TAG           1.9.6
+  CMAKE_ARGS -DBUILD_SHARED_LIBS=0
+  CMAKE_ARGS -DBUILD_STATIC_LIBS=1
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_PREFIX}
+)
+
+include_directories(${EXTERNAL_INSTALL_PREFIX}/include)
+add_library(jsoncpp SHARED IMPORTED)
+set_target_properties(jsoncpp PROPERTIES IMPORTED_LOCATION ${EXTERNAL_INSTALL_PREFIX}/lib64/libjsoncpp.a)
+
+
+  
 
 ADD_SUBDIRECTORY(Utils)
 
