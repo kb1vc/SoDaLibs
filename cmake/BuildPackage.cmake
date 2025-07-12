@@ -67,7 +67,7 @@ IF( EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake" )
   
   # omit if not required
   #  set( CPACK_RPM_PACKAGE_REQUIRES "fftw-devel >= 1.0.0, jsoncpp-devel >= 1.0.0, gcc-g++ >= 5.0.0")
-  set( CPACK_RPM_PACKAGE_REQUIRES "fftw-devel >= 1.0.0, gcc-g++ >= 5.0.0")  
+  set( CPACK_RPM_PACKAGE_REQUIRES "fftw-devel >= 1.0.0, jsoncpp-devel, gcc-g++ >= 5.0.0")  
   set( CPACK_RPM_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR} )
   
   set( CPACK_DEBIAN_PACKAGE_PRIORITY "optional" )
