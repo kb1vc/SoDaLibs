@@ -37,6 +37,7 @@ set_target_properties(sodautils PROPERTIES
   DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
 
 target_link_libraries(sodautils PUBLIC jsoncpp)
+add_dependencies(sodautils jsoncpp-proj)
 
 set(installable_libs sodautils)
 

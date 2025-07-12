@@ -126,7 +126,12 @@ IF(DOXYGEN_FOUND)
   INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/SoDaSignals/doc)
 ENDIF()
 
-INSTALL(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/examples/ DESTINATION share/SoDaSignals/examples)
+FILE(GLOB sig_examp_files "${SIGNALS_SUBLIB_SOURCE_DIR}/examples/*.[ch]xx")
+INSTALL(FILES 
+  ${SIGNALS_SUBLIB_SOURCE_DIR}/examples/CMakeLists.txt
+  ${sig_examp_files}
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/SoDaSignals/examples  
+)
 
 
 

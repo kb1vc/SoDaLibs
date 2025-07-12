@@ -72,8 +72,11 @@ IF(NOT DISABLE_DOXYGEN)
   ENDIF()
 ENDIF()
 
-FILE(GLOB examp_files "${UTILS_SUBLIB_SOURCE_DIR}/examples/*.*")
-INSTALL(FILES ${examp_files}
+FILE(GLOB util_examp_files "${UTILS_SUBLIB_SOURCE_DIR}/examples/*.[ch]xx")
+INSTALL(FILES
+  ${util_examp_files}
+  ${UTILS_SUBLIB_SOURCE_DIR}/examples/CMakeLists.txt
+  ${UTILS_SUBLIB_SOURCE_DIR}/examples/test1.json  
   DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/SoDaUtils/examples  
 )
 

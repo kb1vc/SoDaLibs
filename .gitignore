@@ -1,2 +1,6 @@
 build/
 *~
+*.rpm
+*.deb
+*.log
+images
