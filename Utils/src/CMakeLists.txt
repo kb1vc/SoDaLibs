@@ -33,18 +33,33 @@ target_sources(sodautils
 set_target_properties(sodautils PROPERTIES
   VERSION ${SoDaUtils_VERSION}
   SOVERSION "${SoDaUtils_VERSION_MAJOR}.${SoDaUtils_VERSION_MINOR}"
-  PROJECT_LABEL "SoDaUtils"
+  PROJECT_LABEL "SoDaUtils" 
   DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
 
-target_link_libraries(sodautils PUBLIC jsoncpp)
-add_dependencies(sodautils jsoncpp-proj)
+target_link_libraries(sodautils PRIVATE ${EXTERNAL_INSTALL_PREFIX}/lib64/libjsoncpp.a) #jsoncpp)
+#add_dependencies(sodautils jsoncpp-proj)
+
 
 set(installable_libs sodautils)
+
+# big hammer
+##set_target_properties(sodautils PROPERTIES
+##  INTERFACE_LINK_LIBRARIES ""
+##)
 
 install(TARGETS ${installable_libs}
   EXPORT SoDaUtilsTargets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+
+install(EXPORT SoDaUtilsTargets FILE SoDaUtilsTargets.cmake 
+  NAMESPACE SoDaUtils::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+set_target_properties(sodautils PROPERTIES INTERFACE_LINK_LIBRARIES "")
+get_target_property(su_props sodautils INTERFACE_LINK_LIBRARIES)
+message(STATUS "*********SoDaUtils interface libraries [${su_props}]")
 
 ############################################################################
 #

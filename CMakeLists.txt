@@ -74,8 +74,8 @@ ExternalProject_Add(jsoncpp-proj
 )
 
 include_directories(${EXTERNAL_INSTALL_PREFIX}/include)
-add_library(jsoncpp SHARED IMPORTED)
-set_target_properties(jsoncpp PROPERTIES IMPORTED_LOCATION ${EXTERNAL_INSTALL_PREFIX}/lib64/libjsoncpp.a)
+##  add_library(jsoncpp SHARED IMPORTED)
+#set_target_properties(jsoncpp PROPERTIES IMPORTED_LOCATION ${EXTERNAL_INSTALL_PREFIX}/lib64/libjsoncpp.a)
 
 
   

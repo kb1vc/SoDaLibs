@@ -26,10 +26,11 @@ target_link_libraries(BarrierTest sodautils Threads::Threads)
 
 
 add_executable(OptionsTest OptionsTest.cxx)
-target_link_libraries(OptionsTest sodautils)
+target_link_libraries(OptionsTest sodautils) 
 
 add_executable(PropertyTree_Test PropertyTree_Test.cxx)
-target_link_libraries(PropertyTree_Test sodautils jsoncpp)
+target_link_libraries(PropertyTree_Test sodautils)
+# target_link_lilbraries(PropertyTree_Test PRIVATE jsoncpp)
 
 
 enable_testing()
