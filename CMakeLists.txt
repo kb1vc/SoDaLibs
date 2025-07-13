@@ -8,9 +8,22 @@ ENDIF()
 
 PROJECT(SoDaLibs)
 
+# version 5.1.0 adds charlicloud builds and RPM and DEB package builds
+# version 5.2.0 removes the external jsoncpp-devel requirement -
+# the jsoncpp library is built as a part of this build. It is the
+# only way I could figure out how to keep the dependency away from
+# client applications. dumb.
+# version 5.3.0 fixes a bunch of stuff where client apps still needed jsoncpp-devel... 
+
+SET(SoDaLibs_VERSION_MAJOR 5)
+SET(SoDaLibs_VERSION_MINOR 3)
+SET(SoDaLibs_VERSION_PATCH 0)
+SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDaLibs_VERSION_PATCH}")
+
 INCLUDE(GNUInstallDirs)
 INCLUDE(CTest)
-  
+INCLUDE(CMakePrintHelpers)
+
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" ${CMAKE_MODULE_PATH} )
 
 # optimizations
@@ -18,10 +31,14 @@ IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Debug)
 ENDIF()
 
+SET(CMAKE_ARGS "-DBUILD_SHARED_LIBS=0 ${CMAKE_ARGS}" )
+
 SET(CMAKE_CXX_FLAGS_DEBUG "-g")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math")
 
+
 FIND_PACKAGE(Git QUIET)
+
 
 IF((EXISTS "${CMAKE_SOURCE_DIR}/.git/") AND GIT_FOUND)
   EXECUTE_PROCESS(
@@ -49,6 +66,17 @@ else()
   SET(SoDaLibs_GIT_ID "UNKNOWN")  
 ENDIF()
 
+# this helps in debug, let's keep it around. 
+if(0)
+  get_cmake_property(_vns VARIABLES)
+  list(SORT _vns)
+  foreach(_vn ${_vns})
+    message(STATUS "${_vn}=[${${_vn}}]")
+  endforeach()
+endif()
+
+
+  
 
 ADD_SUBDIRECTORY(Utils)
 
@@ -59,6 +87,7 @@ ADD_SUBDIRECTORY(Signals)
 IF(BUILD_RPM OR BUILD_DEB)
   INCLUDE(cmake/BuildPackage.cmake)
 ENDIF()
+
 
 ############################################################################
 #

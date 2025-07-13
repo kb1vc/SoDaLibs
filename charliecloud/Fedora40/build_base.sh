@@ -1,4 +1,4 @@
-FROM fedora40_sodabase
+#!/bin/bash
 # BSD 2-Clause License
 # 
 # Copyright (c) 2025, kb1vc
@@ -25,20 +25,5 @@ FROM fedora40_sodabase
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-ARG repo_location
-RUN dnf install --assumeyes rpm-build
-RUN mkdir -p /soda_testbuild
-WORKDIR /soda_testbuild
-RUN rm -rf /soda_testbuild/*
-RUN /mnt/0/get_sodalibs.sh ${repo_location}
-WORKDIR /soda_testbuild/SoDaLibs
-RUN git checkout charliecloud
-RUN mkdir -p build
-WORKDIR /soda_testbuild/SoDaLibs/build
-RUN cmake -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_RPM=1 ../
-RUN make
-RUN ctest -j 4
-RUN make install
-RUN cpack -G RPM
-RUN mv *.rpm /mnt/1/
-
+export CH_IMAGE_STORAGE=`pwd`/images
+ch-image build  --bind `pwd`/../common_build_scripts:/mnt/0 -t fedora40_sodabase -f DockerBase .
