@@ -25,6 +25,8 @@ FROM ubuntu:latest
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+ARG package_name
+
 RUN apt-get update -y
 # these were needed, but I may have fixed the install
 RUN apt-get install -y build-essential
@@ -35,10 +37,9 @@ RUN apt-get install -y pkg-config
 # RUN apt-get install -y libjsoncpp-dev
 
 RUN ls /mnt/1
-#RUN rm -r /var/lib/apt/lists/*
-#RUN apt clean -y
-#RUN apt update -y
-RUN apt-get install -y /mnt/1/SoDaLibs_5.0.0_6.14.5-100.fc40.x86_64.deb
+
+
+RUN apt-get install -y /mnt/1/${package_name}
 RUN mkdir -p /mnt/1/utils-examples
 WORKDIR /mnt/1/utils-examples
 RUN cp /usr/share/SoDaUtils/examples/* .

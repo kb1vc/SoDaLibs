@@ -26,5 +26,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 export CH_IMAGE_STORAGE=`pwd`/images
-ch-image build -t ubuntu_sodabase -f DockerBase .
-ch-image build --rebuild --bind=`pwd`/../common_build_scripts:/mnt/0 --bind=`pwd`/:/mnt/1 -t ubuntu_sodasignals -f DockerKit .
+./build_base.sh 2>&1 | tee build_base.log
+./build_any.sh ubuntu_sodalibs DockerKit  2>&1 | tee build_kit.log
+./build_any.sh ubuntu_sodarpm DockerBuildDEB 2>&1 | tee build_rpm.log
+debfile=`ls *.deb | head -1`
+./build_any.sh ubuntu_sodarpm_test DockerTestDEB package_name=${debfile} 2>&1 | tee test_deb.log
+
+
