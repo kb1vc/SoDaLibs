@@ -1,4 +1,4 @@
-#!/bin/bash
+FROM fedora40_sodabase
 # BSD 2-Clause License
 # 
 # Copyright (c) 2025, kb1vc
@@ -25,9 +25,19 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-export CH_IMAGE_STORAGE=`pwd`/images
-./build_base.sh
-./build_any.sh fedora40_sodalibs_nojc DockerKit 
-./build_any.sh fedora40_sodalibs_withjc DockerKit install_devel
-./build_any.sh fedora40_sodalibs_build_rpm DockerBuildRPM
-./build_any.sh fedora40_sodalibs_rpm_test DockerTestRPM
+RUN dnf install --assumeyes jsoncpp-devel 
+RUN mkdir -p /soda_testbuild
+WORKDIR /soda_testbuild
+RUN rm -rf /soda_testbuild/*
+RUN /mnt/0/get_sodalibs.sh
+WORKDIR /soda_testbuild/SoDaLibs
+RUN git checkout charliecloud
+RUN mkdir -p build
+WORKDIR /soda_testbuild/SoDaLibs/build
+RUN cmake -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_RPM=1 ../
+RUN make
+RUN ctest -j 4
+RUN make install
+RUN cpack -G RPM
+RUN mv *.rpm /mnt/1/
+

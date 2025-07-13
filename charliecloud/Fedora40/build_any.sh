@@ -1,4 +1,40 @@
-#!/bin/bash
+#!/bin/bash -v
+
+# build_any.sh <container> <dockerfile>
+# build a container from fedora40_sodabase
+
+echo "[$1] [$2] [$3]"
+
+if [ -z "$1" ]
+then
+    echo "build_any.sh <container> <dockerfile>"
+    echo "build a container from fedora40_sodabase [optional-args]"
+    exit
+fi
+
+if [ -z "$2" ]
+then
+    echo "build_any.sh <container> <dockerfile> [optional-args]"
+    echo "build a container from fedora40_sodabase"
+    exit
+fi
+
+if [ -z "$3" ]
+then
+    argstr=""
+else
+    argstr="--build-arg $3"    
+fi
+
+container=$1
+dockerfile=$2
+
+echo "Container ${container} $1 Dockerfile ${dockerfile} argstr ${argstr}"
+
+export CH_IMAGE_STORAGE=`pwd`/images
+ch-image build --bind `pwd`/:/mnt1 --bind `pwd`/../common_build_scripts:/mnt/0 ${argstr} -t ${container} -f ${dockerfile} .
+
+
 # BSD 2-Clause License
 # 
 # Copyright (c) 2025, kb1vc
@@ -24,10 +60,3 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-export CH_IMAGE_STORAGE=`pwd`/images
-./build_base.sh
-./build_any.sh fedora40_sodalibs_nojc DockerKit 
-./build_any.sh fedora40_sodalibs_withjc DockerKit install_devel
-./build_any.sh fedora40_sodalibs_build_rpm DockerBuildRPM
-./build_any.sh fedora40_sodalibs_rpm_test DockerTestRPM

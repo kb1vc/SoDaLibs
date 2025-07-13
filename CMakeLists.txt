@@ -68,10 +68,8 @@ ENDIF()
 
 
 FIND_PACKAGE(PkgConfig REQUIRED)
-pkg_check_modules(ThisShouldNotExist jsoncpp IMPORTED_TARGET QUIET) # GLOBAL ?
-
+pkg_check_modules(JSONCPP jsoncpp IMPORTED_TARGET) # GLOBAL ? 
 IF(JSONCPP_FOUND)
-  pkg_check_modules(JSONCPP jsoncpp IMPORTED_TARGET) # GLOBAL ? 
   set(JSONCPP_LIB_DEP "${JSONCPP_LIBRARY_DIRS}/libjsoncpp.a")
   set(JSONCPP_INCL_DIR ${JSONCPP_INCLUDE_DIRS})
   set(JSONCPP_IS_EXTERNAL 0)
