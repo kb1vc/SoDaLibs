@@ -25,13 +25,14 @@ FROM fedora40_sodabase
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-ARG install_devel
+ARG repo_location
 
-RUN if [ -z "$install_devel" ] ; then echo "Not installing jsoncpp-devel" ; else dnf install --assumeyes jsoncpp-devel ; fi
+RUN dnf install --assumeyes jsoncpp-devel
 RUN mkdir -p /soda_testbuild
 WORKDIR /soda_testbuild
 RUN rm -rf /soda_testbuild/*
-RUN /mnt/0/get_sodalibs.sh
+RUN /mnt/0/get_sodalibs.sh ${repo_location}
+
 WORKDIR /soda_testbuild/SoDaLibs
 RUN git checkout charliecloud
 RUN mkdir -p build

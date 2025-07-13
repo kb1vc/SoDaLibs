@@ -27,7 +27,7 @@
 
 export CH_IMAGE_STORAGE=`pwd`/images
 ./build_base.sh
-./build_any.sh fedora40_sodalibs_nojc DockerKit 
-./build_any.sh fedora40_sodalibs_withjc DockerKit install_devel
-./build_any.sh fedora40_sodalibs_build_rpm DockerBuildRPM
-./build_any.sh fedora40_sodalibs_rpm_test DockerTestRPM
+./build_any.sh fedora40_sodalibs DockerKit 
+./build_any.sh fedora40_sodarpm DockerBuildRPM
+#./build_any.sh fedora40_sodarpm_test DockerRPMTest package_name=${rpmfile}
+

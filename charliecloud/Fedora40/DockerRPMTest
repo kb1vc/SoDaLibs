@@ -25,11 +25,11 @@ FROM fedora:40
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
+ARG package_name
 RUN dnf --assumeyes update
 RUN dnf --assumeyes install  git cmake make
 RUN ls /mnt/1
-RUN dnf --assumeyes install /mnt/1/SoDaLibs_5.0.0_6.14.5-100.fc40.x86_64.rpm
+RUN dnf --assumeyes install /mnt/1/${package_name}
 
 # now do example builds
 RUN mkdir -p /mnt/1/utils-examples

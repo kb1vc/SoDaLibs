@@ -25,9 +25,17 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+echo "argument 1 is $1"
 
-echo "Retrieving SoDaLibs kit"
-git clone https://github.com/kb1vc/SoDaLibs.git
+if [ -z "$1" ]
+then
+    echo "Retrieving SoDaLibs kit from github"
+    git clone https://github.com/kb1vc/SoDaLibs.git    
+else
+    echo "Retrieving SoDaLibs kit from repo $1"
+    git clone $1
+fi
+
 cd SoDaLibs/Utils
 git checkout charliecloud
 
