@@ -14,12 +14,16 @@ set(UTILS_SRCS
 add_library(sodautils STATIC ${UTILS_SRCS})
 add_library(sodautils::sodautils ALIAS sodautils)
 set_target_properties(sodautils PROPERTIES VERSION ${SoDaUtils_VERSION})
-target_link_libraries(sodautils PRIVATE Threads::Threads ${JSONCPP_LIB_DEP}) 
+target_link_libraries(sodautils PRIVATE Threads::Threads ${JSONCPP_LIB_DEP})
+IF(JSONCPP_IS_EXTERNAL)
+  ADD_DEPENDENCIES(sodautils jsoncpp-proj)
+ENDIF()
 
 target_include_directories(sodautils
   PUBLIC
   $<BUILD_INTERFACE:${CURRENT_SOURCE_DIR}/include>
   PRIVATE
+  ${JSONCPP_INCL_DIR}
   $<BUILD_INTERFACE:${CURRENT_SOURCE_DIR}/src>
   INTERFACE
   $<BUILD_INTERFACE:${CURRENT_SOURCE_DIR}/include>
