@@ -32,7 +32,7 @@ then
     echo "Retrieving SoDaLibs kit from github"
     git clone https://github.com/kb1vc/SoDaLibs.git    
 else
-    echo "Retrieving SoDaLibs kit from repo $1    
+    echo "Retrieving SoDaLibs kit from repo $1"
     git clone $1
 fi
 

@@ -31,6 +31,8 @@ dockerfile=$2
 
 
 export CH_IMAGE_STORAGE=`pwd`/images
+echo "argstr is ${argstr}"
+
 ch-image build --rebuild --bind `pwd`/:/mnt/1 --bind `pwd`/../common_build_scripts:/mnt/0 ${argstr} -t ${container} -f ${dockerfile} .
 
 

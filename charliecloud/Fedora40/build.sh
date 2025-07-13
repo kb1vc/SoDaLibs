@@ -27,7 +27,7 @@
 
 export CH_IMAGE_STORAGE=`pwd`/images
 ./build_base.sh
-local_repo_loc=`git remote -v | grep local | grep fetch | sed -e 's|local||' | sed -e 's| (fetch)||'`
+local_repo_loc=`git remote -v | grep local | grep fetch | sed -e 's|local[ \t]*||' | sed -e 's| (fetch)||'`
 ./build_any.sh fedora40_sodalibs DockerKit repo_location=${local_repo_loc}
 ./build_any.sh fedora40_sodarpm DockerBuildRPM
 #./build_any.sh fedora40_sodarpm_test DockerRPMTest package_name=${rpmfile}
