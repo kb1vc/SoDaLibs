@@ -68,13 +68,18 @@ ENDIF()
 
 
 FIND_PACKAGE(PkgConfig REQUIRED)
-pkg_check_modules(JSONCPP jsoncpp IMPORTED_TARGET) # GLOBAL ? 
-IF(JSONCPP_FOUND)
+pkg_check_modules(JSONCPP jsoncpp IMPORTED_TARGET) # GLOBAL ?
+# the basic jsoncpp fedora package does not provide a static library.
+# we need one of those.
+  
+IF(JSONCPP_FOUND AND (EXISTS "${JSONCPP_LIBRARY_DIRS}/libjsoncpp.a"))
+  MESSAGE(STATUS "Using installed jsoncpp")
   set(JSONCPP_LIB_DEP "${JSONCPP_LIBRARY_DIRS}/libjsoncpp.a")
   set(JSONCPP_INCL_DIR ${JSONCPP_INCLUDE_DIRS})
   set(JSONCPP_IS_EXTERNAL 0)
 ELSE()
   # build everything from an imported kit
+  MESSAGE(STATUS "Building jsoncpp from the kit")
   
   # we depend on jsoncpp but I don't want to depend on the
   # local system to have it.  Not sure how well this is
