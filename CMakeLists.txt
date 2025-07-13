@@ -28,6 +28,8 @@ IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Debug)
 ENDIF()
 
+set(CMAKE_ARGS "-DBUILD_SHARED_LIBS=0 ${CMAKE_ARGS}" )
+
 SET(CMAKE_CXX_FLAGS_DEBUG "-g")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math")
 
@@ -62,6 +64,7 @@ ENDIF()
 # we depend on jsoncpp but I don't want to depend on the
 # local system to have it.  Not sure how well this is
 # going to work...
+if(0)
 include(ExternalProject)
 set(EXTERNAL_INSTALL_PREFIX ${PROJECT_BINARY_DIR}/externs)
 
@@ -74,8 +77,28 @@ ExternalProject_Add(jsoncpp-proj
 )
 
 include_directories(${EXTERNAL_INSTALL_PREFIX}/include)
-##  add_library(jsoncpp SHARED IMPORTED)
-#set_target_properties(jsoncpp PROPERTIES IMPORTED_LOCATION ${EXTERNAL_INSTALL_PREFIX}/lib64/libjsoncpp.a)
+  add_library(jsoncpp SHARED IMPORTED)
+  set_target_properties(jsoncpp PROPERTIES IMPORTED_LOCATION ${EXTERNAL_INSTALL_PREFIX}/lib64/libjsoncpp.a)
+  set(JSON_LIB_DEP ${EXTERNAL_INSTALL_PREFIX}/lib64/libjsoncpp.a)
+
+  set(JSON_IS_EXTERNAL 1)
+else()
+  #  FIND_PACKAGE(jsoncpp REQUIRED)
+  FIND_PACKAGE(PkgConfig REQUIRED)
+  pkg_check_modules(JSONCPP jsoncpp IMPORTED_TARGET) # GLOBAL ? 
+  set(JSONCPP_LIB_DEP "${JSONCPP_LIBRARY_DIRS}/libjsoncpp.a")
+  set(JSONCPP_INCL_DIR ${JSONCPP_INCLUDE_DIRS})
+  set(JSON_IS_EXTERNAL 0)
+endif()
+
+# this helps in debug, let's keep it around. 
+if(1)
+  get_cmake_property(_vns VARIABLES)
+  list(SORT _vns)
+  foreach(_vn ${_vns})
+    message(STATUS "${_vn}=[${${_vn}}]")
+  endforeach()
+endif()
 
 
   
