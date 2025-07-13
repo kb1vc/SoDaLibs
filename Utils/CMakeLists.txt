@@ -52,6 +52,7 @@ INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/include)
 FILE(GLOB all_includes ${CMAKE_CURRENT_LIST_DIR}/include/*.hxx)
 
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.hxx DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/SoDa")
+MESSAGE(STATUS "All includes [${all_includes}]")
 INSTALL(FILES ${all_includes} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/SoDa")
 
 ADD_SUBDIRECTORY(src)
@@ -91,7 +92,7 @@ target_include_directories(sodautils
 # do this because "LIBDIR" in ubuntu is all screwed up. 
 set(UTILS_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_DATADIR}/cmake/SoDaUtils")
 
-include(InstallRequiredSystemLibraries)
+#include(InstallRequiredSystemLibraries)
 
 message("******* Installing Utils to [${UTILS_CONFIG_EXPORT_DIR}]")
 install(EXPORT SoDaUtilsTargets
