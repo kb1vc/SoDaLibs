@@ -20,7 +20,8 @@ SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDa
 
 INCLUDE(GNUInstallDirs)
 INCLUDE(CTest)
-  
+INCLUDE(CMakePrintHelpers)
+
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" ${CMAKE_MODULE_PATH} )
 
 # optimizations
@@ -28,10 +29,11 @@ IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Debug)
 ENDIF()
 
-set(CMAKE_ARGS "-DBUILD_SHARED_LIBS=0 ${CMAKE_ARGS}" )
+SET(CMAKE_ARGS "-DBUILD_SHARED_LIBS=0 ${CMAKE_ARGS}" )
 
 SET(CMAKE_CXX_FLAGS_DEBUG "-g")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math")
+
 
 FIND_PACKAGE(Git QUIET)
 
@@ -61,28 +63,7 @@ else()
   SET(SoDaLibs_GIT_ID "UNKNOWN")  
 ENDIF()
 
-# we depend on jsoncpp but I don't want to depend on the
-# local system to have it.  Not sure how well this is
-# going to work...
-if(0)
-include(ExternalProject)
-set(EXTERNAL_INSTALL_PREFIX ${PROJECT_BINARY_DIR}/externs)
-
-ExternalProject_Add(jsoncpp-proj
-  GIT_REPOSITORY    https://github.com/open-source-parsers/jsoncpp.git
-  GIT_TAG           1.9.6
-  CMAKE_ARGS -DBUILD_SHARED_LIBS=0
-  CMAKE_ARGS -DBUILD_STATIC_LIBS=1
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_PREFIX}
-)
-
-include_directories(${EXTERNAL_INSTALL_PREFIX}/include)
-  add_library(jsoncpp SHARED IMPORTED)
-  set_target_properties(jsoncpp PROPERTIES IMPORTED_LOCATION ${EXTERNAL_INSTALL_PREFIX}/lib64/libjsoncpp.a)
-  set(JSON_LIB_DEP ${EXTERNAL_INSTALL_PREFIX}/lib64/libjsoncpp.a)
-
-  set(JSON_IS_EXTERNAL 1)
-else()
+if(1)
   #  FIND_PACKAGE(jsoncpp REQUIRED)
   FIND_PACKAGE(PkgConfig REQUIRED)
   pkg_check_modules(JSONCPP jsoncpp IMPORTED_TARGET) # GLOBAL ? 
@@ -92,7 +73,7 @@ else()
 endif()
 
 # this helps in debug, let's keep it around. 
-if(1)
+if(0)
   get_cmake_property(_vns VARIABLES)
   list(SORT _vns)
   foreach(_vn ${_vns})
