@@ -38,5 +38,5 @@ RUN make
 RUN ctest -j 4
 RUN make install
 RUN cpack -G DEB
-RUN mv *.rpm /mnt/1/
+RUN mv *.deb /mnt/1/
 

@@ -28,8 +28,8 @@
 export CH_IMAGE_STORAGE=`pwd`/images
 ./build_base.sh 2>&1 | tee build_base.log
 ./build_any.sh ubuntu_sodalibs DockerKit  2>&1 | tee build_kit.log
-./build_any.sh ubuntu_sodarpm DockerBuildDEB 2>&1 | tee build_rpm.log
+./build_any.sh ubuntu_sodadeb DockerBuildDEB 2>&1 | tee build_deb.log
 debfile=`ls *.deb | head -1`
-./build_any.sh ubuntu_sodarpm_test DockerTestDEB package_name=${debfile} 2>&1 | tee test_deb.log
+./build_any.sh ubuntu_sodadeb_test DockerTestDEB package_name=${debfile} 2>&1 | tee test_deb.log
 
 
