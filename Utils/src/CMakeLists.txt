@@ -14,17 +14,13 @@ set(UTILS_SRCS
 add_library(sodautils STATIC ${UTILS_SRCS})
 add_library(sodautils::sodautils ALIAS sodautils)
 set_target_properties(sodautils PROPERTIES VERSION ${SoDaUtils_VERSION})
-target_link_libraries(sodautils PRIVATE Threads::Threads ${JSONCPP_LIB_DEP})
-IF(JSONCPP_IS_EXTERNAL)
-  ADD_DEPENDENCIES(sodautils jsoncpp-proj)
-ENDIF()
+target_link_libraries(sodautils PRIVATE Threads::Threads jsoncpp)
 
 
 target_include_directories(sodautils
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   PRIVATE
-  ${JSONCPP_INCL_DIR}
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
   $<BUILD_INTERFACE:${SODAUTILS_BUILD_VERSION_INCL_DIR}>
   INTERFACE
@@ -55,10 +51,6 @@ install(EXPORT SoDaUtilsTargets FILE SoDaUtilsTargets.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-SET_TARGET_PROPERTIES(sodautils
-  PROPERTIES
-  INTERFACE_LINK_LIBRARIES_DIRECT_EXCLUDE ${JSONCPP_LIB_DEP}
-  )
 
 
 ############################################################################

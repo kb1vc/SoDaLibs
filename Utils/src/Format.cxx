@@ -391,9 +391,6 @@ namespace SoDa {
   
   Format & Format::addF(double v, char fmt, unsigned int width, unsigned int significant_digits) {
     std::stringstream ss;    
-    //std::cerr << "v = " << v << " width = " << width 
-    //	      << " significant_digits = " << significant_digits
-    //	      << "\n";
     ss << std::left << std::setfill(' ');
 
     if(width == 0) {
@@ -442,7 +439,6 @@ namespace SoDa {
       }
       else {
 	// get the abs val
-	//std::cerr << "Got v = " << v << "\n";
 	double av = fabs(v);
 	// now get the log base 1000
 	// That's probably going to be our
@@ -451,15 +447,13 @@ namespace SoDa {
 	// a value in the range 1 to 1000
 	double av_norm; 
 	int exp_val = log1k(av, av_norm, significant_digits);
-	//std::cerr << "av_norm " << av_norm << " exp_val " << exp_val << "\n";
+
 	// now do the fraction and rounding
 	int frac_part, int_part, int_wid, frac_wid;
 	fractionate(av_norm, significant_digits,
 		    int_part, frac_part, 
 		    int_wid, frac_wid);
-	//std::cerr << "int_part " << int_part << " frac_part " << frac_part
-	//<< " int_wid " << int_wid << " frac_wid " << frac_wid
-	//	  << "\n";
+
 	// now print the sign
 	ss << ((v < 0) ? '-' : ' ');
 	// and the integer part

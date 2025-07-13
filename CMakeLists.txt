@@ -28,13 +28,13 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" ${CMAKE_MODULE_PATH} )
 
 # optimizations
 IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE Debug)
+  SET(CMAKE_BUILD_TYPE RELEASE)
 ENDIF()
 
-SET(CMAKE_ARGS "-DBUILD_SHARED_LIBS=0 ${CMAKE_ARGS}" )
+SET(CMAKE_ARGS "-DBUILD_SHARED_LIBS=0 ${CMAKE_ARGS}")
 
 SET(CMAKE_CXX_FLAGS_DEBUG "-g")
-SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math -fno-finite-math-only")
 
 
 FIND_PACKAGE(Git QUIET)
@@ -66,39 +66,7 @@ else()
   SET(SoDaLibs_GIT_ID "UNKNOWN")  
 ENDIF()
 
-
-FIND_PACKAGE(PkgConfig REQUIRED)
-pkg_check_modules(JSONCPP jsoncpp IMPORTED_TARGET) # GLOBAL ?
-# the basic jsoncpp fedora package does not provide a static library.
-# we need one of those.
-  
-IF(JSONCPP_FOUND AND (EXISTS "${JSONCPP_LIBRARY_DIRS}/libjsoncpp.a"))
-  MESSAGE(STATUS "Using installed jsoncpp")
-  set(JSONCPP_LIB_DEP "${JSONCPP_LIBRARY_DIRS}/libjsoncpp.a")
-  set(JSONCPP_INCL_DIR ${JSONCPP_INCLUDE_DIRS})
-  set(JSONCPP_IS_EXTERNAL 0)
-ELSE()
-  # build everything from an imported kit
-  MESSAGE(STATUS "Building jsoncpp from the kit")
-  
-  # we depend on jsoncpp but I don't want to depend on the
-  # local system to have it.  Not sure how well this is
-  # going to work...
-  include(ExternalProject)
-  set(EXTERNAL_INSTALL_PREFIX ${PROJECT_BINARY_DIR}/externs)
-
-  ExternalProject_Add(jsoncpp-proj
-    GIT_REPOSITORY    https://github.com/open-source-parsers/jsoncpp.git
-    GIT_TAG           1.9.6
-    CMAKE_ARGS -DBUILD_SHARED_LIBS=0
-    CMAKE_ARGS -DBUILD_STATIC_LIBS=1
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_PREFIX}
-  )
-
-  SET(JSONCPP_INCL_DIR ${EXTERNAL_INSTALL_PREFIX}/include)
-  SET(JSONCPP_LIB_DEP ${EXTERNAL_INSTALL_PREFIX}/lib64/libjsoncpp.a)
-  SET(JSONCPP_IS_EXTERNAL 1)
-ENDIF()
+FIND_PACKAGE(jsoncpp REQUIRED)
 
 # this helps in debug, let's keep it around. 
 if(0)
