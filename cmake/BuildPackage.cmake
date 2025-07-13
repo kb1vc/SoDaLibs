@@ -44,7 +44,7 @@ IF( EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake" )
     "${CMAKE_PROJECT_NAME}_${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}" )
   
 
-  set( CPACK_RPM_PACKAGE_REQUIRES "fftw-devel >= 1.0.0, jsoncpp-devel >= 1.0.0, gcc-g++ >= 5.0.0")
+  set( CPACK_RPM_PACKAGE_REQUIRES "fftw-devel >= 1.0.0, gcc-g++ >= 5.0.0")
 
   set( CPACK_RPM_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR} )
   set( CPACK_RPM_PACKAGE_VERSION ${CPACK_PACKAGE_VERSION})
@@ -56,7 +56,7 @@ IF( EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake" )
   set( CPACK_DEBIAN_PACKAGE_MAINTAINER "kb1vc@kb1vc.org")
   set( CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR} )
 
-  set( CPACK_DEBIAN_PACKAGE_DEPENDS "libfftw3-dev, libjsoncpp-dev, pkg-config, gcc, g++, build-essential, git, cmake, make")
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "libfftw3-dev, gcc, g++, build-essential, git, cmake, make")
   
 INCLUDE( CPack )
 

@@ -7,18 +7,17 @@ set(UTILS_SRCS
 	Format.cxx
 	UtilsBase.cxx
 	Barrier.cxx
-	PropertyTree.cxx    
+	PropertyTree.cxx
+	${JSON_BASE_DIR}/jsoncpp.cpp
 )
 
 
 add_library(sodautils STATIC ${UTILS_SRCS})
 add_library(sodautils::sodautils ALIAS sodautils)
 set_target_properties(sodautils PROPERTIES VERSION ${SoDaUtils_VERSION})
-target_link_libraries(sodautils PRIVATE Threads::Threads jsoncpp)
+target_link_libraries(sodautils PRIVATE Threads::Threads)
 
-get_target_property(json_incl_dir JsonCpp::JsonCpp  INCLUDE_DIRECTORIES)
 
-message(STATUS "\n\njsoncpp include directories [${json_incl_dir}]")
 
 target_include_directories(sodautils
   PUBLIC
@@ -26,6 +25,7 @@ target_include_directories(sodautils
   PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
   $<BUILD_INTERFACE:${SODAUTILS_BUILD_VERSION_INCL_DIR}>
+  $<BUILD_INTERFACE:${JSON_BASE_DIR}>  
   INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SoDa>

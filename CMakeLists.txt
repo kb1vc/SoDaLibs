@@ -68,9 +68,6 @@ else()
   SET(SoDaLibs_GIT_ID "UNKNOWN")  
 ENDIF()
 
-
-FIND_PACKAGE(jsoncpp REQUIRED)
-
 # this helps in debug, let's keep it around. 
 if(0)
   get_cmake_property(_vns VARIABLES)

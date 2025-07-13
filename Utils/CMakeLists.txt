@@ -34,8 +34,10 @@ INCLUDE(GNUInstallDirs)
 INCLUDE(CTest)
 
 # version 5 adds PropertyTree
+# changed default build to RELEASE and had to fix a problem with ffast-math and
+# recognizing NaNs
 SET(SoDaUtils_VERSION_MAJOR 5)
-SET(SoDaUtils_VERSION_MINOR 0)
+SET(SoDaUtils_VERSION_MINOR 1)
 SET(SoDaUtils_VERSION_PATCH 1)
 SET(SoDaUtils_VERSION "${SoDaUtils_VERSION_MAJOR}.${SoDaUtils_VERSION_MINOR}.${SoDaUtils_VERSION_PATCH}")
 
@@ -54,6 +56,8 @@ FILE(GLOB all_includes ${CMAKE_CURRENT_LIST_DIR}/include/*.hxx)
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.hxx DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/SoDa")
 
 INSTALL(FILES ${all_includes} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/SoDa")
+
+SET(JSON_BASE_DIR ${PROJECT_SOURCE_DIR}/JsonCpp)
 
 ADD_SUBDIRECTORY(src)
 
