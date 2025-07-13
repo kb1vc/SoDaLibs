@@ -13,8 +13,10 @@ PROJECT(SoDaLibs)
 # the jsoncpp library is built as a part of this build. It is the
 # only way I could figure out how to keep the dependency away from
 # client applications. dumb.
+# version 5.3.0 fixes a bunch of stuff where client apps still needed jsoncpp-devel... 
+
 SET(SoDaLibs_VERSION_MAJOR 5)
-SET(SoDaLibs_VERSION_MINOR 2)
+SET(SoDaLibs_VERSION_MINOR 3)
 SET(SoDaLibs_VERSION_PATCH 0)
 SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDaLibs_VERSION_PATCH}")
 
@@ -92,7 +94,6 @@ ELSE()
 
   SET(JSONCPP_INCL_DIR ${EXTERNAL_INSTALL_PREFIX}/include)
   SET(JSONCPP_LIB_DEP ${EXTERNAL_INSTALL_PREFIX}/lib64/libjsoncpp.a)
-  MESSAGE(STATUS "EXTERNAL_INSTALL_PREFIX = [${EXTERNAL_INSTALL_PREFIX}]")
   SET(JSONCPP_IS_EXTERNAL 1)
 ENDIF()
 

@@ -28,7 +28,7 @@
  */
 
 
-#define SoDaSignals_VERSION "@SoDaSignals_VERSION@"
+#define SoDaSignals_VERSION "@SoDaLibs_VERSION@:@SoDaSignals_VERSION@"
 #define SoDaSignals_GIT_ID "@SoDaLibs_GIT_ID@"
 
 #define SoDaSignals_VERSION_MAJOR @SoDaSignals_VERSION_MAJOR@

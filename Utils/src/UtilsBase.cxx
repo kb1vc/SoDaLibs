@@ -1,5 +1,5 @@
 #include "UtilsBase.hxx"
-#include "UtilsVersion.hxx"
+#include <version.hxx>
 /*
 BSD 2-Clause License
 
