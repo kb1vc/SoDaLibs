@@ -26,8 +26,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 export CH_IMAGE_STORAGE=`pwd`/images
-./build_base.sh
-./build_any.sh fedora40_sodalibs DockerKit 
-./build_any.sh fedora40_sodarpm DockerBuildRPM
-#./build_any.sh fedora40_sodarpm_test DockerRPMTest package_name=${rpmfile}
+./build_base.sh 2>&1 | tee build_base.log
+./build_any.sh fedora40_sodalibs DockerKit  2>&1 | tee build_kit.log
+./build_any.sh fedora40_sodarpm DockerBuildRPM 2>&1 | tee build_rpm.log
+./build_any.sh fedora40_sodarpm_test DockerTestRPM package_name=${rpmfile} 2>&1 | tee test_rpm.log
+
 

@@ -1,4 +1,4 @@
-#!/bin/bash -v
+#!/bin/bash 
 
 # build_any.sh <container> <dockerfile>
 # build a container from fedora40_sodabase
@@ -32,7 +32,7 @@ dockerfile=$2
 echo "Container ${container} $1 Dockerfile ${dockerfile} argstr ${argstr}"
 
 export CH_IMAGE_STORAGE=`pwd`/images
-ch-image build --rebuild --bind `pwd`/:/mnt1 --bind `pwd`/../common_build_scripts:/mnt/0 ${argstr} -t ${container} -f ${dockerfile} .
+ch-image build --rebuild --bind `pwd`/:/mnt/1 --bind `pwd`/../common_build_scripts:/mnt/0 ${argstr} -t ${container} -f ${dockerfile} .
 
 
 # BSD 2-Clause License
