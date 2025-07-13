@@ -14,8 +14,11 @@ set(UTILS_SRCS
 add_library(sodautils STATIC ${UTILS_SRCS})
 add_library(sodautils::sodautils ALIAS sodautils)
 set_target_properties(sodautils PROPERTIES VERSION ${SoDaUtils_VERSION})
-target_link_libraries(sodautils PRIVATE Threads::Threads JsonCpp::JsonCpp)
+target_link_libraries(sodautils PRIVATE Threads::Threads jsoncpp)
 
+get_target_property(json_incl_dir JsonCpp::JsonCpp  INCLUDE_DIRECTORIES)
+
+message(STATUS "\n\njsoncpp include directories [${json_incl_dir}]")
 
 target_include_directories(sodautils
   PUBLIC
