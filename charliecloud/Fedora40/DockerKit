@@ -27,7 +27,6 @@ FROM fedora40_sodabase
 
 ARG repo_location
 
-RUN dnf install --assumeyes jsoncpp-devel
 RUN mkdir -p /soda_testbuild
 WORKDIR /soda_testbuild
 RUN rm -rf /soda_testbuild/*

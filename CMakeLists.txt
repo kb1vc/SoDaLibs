@@ -10,13 +10,17 @@ PROJECT(SoDaLibs)
 
 # version 5.1.0 adds charlicloud builds and RPM and DEB package builds
 # version 5.2.0 removes the external jsoncpp-devel requirement -
-# the jsoncpp library is built as a part of this build. It is the
+# jsoncpp interactions with cmake are just too much to deal with.
+# as per suggestion from the jsoncpp maintainers, the code has
+# been integrated directly into the project. (See the JsonCpp subdirectory.)
 # only way I could figure out how to keep the dependency away from
 # client applications. dumb.
-# version 5.3.0 fixes a bunch of stuff where client apps still needed jsoncpp-devel... 
+# version 5.4.0 seems to get this right, finally.
+# charliecloud builds/tests/kit-generation appears to work for
+# both unbuntu and fedora
 
 SET(SoDaLibs_VERSION_MAJOR 5)
-SET(SoDaLibs_VERSION_MINOR 3)
+SET(SoDaLibs_VERSION_MINOR 4)
 SET(SoDaLibs_VERSION_PATCH 0)
 SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDaLibs_VERSION_PATCH}")
 
