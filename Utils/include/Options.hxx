@@ -345,6 +345,7 @@ posargs =
 						 def_val,
 						 doc_str, test_func, err_msg);
 
+      
       *val_ptr = def_val; 
       registerOpt(arg_p, long_name, ab_name);
       return val_ptr;

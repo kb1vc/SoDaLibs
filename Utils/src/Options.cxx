@@ -252,7 +252,9 @@ namespace SoDa {
       printHelp(std::cerr);
       return false; 
     }
-    
+    catch (...) {
+      std::cerr << "Exception in Options::parse -- dunno what it is\n";
+    }
     return true; 
   }
 

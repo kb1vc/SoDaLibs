@@ -3,6 +3,13 @@
 #include <iostream>
 #include <cmath>
 #include <type_traits>
+#include <set>
+#include <list>
+#include <functional>
+#include <cstring>
+#include <memory>
+#include <typeinfo>
+
 
 /*
 BSD 2-Clause License
@@ -31,131 +38,356 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include <random>
 
-int si_val;
-int u_val;
-float f0_val;
-float f1_val; 
-bool b_val;
-std::string s_val;
-std::vector<std::string> s_val_list;
-std::vector<int> a_val_list;
-bool pres_val;
-std::string sind_val;
+class TestCase {
+public:
+  TestCase() {
+    makeOptSel();
+    switches.insert('h');
+  }
 
-bool testPosArgs(SoDa::Options cmd) {
-  si_val = 0; 
-  std::list<std::string> arglist = { 
-    "--sint", "-3",
-    "--uint", "3", 
-    "--fva0", "-1.1",
-    "--fva1", "1.1",
-    "--sva", "\"--this is a test\"",
-    "--s-ind", "'--args=\"type=b200,serial=c00ld00d\"'"
-  };
+  virtual void set(SoDa::Options & cmd) = 0; 
   
+  virtual void emit(std::list<std::string> & arglist) = 0;
 
-  std::list<std::string> poslist = {
-    "po0", "po1", "po2" };
+  virtual bool check() = 0;
+
+  virtual void dump() = 0;
   
-  auto tmpposlist = poslist;
-
-  arglist.merge(poslist);
-
-  bool is_good = true; 
-  if(!cmd.parse(arglist)) {
-    std::cerr << "testPosArgs bad parse\n";
-    is_good = false; 
-  }
-
-  // check the aval.
-  if(si_val != -3) {
-    std::cerr << "testPosArgs bad si_val\n";
-    is_good = false;
-  }
-  if(u_val != 3) {
-    std::cerr << "testPosArgs bad u_val\n";
-    is_good = false;
-  }
-  if(std::fabs(f0_val + 1.1) > 1e-6) {
-    std::cerr << "testPosArgs bad f0_val\n";
-    is_good = false;
-  }
-  if(std::fabs(f1_val - 1.1) > 1e-6) {
-    std::cerr << "testPosArgs bad f1_val\n";
-    is_good = false;
-  }
-  if(sind_val != std::string("'--args=\"type=b200,serial=c00ld00d\"'")) {
-    std::cerr << "testPosArgs bad value for s-ind : [" << sind_val << "]\n";
-    is_good = false; 
-  }
-  
-  if(s_val != "\"--this is a test\"") {
-    std::cerr << "testPosArgs bad value for sva : [" << s_val << "]\n";
-    is_good = false; 
-  }
-  if(cmd.numPosArgs() != 3) {
-    std::cerr << "testPosArgs got bad arg count\n";
-    is_good = false; 
-  }
-  
-  auto pags = cmd.getPosArgs();
-  if(pags.size() != 3) {
-    std::cerr << "testPosArgs got bad arglist count\n";
-    is_good = false; 
-  }
-
-  int i = 0;
-  for(auto refa : poslist) {
-    auto pa = cmd.getPosArg(i); 
-
-    if(pa.compare(refa) != 0) {
-      std::cerr << SoDa::Format("testPosArgs getPosArg got [%0] should be [%1]\n")
-	.addS(pa)
-	.addS(refa);
-    is_good = false; 
+  char genChar() {
+    std::uniform_int_distribution<int> tdist(0, 100000);    
+    auto idx = tdist(gen);
+    char sw  = 'a' + char(idx % 26);
+    while(switches.find(sw) != switches.end()) {
+      sw = 'a' + char(idx % 26);
+      idx = tdist(gen);
     }
-    if(pags[i].compare(refa) != 0) {
-      std::cerr << SoDa::Format("testPosArgs getPosArgs[%2] got [%0] should be [%1]\n")
-	.addS(pa)
-	.addS(refa)
-	.addI(i);
-      is_good = false; 
+    switches.insert(sw);
+
+    return sw; 
+  }
+
+  std::string genString(size_t minlen, size_t maxlen) {
+    std::uniform_int_distribution<int> tdist(minlen, maxlen);
+    auto slen = tdist(gen);
+    
+    std::uniform_int_distribution<int> sdist(0,legal_chars.size());
+    std::string ret;
+    char c1; 
+    do {
+      auto idx = sdist(gen); 
+      c1 = legal_chars[idx];
+    } while((c1 == '_') || (c1 == '-')); 
+    ret.push_back(c1); 
+    for(int i = 1; i < slen; i++) {
+      
+      auto idx = sdist(gen);
+      char c = legal_chars[idx]; 
+      ret.push_back(c); 
     }
-    i++; 
+
+    return ret; 
+  }
+
+  void makeOptSel() {
+    long_s = genString(5, 12);
+    short_s = genChar();
   }
   
-  return is_good; 
+  void addCommand(std::list<std::string> & arglist) {
+    std::uniform_real_distribution<float> dist(0,1);
+    bool s_or_l = (dist(gen) > 0.5);
+    if(s_or_l) {
+      arglist.push_back(SoDa::Format("--%0").addS(long_s).str());
+    }
+    else {
+      arglist.push_back(SoDa::Format("-%0").addC(short_s).str());      
+    }
+  }
+
+  static void clearSwitches() {
+    switches.clear();
+    switches.insert('h');
+  }
+  
+  static std::string legal_chars; 
+  static std::default_random_engine gen;
+
+  static uint32_t inst_counter; 
+  
+  static std::set<char> switches;
+
+  std::string long_s;
+  char short_s;
+
+}; 
+
+typedef std::unique_ptr<TestCase> TestCase_up;
+
+std::string TestCase::legal_chars("abcdefghijklmnopqrstuvwxyz0123456789_-ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+uint32_t TestCase::inst_counter = 0;
+std::default_random_engine TestCase::gen{std::random_device{}()};
+std::set<char> TestCase::switches;
+
+class BoolTest : public TestCase {
+public:
+  BoolTest() : TestCase() {
+    dist = std::uniform_real_distribution<float>(0, 1);
+  }
+  
+  void set(SoDa::Options & cmd) {
+    // pick a random value
+    req_val = (dist(gen) > 0.5);
+
+    def_val = (dist(gen) > 0.5);
+
+    val = cmd.add<bool>(long_s, short_s, def_val, "gimme a bool!"); 
+  }
+  
+  void emit(std::list<std::string> & arglist) override {
+    if(dist(gen) > 0.66) { // we may not supply an argument at all...
+      // so requred val is def_val
+      req_val = def_val; 
+      return; 
+    }    
+
+    // short or long?
+    addCommand(arglist);
+    // add a T or F or 0 or 1
+    auto vs = dist(gen);
+    if(req_val) {
+      if(vs < 0.5) {
+	arglist.push_back("T");
+      }
+      else {
+	arglist.push_back("1");
+      }
+    }
+    else {
+      if(vs < 0.5) {
+	arglist.push_back("F");
+      }
+      else {
+	arglist.push_back("0");
+      }
+    }
+  }
+  
+  bool check() {
+    return req_val == *val; 
+  }
+
+
+  void dump() {
+    std::string rtwr = (req_val == *val) ? "correct!" : "wrong!";
+    
+    std::cerr << SoDa::Format("Bool [%0] short [%1] expected [%2] default [%3] got [%4]  %5\n")
+      .addS(long_s)
+      .addC(short_s)
+      .addB(req_val)
+      .addB(def_val)
+      .addB(*val)
+      .addS(rtwr)
+      ;
+  }
+  
+  std::shared_ptr<bool> val;
+
+  bool supply_arg;
+  
+  bool req_val;
+
+  bool def_val; 
+
+  std::uniform_real_distribution<float> dist; 
+};
+
+bool intEQ(int a, int b) {
+  return a == b;
 }
 
-int main(int argc, char ** argv) {
-  // create a mailbox
-  SoDa::Options cmd;
+bool floatEQ(float a, float b) {
+  auto diff = fabs(b - a);
 
-  cmd.addP(&pres_val, "pres", 'p')
-    .add<bool>(&b_val, "boo", 'b')
-    .add<int>(&si_val, "sint", 'I')
-    .add<int>(&u_val, "uint", 'U')    
-    .add<float>(&f0_val, "fva0", 'f')
-    .add<float>(&f1_val, "fva1", 'F')    
-    .add(&s_val, "sva", 's')
-    .add(&sind_val, "s-ind", 'c')    
-    .addV<std::string>(&s_val_list, "sla", 'l')
-    .addV<int>(&a_val_list, "ala", 'L');
+  auto err = fabs(diff / (b + a));
+
+  bool ret = (err < 0.0001); 
+
+  return ret; 
+}
 
 
-  bool is_good = true;
-  std::cout << "argc = " << argc << "\n";
-  if(argc < 2) {
-    std::cout << "We are in here.\n";
-    is_good = is_good && testPosArgs(cmd); 
-  }  
-  else {
-    std::cout << "Why are we here?\n";
-    cmd.parse(argc, argv);
-    std::cout << "!!!! s_val = ??? [" << s_val << "]\n";
+enum ScalarType { FLOAT, INT };
+template<typename T, typename DT, ScalarType st, bool (*iseq)(T, T)>
+class ScalarTest : public TestCase {
+public:
+  ScalarTest() : TestCase() {
+    dist = DT(-1000, 1000);
   }
   
+  void set(SoDa::Options & cmd) {
+    // pick a random value
+    req_val = dist(gen);
+
+    def_val = dist(gen);
+    std::string ststr = (st == FLOAT) ? "float" : "int";    
+
+    val = cmd.add<T>(long_s, short_s, def_val, "gimme a " + ststr); 
+  }
+  
+  void emit(std::list<std::string> & arglist) override {
+    if(dist(gen) > 0.66) { // we may not supply an argument at all...
+      // so requred val is def_val
+      req_val = def_val;
+      return; 
+    }     
+
+    // short or long?
+    addCommand(arglist);
+    // add a T or F or 0 or 1
+    auto vs = dist(gen);
+
+    std::ostringstream ost;
+    ost << req_val;
+
+    arglist.push_back(ost.str());
+  }
+  
+  bool check() {
+    return iseq(req_val, *val); 
+  }
+
+
+  void dump() {
+    std::ostringstream rvs, dvs, vvs;
+    rvs << req_val;
+    dvs << def_val;
+    vvs << *val;
+
+    std::string rtwr = iseq(req_val, *val) ? "correct!" : "wrong!";
+    std::cerr << SoDa::Format("Bool [%0] short [%1] expected [%2] default [%3] got [%4]  %5\n")
+      .addS(long_s)
+      .addC(short_s)
+      .addS(rvs.str())
+      .addS(dvs.str())
+      .addS(vvs.str())
+      .addS(rtwr)
+      ;
+  }
+  
+  std::shared_ptr<T> val;
+  T req_val;
+  T def_val;
+
+  DT dist; 
+};
+
+template<typename T, typename TD, ScalarType st, bool (*iseq)(T,T)>
+std::unique_ptr<ScalarTest<T,TD, st, iseq>> makeScalar() {
+  auto rp =  new ScalarTest<T, TD, st, iseq>;
+  return std::unique_ptr<ScalarTest<T, TD, st, iseq>>(rp); 
+}
+
+TestCase_up makeCase() {
+  std::uniform_int_distribution<> fdist(0, 2);
+  auto sel = fdist(TestCase::gen);
+  switch (sel) {
+  case 0: 
+    return std::unique_ptr<BoolTest>(new BoolTest);
+    break;
+  case 1:
+    return makeScalar<int, std::uniform_int_distribution<int>, INT, intEQ>(); 
+    break;
+  case 2:
+    return makeScalar<float, std::uniform_real_distribution<float>, FLOAT, floatEQ>();     
+    break; 
+  default:
+    return makeScalar<float, std::uniform_real_distribution<float>, FLOAT, floatEQ>();     
+  }
+}
+
+std::list<TestCase_up> makeCases(int max_opts) {
+  std::uniform_int_distribution<int> na_dist(1,max_opts);
+  std::list<TestCase_up> ret; 
+  auto num_args = na_dist(TestCase::gen);
+
+  for(int i = 0; i < num_args; i++) {
+    ret.push_back(makeCase());
+  }
+  
+  return ret; 
+}
+
+
+std::list<std::string> makeArgV(std::list<TestCase_up> & tc) {
+  std::list<std::string> arg_list;
+  arg_list.push_back("test_case");  
+
+  for(auto & c : tc) {
+    c->emit(arg_list);
+  }
+
+  return arg_list; 
+}
+
+void dumpArgV(const std::list<std::string> & arg_list) {
+  std::cerr << "Command [";
+  for(auto & a : arg_list) {
+    std::cerr << SoDa::Format("%0 ").addS(a);
+  }
+  std::cerr << "]\n";
+}
+
+
+int main(int argc, char ** argv) {
+
+  SoDa::Options cmd;
+  auto num_trials_p = cmd.add<int>("trials", 't', 1000, "Number of test cases to try");
+
+  if(!cmd.parse(argc, argv)) exit(-1);
+
+  std::cerr << "Number of trials [" << *num_trials_p << "]\n";
+  
+  int max_opts = 50;
+
+  
+  bool is_good = true; 
+  for(int i = 0; i < *num_trials_p; i++) {
+    if(!is_good) break; 
+    SoDa::Options cmd; 
+    if((i % 10000) == 0) {
+      std::cerr << SoDa::Format("Trial %0/%1\r")
+	.addI(i, 10)
+	.addI(*num_trials_p)
+	;
+    }
+    TestCase::clearSwitches();
+    auto cases = makeCases(10);
+    for(auto & c : cases) {
+      c->set(cmd);
+    }
+
+    auto arg_list = makeArgV(cases);
+
+    if(!cmd.parse(arg_list))  {
+      std::cerr << "Error in parsing command:\n";
+      is_good = false;
+      dumpArgV(arg_list);
+    }
+    else {
+      for(auto & c : cases) {
+	if(!c->check()) {
+	  is_good = false;
+	  std::cerr << "Error in expected value for command:\n";
+	  dumpArgV(arg_list);
+	  c->dump();
+	}
+      }
+    }
+  }
+
+  std::cout << "\n";
   if(is_good) std::cout << "PASS\n";
   else std::cout << "FAIL\n";
 }
