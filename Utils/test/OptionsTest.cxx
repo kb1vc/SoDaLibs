@@ -203,6 +203,57 @@ public:
   std::uniform_real_distribution<float> dist; 
 };
 
+
+class PresentTest : public TestCase {
+public:
+  PresentTest() : TestCase() {
+    dist = std::uniform_real_distribution<float>(0, 1);
+  }
+  
+  void set(SoDa::Options & cmd) {
+    val = cmd.addP(long_s, short_s, "present or not");
+  }
+  
+  void emit(std::list<std::string> & arglist) override {
+    if(dist(gen) > 0.66) { // we may not supply an argument at all...
+      // so requred val is def_val
+      req_val = false;
+      return; 
+    }
+    else {
+      addCommand(arglist);
+      req_val = true; 
+    }
+  }
+  
+  bool check() {
+    return req_val == *val; 
+  }
+
+
+  void dump() {
+    std::string rtwr = (req_val == *val) ? "correct!" : "wrong!";
+    
+    std::cerr << SoDa::Format("Present [%0] short [%1] expected [%2]  got [%4]  %5\n")
+      .addS(long_s)
+      .addC(short_s)
+      .addB(req_val)
+      .addB(*val)
+      .addS(rtwr)
+      ;
+  }
+  
+  std::shared_ptr<bool> val;
+
+  bool supply_arg;
+  
+  bool req_val;
+
+  bool def_val; 
+
+  std::uniform_real_distribution<float> dist; 
+};
+
 bool intEQ(int a, int b) {
   return a == b;
 }
@@ -290,7 +341,7 @@ std::unique_ptr<ScalarTest<T,TD, st, iseq>> makeScalar() {
 }
 
 TestCase_up makeCase() {
-  std::uniform_int_distribution<> fdist(0, 2);
+  std::uniform_int_distribution<> fdist(0, 3);
   auto sel = fdist(TestCase::gen);
   switch (sel) {
   case 0: 
@@ -301,6 +352,9 @@ TestCase_up makeCase() {
     break;
   case 2:
     return makeScalar<float, std::uniform_real_distribution<float>, FLOAT, floatEQ>();     
+    break; 
+  case 3:
+    return std::unique_ptr<PresentTest>(new PresentTest);
     break; 
   default:
     return makeScalar<float, std::uniform_real_distribution<float>, FLOAT, floatEQ>();     
