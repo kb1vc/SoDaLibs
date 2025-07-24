@@ -18,10 +18,11 @@ PROJECT(SoDaLibs)
 # version 5.4.0 seems to get this right, finally.
 # charliecloud builds/tests/kit-generation appears to work for
 # both unbuntu and fedora
-
+# version 5.4.1 fixes a bug in SoDaUtils that broke "present" flags.
+# version 5.4.1 makes SoDaSignals build contingent on finding FFTW
 SET(SoDaLibs_VERSION_MAJOR 5)
 SET(SoDaLibs_VERSION_MINOR 4)
-SET(SoDaLibs_VERSION_PATCH 0)
+SET(SoDaLibs_VERSION_PATCH 1)
 SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDaLibs_VERSION_PATCH}")
 
 INCLUDE(GNUInstallDirs)
