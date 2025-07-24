@@ -69,7 +69,7 @@ add_test(NAME FormatNaN
   COMMAND $<TARGET_FILE:FormatNaN>)
 
 add_test(NAME OptionsTestSimple 
-  COMMAND $<TARGET_FILE:OptionsTest>)
+  COMMAND $<TARGET_FILE:OptionsTest> -t 100000)
 
 add_test(NAME PropertyTreeTest1
   COMMAND $<TARGET_FILE:PropertyTree_Test> ${CMAKE_CURRENT_LIST_DIR}/test1.json)
