@@ -238,6 +238,7 @@ namespace SoDa {
 
 	if(arg_p->isPresentOpt()) {
 	  arg_p->setPresent();
+	  arg_p->setVal("");
 	  arg_p = nullptr; 
 	}
       }

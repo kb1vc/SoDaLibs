@@ -408,7 +408,10 @@ int main(int argc, char ** argv) {
   
   bool is_good = true; 
   for(int i = 0; i < *num_trials_p; i++) {
-    if(!is_good) break; 
+    if(!is_good) {
+      std::cerr << "Failed after " << i << " trials\n";
+      break;
+    }
     SoDa::Options cmd; 
     if((i % 10000) == 0) {
       std::cerr << SoDa::Format("Trial %0/%1\r")
@@ -434,6 +437,7 @@ int main(int argc, char ** argv) {
 	if(!c->check()) {
 	  is_good = false;
 	  std::cerr << "Error in expected value for command:\n";
+	  cmd.printHelp(std::cerr);
 	  dumpArgV(arg_list);
 	  c->dump();
 	}

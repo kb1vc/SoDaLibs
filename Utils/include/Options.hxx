@@ -834,23 +834,17 @@ posargs =
 		 const std::string & doc_str = std::string(""))
 	: OptBase(doc_str, "", false), u_val_ptr(val_p) {
 	s_val_ptr = nullptr; 
-	*u_val_ptr = false; 
+	*u_val_ptr = false;
       }
       OptPresent(std::shared_ptr<bool> val_p, 
 		 const std::string & doc_str = std::string(""))
 	: OptBase(doc_str, "", false), s_val_ptr(val_p) {
 	u_val_ptr = nullptr; 
-	*s_val_ptr = false; 
+	*s_val_ptr = false;
       }
       
       bool isPresentOpt() { 
-	if(s_val_ptr != nullptr) {
-	  return *s_val_ptr; 
-	}
-	if(u_val_ptr != nullptr) {
-	  return *u_val_ptr;
-	}
-	return false; 
+	return true; 
       }
 
       bool setVal(const std::string & vstr) { 
