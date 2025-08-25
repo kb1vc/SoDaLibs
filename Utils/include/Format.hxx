@@ -4,13 +4,15 @@
 #include <stdexcept>
 #include <iostream>
 #include <list>
+#include <chrono>
+
 #include "UtilsBase.hxx"
 #include "Exception.hxx"
 
 /*
 BSD 2-Clause License
 
-Copyright (c) 2020, 2021, 2022, 2023 Matt Reilly - kb1vc
+Copyright (c) 2020, 2021, 2022, 2023, 2025 Matt Reilly - kb1vc
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -451,6 +453,32 @@ namespace SoDa {
     Format & addB(bool v);    
 
 
+    /**
+     * @brief insert the current date/time value into the output string
+     *
+     * @param fmt dat/time format as specified in the definition of
+     * std::put_time.
+     * @param local if true, produce local time. UTC otherwise. (default local)     
+     *
+     * @return a reference to this format object.
+     */
+    Format & addTD(const std::string & fmt = "%d-%m-%Y  %H-%M-%S",
+		   bool local = true);
+
+    /**
+     * @brief insert a date/time value into the output string
+     *
+     * @param tstamp date/time from std::chrono 
+     * @param fmt dat/time format as specified in the definition of
+     * std::put_time.
+     * @param local if true, produce local time. UTC otherwise. (default local)
+     *
+     * @return a reference to this format object.
+     */
+    Format & addTD(const std::chrono::system_clock::time_point & tstamp, 
+		   const std::string & fmt,
+		   bool local = true);
+    
     /**
      * @brief reset the format string to its original value, with all
      * the placeholders restored. 

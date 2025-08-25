@@ -48,6 +48,12 @@ target_link_libraries(BarrierExample PRIVATE sodautils Threads::Threads)
 add_executable(PropertyTreeExample PropertyTreeExample.cxx)
 target_link_libraries(PropertyTreeExample PRIVATE sodautils Threads::Threads)
 
+find_package(jsoncpp)
+if(jsoncpp_FOUND)
+add_executable(PropertyTreeExample2 PropertyTreeExample2.cxx)
+target_link_libraries(PropertyTreeExample2 PRIVATE sodautils Threads::Threads jsoncpp_lib)
+
+endif()
 
 
 

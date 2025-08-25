@@ -1,10 +1,8 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.10.0) # this lets out really old distros like CentOS 6
 
 
-IF(CMAKE_VERSION VERSION_GREATER 3.0.0)
-  CMAKE_POLICY(SET CMP0048 NEW)
-  SET(CMAKE_CXX_STANDARD 11)
-ENDIF()
+CMAKE_POLICY(SET CMP0048 NEW)
+SET(CMAKE_CXX_STANDARD 17)
 
 PROJECT(SoDaLibs)
 
@@ -20,9 +18,12 @@ PROJECT(SoDaLibs)
 # both unbuntu and fedora
 # version 5.4.1 fixes a bug in SoDaUtils that broke "present" flags.
 # version 5.4.1 makes SoDaSignals build contingent on finding FFTW
+# version 5.5.0 adds SoDa::Format::addTD - add a time/date string.
+# version 5.5.0 required C++17.  It is time.
+
 SET(SoDaLibs_VERSION_MAJOR 5)
-SET(SoDaLibs_VERSION_MINOR 4)
-SET(SoDaLibs_VERSION_PATCH 1)
+SET(SoDaLibs_VERSION_MINOR 5)
+SET(SoDaLibs_VERSION_PATCH 0)
 SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDaLibs_VERSION_PATCH}")
 
 INCLUDE(GNUInstallDirs)

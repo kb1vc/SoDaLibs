@@ -4,13 +4,15 @@
 #include <iomanip>
 #include <cmath>
 #include <ctype.h>
+#include <time.h>
 #include <regex>
 #include <algorithm>
+#include <iomanip>
 
 /*
 BSD 2-Clause License
 
-Copyright (c) 2022, 2023, 2024 Matt Reilly - kb1vc
+Copyright (c) 2022, 2023, 2024, 2025 Matt Reilly - kb1vc
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -183,7 +185,7 @@ namespace SoDa {
   Format & Format::addU(unsigned long v, char fmt, unsigned int w,
 			char sep,
 			unsigned int group_count)
-{
+  {
     std::stringstream ss;
     std::stringstream pre_ss;
     std::string result; 
@@ -516,19 +518,49 @@ namespace SoDa {
   }
 
   Format & Format::addC(char c) {
-    std::stringstream ss;
-    ss << c; 
-    insertField(ss.str());
+    std::string fld;
+    fld.push_back(c);
+    insertField(fld);
     return *this;
   }
 
   Format & Format::addB(bool v) {
-    std::stringstream ss;
-    ss << (v ? "T" : "F");
-    insertField(ss.str());
+    insertField(v ? "T" : "F");
     return *this;
   }
 
+
+  Format & Format::addTD(const std::string & fmt, 
+			 bool local) {
+    return addTD(std::chrono::system_clock::now(), fmt, local);
+  }
+  
+  Format & Format::addTD(const std::chrono::system_clock::time_point & tstamp, 
+			 const std::string & fmt, 
+			 bool local) {
+    std::string tstr;
+
+    // make a time_t
+    std::time_t tt_tstamp = std::chrono::system_clock::to_time_t(tstamp);
+    // now a tm thingie -- use localtime_r -- 
+    std::tm tm ;
+    if(local) {
+      localtime_r(&tt_tstamp, &tm);
+    }
+    else {
+      gmtime_r(&tt_tstamp, &tm);
+    }
+    
+    // note that C++20 has another path here, but it uses "std::format" which requires
+    // its format strings to be compile time constants.  How stupid is that? It is
+    // fixed in C++26, but jeez.
+    std::stringstream ss;
+    ss << std::put_time(&tm, fmt.c_str());
+    
+    insertField(ss.str());
+    
+    return *this; 
+  }
   
   void Format::insertField(const std::string & s) {
     for (auto & fld : format_string_segments) {

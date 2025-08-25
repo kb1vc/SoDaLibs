@@ -115,6 +115,32 @@ int runBigTest() {
 
 int main(int argc, char * argv[]) {
 
+  auto now = std::chrono::system_clock::now();
+  std::time_t ntstamp = std::chrono::system_clock::to_time_t(now);
+  std::tm tm;
+  localtime_r(&ntstamp, &tm);
+  auto dnum = tm.tm_mday;
+  auto hnum = tm.tm_hour; 
+  std::string thrdst;
+  switch(dnum % 10) {
+  case 1: thrdst = "st"; break;
+  case 2: thrdst = "dn"; break;
+  case 3: thrdst = "rd"; break;
+  default: thrdst = "th"; break;
+  }
+  
+  auto fancy_fmt = SoDa::Format("%%A the %%e%0 of %%B in the year %%Y at %%OI O'clock in the %1")
+    .addS(thrdst)
+    .addS((hnum > 12) ? "Post Meridian" : "Ante Meridian")
+    ;
+  
+  std::cout << SoDa::Format("Hey kids! What time is it? It's \n\t%0 or\n\t%1 or\n\t%2\n")
+    .addTD(now, "%H:%M:%S")
+    .addTD(now, "%Y-%m-%d %H:%M:%S")
+    .addTD(now, fancy_fmt.str())
+    ;
+
+  
   std::cerr << SoDa::Format("This is what 0 looks like F[%0] U[%1] I[%2] U16[%3] \n")
     .addF(0.0, 'e', 0, 0)
     .addU(0)
@@ -174,4 +200,5 @@ int main(int argc, char * argv[]) {
 
     doTest(v, p, w, fmt);
   }
+
 }
