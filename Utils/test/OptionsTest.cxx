@@ -96,7 +96,7 @@ public:
   }
   
   void addCommand(std::list<std::string> & arglist) {
-    std::uniform_real_distribution<float> dist(0,1);
+    std::uniform_real_distribution<double> dist(0,1);
     bool s_or_l = (dist(gen) > 0.5);
     if(s_or_l) {
       arglist.push_back(SoDa::Format("--%0").addS(long_s).str());
@@ -123,7 +123,7 @@ public:
 
 }; 
 
-typedef std::unique_ptr<TestCase> TestCase_up;
+typedef std::unique_ptr<TestCase> TestCaseUPtr;
 
 std::string TestCase::legal_chars("abcdefghijklmnopqrstuvwxyz0123456789_-ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 uint32_t TestCase::inst_counter = 0;
@@ -133,7 +133,7 @@ std::set<char> TestCase::switches;
 class BoolTest : public TestCase {
 public:
   BoolTest() : TestCase() {
-    dist = std::uniform_real_distribution<float>(0, 1);
+    dist = std::uniform_real_distribution<double>(0, 1);
   }
   
   void set(SoDa::Options & cmd) {
@@ -200,34 +200,43 @@ public:
 
   bool def_val; 
 
-  std::uniform_real_distribution<float> dist; 
+  std::uniform_real_distribution<double> dist; 
 };
-
 
 class PresentTest : public TestCase {
 public:
   PresentTest() : TestCase() {
-    dist = std::uniform_real_distribution<float>(0, 1);
+    dist = std::uniform_real_distribution<double>(0, 1);
   }
   
   void set(SoDa::Options & cmd) {
+    // std::cerr << SoDa::Format("PresentTest::set adding --%0 -%1\n")
+    //   .addS(long_s).addC(short_s);
     val = cmd.addP(long_s, short_s, "present or not");
   }
   
   void emit(std::list<std::string> & arglist) override {
     if(dist(gen) > 0.66) { // we may not supply an argument at all...
       // so requred val is def_val
+      // std::cerr << SoDa::Format("PresentTest::emit will not emit %0\n")
+      // 	.addS(long_s);
       req_val = false;
       return; 
     }
     else {
+      // std::cerr << SoDa::Format("PresentTest::emit will emit %0\n")
+      // 	.addS(long_s);
       addCommand(arglist);
       req_val = true; 
     }
   }
   
   bool check() {
-    return req_val == *val; 
+    bool ret = req_val == *val; 
+    if(!ret) {
+      dump();
+    }
+    return ret;
   }
 
 
@@ -251,25 +260,33 @@ public:
 
   bool def_val; 
 
-  std::uniform_real_distribution<float> dist; 
+  std::uniform_real_distribution<double> dist; 
 };
 
 bool intEQ(int a, int b) {
   return a == b;
 }
 
-bool floatEQ(float a, float b) {
+bool doubleEQ(double a, double b) {
   auto diff = fabs(b - a);
 
-  auto err = fabs(diff / (b + a));
-
-  bool ret = (err < 0.0001); 
-
+  bool ret = fabs(diff) < fabs(1e-4 * (b + a));
+  // on rare occasions (a = 0, b = 0) we should return true
+  if(a == b) ret = true; 
+  
+  if(!ret) {
+    std::cerr << SoDa::Format("Got unequal doubles [%0] [%1] diff [%2]\n")
+      .addF(a, 'e', 14)
+      .addF(b, 'e', 14)
+      .addF(diff, 'e', 14)
+      ;
+  }
+  
   return ret; 
 }
 
 
-enum ScalarType { FLOAT, INT };
+enum ScalarType { DOUBLE, INT };
 template<typename T, typename DT, ScalarType st, bool (*iseq)(T, T)>
 class ScalarTest : public TestCase {
 public:
@@ -282,7 +299,7 @@ public:
     req_val = dist(gen);
 
     def_val = dist(gen);
-    std::string ststr = (st == FLOAT) ? "float" : "int";    
+    std::string ststr = (st == DOUBLE) ? "double" : "int";    
 
     val = cmd.add<T>(long_s, short_s, def_val, "gimme a " + ststr); 
   }
@@ -317,7 +334,7 @@ public:
     vvs << *val;
 
     std::string rtwr = iseq(req_val, *val) ? "correct!" : "wrong!";
-    std::cerr << SoDa::Format("Bool [%0] short [%1] expected [%2] default [%3] got [%4]  %5\n")
+    std::cerr << SoDa::Format("Scalar [%0] short [%1] expected [%2] default [%3] got [%4]  %5\n")
       .addS(long_s)
       .addC(short_s)
       .addS(rvs.str())
@@ -340,7 +357,7 @@ std::unique_ptr<ScalarTest<T,TD, st, iseq>> makeScalar() {
   return std::unique_ptr<ScalarTest<T, TD, st, iseq>>(rp); 
 }
 
-TestCase_up makeCase() {
+TestCaseUPtr makeCase() {
   std::uniform_int_distribution<> fdist(0, 3);
   auto sel = fdist(TestCase::gen);
   switch (sel) {
@@ -351,19 +368,19 @@ TestCase_up makeCase() {
     return makeScalar<int, std::uniform_int_distribution<int>, INT, intEQ>(); 
     break;
   case 2:
-    return makeScalar<float, std::uniform_real_distribution<float>, FLOAT, floatEQ>();     
+    return makeScalar<double, std::uniform_real_distribution<double>, DOUBLE, doubleEQ>();     
     break; 
   case 3:
     return std::unique_ptr<PresentTest>(new PresentTest);
     break; 
   default:
-    return makeScalar<float, std::uniform_real_distribution<float>, FLOAT, floatEQ>();     
+    return makeScalar<double, std::uniform_real_distribution<double>, DOUBLE, doubleEQ>();     
   }
 }
 
-std::list<TestCase_up> makeCases(int max_opts) {
+std::list<TestCaseUPtr> makeCases(int max_opts) {
   std::uniform_int_distribution<int> na_dist(1,max_opts);
-  std::list<TestCase_up> ret; 
+  std::list<TestCaseUPtr> ret; 
   auto num_args = na_dist(TestCase::gen);
 
   for(int i = 0; i < num_args; i++) {
@@ -374,7 +391,7 @@ std::list<TestCase_up> makeCases(int max_opts) {
 }
 
 
-std::list<std::string> makeArgV(std::list<TestCase_up> & tc) {
+std::list<std::string> makeArgV(std::list<TestCaseUPtr> & tc) {
   std::list<std::string> arg_list;
   arg_list.push_back("test_case");  
 

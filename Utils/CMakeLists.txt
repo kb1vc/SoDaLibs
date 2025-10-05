@@ -37,9 +37,10 @@ INCLUDE(CTest)
 # changed default build to RELEASE and had to fix a problem with ffast-math and
 # recognizing NaNs
 # 5.1.2 fixed problem in present/option type
+# 5.1.3 fixed calculation of error in OptionsTest floating point check
 SET(SoDaUtils_VERSION_MAJOR 5)
 SET(SoDaUtils_VERSION_MINOR 1)
-SET(SoDaUtils_VERSION_PATCH 2)
+SET(SoDaUtils_VERSION_PATCH 3)
 SET(SoDaUtils_VERSION "${SoDaUtils_VERSION_MAJOR}.${SoDaUtils_VERSION_MINOR}.${SoDaUtils_VERSION_PATCH}")
 
 MESSAGE("SoDaUtils_VERSION=[${SoDaUtils_VERSION}]")

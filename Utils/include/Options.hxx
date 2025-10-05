@@ -370,6 +370,8 @@ posargs =
 		   char ab_name, 
 		   const std::string & doc_str = std::string("")) {
       auto val_ptr = std::make_shared<bool>(false);
+      *val_ptr = false;
+      *present_p = false; 
       OptBase_p arg_p = std::make_shared<OptPresent>(present_p, doc_str);
       registerOpt(arg_p, long_name, ab_name);
       return *this;
@@ -393,6 +395,7 @@ posargs =
       auto val_ptr = std::make_shared<bool>(false);
       OptBase_p arg_p = std::make_shared<OptPresent>(val_ptr, doc_str);
       registerOpt(arg_p, long_name, ab_name);
+      *val_ptr = false; 
       return val_ptr; 
     }
     
