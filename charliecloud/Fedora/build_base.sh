@@ -1,4 +1,4 @@
-FROM fedora:40
+#!/bin/bash
 # BSD 2-Clause License
 # 
 # Copyright (c) 2025, kb1vc
@@ -25,11 +25,5 @@ FROM fedora:40
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-RUN dnf --assumeyes update
-RUN dnf --assumeyes install gcc-c++ git cmake make pkgconf
-RUN dnf --assumeyes install fftw-devel
-RUN dnf --assumeyes install rpm-build
-
-
-
+export CH_IMAGE_STORAGE=`pwd`/images
+ch-image build  --bind `pwd`/../common_build_scripts:/mnt/0 -t fedora_sodabase -f DockerBase .

@@ -1,4 +1,4 @@
-FROM fedora:40
+FROM fedora:43
 # BSD 2-Clause License
 # 
 # Copyright (c) 2025, kb1vc

@@ -1,4 +1,4 @@
-#!/bin/bash
+FROM fedora_sodabase
 # BSD 2-Clause License
 # 
 # Copyright (c) 2025, kb1vc
@@ -25,15 +25,32 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-export CH_IMAGE_STORAGE=`pwd`/images
-echo "\nbuilding the base\n"
-./build_base.sh 2>&1 | tee build_base.log
-echo "\nbuilding the libraries\n"
-./build_any.sh fedora40_sodalibs DockerKit repo_location=/proj/home/mhr/Radio/SoDa/local_repo/SoDaLibs 2>&1 | tee build_kit.log
-echo "\nbuilding the RPM\n"
-./build_any.sh fedora40_sodarpm DockerBuildRPM 2>&1 | tee build_rpm.log
-rpmfile=`ls *.rpm | head -1
-echo "\ntesting the rpm\n"`
-./build_any.sh fedora40_sodarpm_test DockerTestRPM package_name=${rpmfile} 2>&1 | tee test_rpm.log
+ARG repo_location
 
+RUN mkdir -p /soda_testbuild
+WORKDIR /soda_testbuild
+RUN rm -rf /soda_testbuild/*
+RUN /mnt/0/get_sodalibs.sh ${repo_location}
+
+WORKDIR /soda_testbuild/SoDaLibs
+RUN git checkout charliecloud
+RUN mkdir -p build
+WORKDIR /soda_testbuild/SoDaLibs/build
+RUN cmake -DCMAKE_INSTALL_PREFIX=/usr ../
+RUN make
+RUN ctest -j 4
+RUN make install
+
+RUN mkdir -p  /soda_testbuild/example_test/SigExamps/build
+RUN mkdir -p  /soda_testbuild/example_test/UtilExamps/build
+WORKDIR /soda_testbuild/example_test
+
+RUN cp /usr/share/SoDaSignals/examples/* ./SigExamps/
+RUN cp /usr/share/SoDaUtils/examples/* ./UtilExamps/
+
+WORKDIR  /soda_testbuild/example_test/UtilExamps/build
+RUN /mnt/0/build_util_examps.sh
+
+WORKDIR  /soda_testbuild/example_test/SigExamps/build
+RUN /mnt/0/build_signal_examps.sh
 

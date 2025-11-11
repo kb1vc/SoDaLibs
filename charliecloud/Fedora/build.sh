@@ -26,4 +26,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 export CH_IMAGE_STORAGE=`pwd`/images
-ch-image build  --bind `pwd`/../common_build_scripts:/mnt/0 -t fedora40_sodabase -f DockerBase .
+echo "\nbuilding the base\n"
+./build_base.sh 2>&1 | tee build_base.log
+echo "\nbuilding the libraries\n"
+./build_any.sh fedora_sodalibs DockerKit repo_location=/proj/home/mhr/Radio/SoDa/local_repo/SoDaLibs 2>&1 | tee build_kit.log
+echo "\nbuilding the RPM\n"
+./build_any.sh fedora_sodarpm DockerBuildRPM 2>&1 | tee build_rpm.log
+rpmfile=`ls *.rpm | head -1
+echo "\ntesting the rpm\n"`
+./build_any.sh fedora_sodarpm_test DockerTestRPM package_name=${rpmfile} 2>&1 | tee test_rpm.log
+
+
