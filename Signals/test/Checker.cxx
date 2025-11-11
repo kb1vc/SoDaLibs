@@ -193,6 +193,16 @@ namespace SoDa {
 
   double Checker::getFreq(uint32_t idx) { return frequencies[idx]; }
 
+  float Checker::calcMeanAmp(std::vector<std::complex<float>> & in) {
+    float sum = 0.0;
+    for(auto & v : in) {
+      auto a = std::abs(v);
+      sum = sum + a;
+    }
+    
+    return sum / (float(in.size()));
+  }
+  
   void Checker::checkResponse(uint32_t freq_step,
 			      std::function<CheckRegion(double)> freqRegion, 
 			      std::function<void(std::vector<std::complex<float>> &,
@@ -220,18 +230,20 @@ namespace SoDa {
 
     target_phase_shift = phase(frequencies[freq_step]);
     // do the gains in dB power
-    float gain = 20.0 * std::log10(std::abs(corr));
     float phase_shift = fixAngle(std::arg(corr));
     float phase_diff = fabs(phase_shift - target_phase_shift);
     auto orig_phase_diff = phase_diff;
     phase_diff = fabs(fixAngle(phase_diff));
 
 
-    
+    auto mean_amp_in = calcMeanAmp(second_output_oscillators[freq_step]);
+    auto mean_amp_out = calcMeanAmp(test_out);
+    float gain = 20.0 * std::log10(mean_amp_out / mean_amp_in);
+
     // now calculate the correlation for each frequency
     if(check_region == PASS_BAND) {
       // is the attenuation/gain less than threshold?
-      if((gain < -ripple_limit_dB) && (gain > ripple_limit_dB)) {
+      if((gain < -ripple_limit_dB) || (gain > ripple_limit_dB)) {
 	// we're out of the passband gain.
 	std::cerr << SoDa::Format("Passband Gain out-of-range Frequency %0 gain %1 ripple limit %2\n")
 	  .addF(frequencies[freq_step], 'e')

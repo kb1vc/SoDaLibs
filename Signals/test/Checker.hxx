@@ -77,6 +77,8 @@ namespace SoDa {
 
   protected:
     double phase(double freq);
+
+    float calcMeanAmp(std::vector<std::complex<float>> & in);
     
     uint32_t filter_length;
     double permissible_phase_error;

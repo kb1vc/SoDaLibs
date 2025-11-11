@@ -119,10 +119,12 @@ namespace SoDa {
 
     // if we're upsampling, we will apply the LPF to the Y buffer (output)
     if(FS_out > FS_in) {
+      float up_ratio = float(FS_out / FS_in);
       lpf_p = std::unique_ptr<SoDa::Filter>(new SoDa::Filter(-cutoff, cutoff, 
 							     0.015 * cutoff, 
 							     FS_out, 
-							     num_taps, Ly));
+							     num_taps, Ly,
+							     up_ratio));
     }
     else {
       // downsampling, filter on the X buffer before the cut-down
@@ -211,11 +213,10 @@ namespace SoDa {
 	Y.at(Ly - 1 - i) = X.at(Lx - 1 - i);	
       }
       Y.at(y_half_count) = X.at(y_half_count);
-
-      // now lpf since we're down
     }
     else {
       // we are up sampling. Y gets half of X in the bottom, half in the top.
+      // we also need to do a gain correction. 
       for(int i = 0; i < Lx; i++) {
 	if(i < Lx/2) {
 	  // we're on the DC and above side.
