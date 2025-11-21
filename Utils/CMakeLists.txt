@@ -43,6 +43,8 @@ SET(SoDaUtils_VERSION_MINOR 1)
 SET(SoDaUtils_VERSION_PATCH 3)
 SET(SoDaUtils_VERSION "${SoDaUtils_VERSION_MAJOR}.${SoDaUtils_VERSION_MINOR}.${SoDaUtils_VERSION_PATCH}")
 
+
+
 MESSAGE("SoDaUtils_VERSION=[${SoDaUtils_VERSION}]")
 
 SET(DOXY_PROJECT_VERSION "${SoDaUtils_VERSION}-${SoDaUtils_GIT_ID}")
@@ -59,7 +61,7 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.hxx DESTINATION "${CMAKE_INSTA
 
 INSTALL(FILES ${all_includes} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/SoDa")
 
-SET(JSON_BASE_DIR ${PROJECT_SOURCE_DIR}/JsonCpp)
+SET(JSON_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/JsonCpp)
 
 ADD_SUBDIRECTORY(src)
 
@@ -100,13 +102,7 @@ set(UTILS_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_DATADIR}/cmake/SoDaUtils")
 
 #include(InstallRequiredSystemLibraries)
 
-message("******* Installing Utils to [${UTILS_CONFIG_EXPORT_DIR}]")
-install(EXPORT SoDaUtilsTargets
-  FILE SoDaUtilsTargets.cmake
-  DESTINATION ${UTILS_CONFIG_EXPORT_DIR}
-  )
-
-
+#[=[
 configure_package_config_file(
   "${UTILS_SUBLIB_SOURCE_DIR}/SoDaUtilsConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/SoDaUtilsConfig.cmake"
@@ -114,16 +110,20 @@ configure_package_config_file(
   NO_SET_AND_CHECK_MACRO
   NO_CHECK_REQUIRED_COMPONENTS_MACRO
 )
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/SoDaUtilsConfig.cmake
+  DESTINATION ${UTILS_CONFIG_EXPORT_DIR}
+)
+
+]=]
 
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/SoDaUtilsConfigVersion.cmake"
   VERSION "${SoDaUtils_VERSION}"
   COMPATIBILITY AnyNewerVersion)
 
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/SoDaUtilsConfig.cmake
-  DESTINATION ${UTILS_CONFIG_EXPORT_DIR}
-)
+
+include(GNUInstallDirs)
 
 add_subdirectory(test)
 

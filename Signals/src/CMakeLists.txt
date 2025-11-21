@@ -32,6 +32,12 @@ install(TARGETS sodasignals
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
 
+install(EXPORT SoDaSignalsTargets
+  FILE SoDaSignalsConfig.cmake
+  NAMESPACE SoDaSignals
+  DESTINATION ${SIGNALS_CONFIG_EXPORT_DIR}
+)
+  
 
 ############################################################################
 #

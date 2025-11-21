@@ -11,7 +11,6 @@ set(UTILS_SRCS
 	${JSON_BASE_DIR}/jsoncpp.cpp
 )
 
-
 add_library(sodautils STATIC ${UTILS_SRCS})
 add_library(sodautils::sodautils ALIAS sodautils)
 set_target_properties(sodautils PROPERTIES VERSION ${SoDaUtils_VERSION})
@@ -49,10 +48,14 @@ install(TARGETS ${installable_libs}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-install(EXPORT SoDaUtilsTargets FILE SoDaUtilsTargets.cmake 
+
+install(EXPORT SoDaUtilsTargets
+  FILE SoDaUtilsConfig.cmake 
   NAMESPACE SoDaUtils::
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SoDaUtils
 )
+
+
 
 
 

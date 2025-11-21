@@ -59,30 +59,30 @@ set(FFTW_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_DATADIR}/cmake/SoDa_FFTW")
 include(InstallRequiredSystemLibraries)
 
 message("******* Installing Signals to [${SIGNALS_CONFIG_EXPORT_DIR}]")
-install(EXPORT SoDaSignalsTargets
-  FILE SoDaSignalsTargets.cmake
-  DESTINATION ${SIGNALS_CONFIG_EXPORT_DIR}
-)
 
 set(SIGNALS_SUBLIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
+#[==[
 configure_package_config_file (
   "${SIGNALS_SUBLIB_SOURCE_DIR}/SoDaSignalsConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/SoDaSignalsConfig.cmake"
   INSTALL_DESTINATION "${SIGNALS_CONFIG_EXPORT_DIR}"
   NO_SET_AND_CHECK_MACRO
   NO_CHECK_REQUIRED_COMPONENTS_MACRO
-)  
+)
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/SoDaSignalsConfig.cmake
+  DESTINATION ${SIGNALS_CONFIG_EXPORT_DIR}
+)
+
+]==]
+
 
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/SoDaSignalsConfigVersion.cmake"
   VERSION "${SoDaSignals_VERSION}"  
   COMPATIBILITY AnyNewerVersion)
   
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/SoDaSignalsConfig.cmake
-  DESTINATION ${SIGNALS_CONFIG_EXPORT_DIR}
-)
 
 ## FFTW still doesn't have an actual find cmake package.
 ## I'm usign one kindly created by Wenzel Jakop and Patrick Bos (see the LICENSE files)
