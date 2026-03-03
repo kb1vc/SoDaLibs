@@ -48,14 +48,16 @@
 #include <stdexcept>
 #include "Filter.hxx"
 
+#include "../../Utils/include/NoCopy.hxx"
+
 namespace SoDa {
 
   class OSFilter;
   typedef std::shared_ptr<OSFilter> OSFilterPtr;
   
-  class OSFilter {
+  class OSFilter : public SoDa::NoCopy {
   public:
-    class BadBufferSize : public std::runtime_error {
+    class BadBufferSize : public SoDa::Exception {
     public:
       BadBufferSize(const std::string & st, unsigned int in, unsigned int out, unsigned int req);
     };

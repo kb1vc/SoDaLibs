@@ -49,7 +49,7 @@ namespace SoDa {
 
     auto vsize = (v0.size() > v1.size()) ? v1.size() : v0.size();    
 
-    for(int i = 0; i < vsize; i++) {
+    for(size_t i = 0; i < vsize; i++) {
       result += v0[i] * std::conj(v1[i]); 
     }
 

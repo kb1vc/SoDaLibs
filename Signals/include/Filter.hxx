@@ -64,7 +64,7 @@ namespace SoDa {
      * @brief The filter was built to process a buffer of a size different from the
      * one that was passed to "apply."
      */
-    class BadBufferSize : public std::runtime_error {
+    class BadBufferSize : public SoDa::Exception {
     public:
       /**
        * @brief Signal a buffer size mismatch error.
@@ -260,11 +260,12 @@ namespace SoDa {
     void makeFilter(FilterSpec & filter_spec, 
 		    unsigned int buffer_size, 
 		    float gain = 1.0,
-		    WindowChoice window = HAMMING); 		    
+		    WindowChoice window = HANN);
 
     /** @brief  Build the filter from a prototype
      *
-     * @param Hproto frequency domain filter image
+     * @param Hproto frequency domain filter image. Note this is passed by value
+     * because we're going to modify the copy inside the filter builder. 
      * @param buffer_size the impulse response and frequency image will be this long
      * @param gain passband gain (max gain) through filter
      * @param window filter window choice - we're using the window filter synthesis method. Defaults to HANN 

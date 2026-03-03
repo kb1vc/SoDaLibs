@@ -1,7 +1,3 @@
-#include "../include/NCO.hxx"
-#include <Utils/include/Format.hxx>
-#include <iostream>
-#include <fstream>
 /*
  *  BSD 2-Clause License
  *  
@@ -29,6 +25,11 @@
  *  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "../include/NCO.hxx"
+#include <Utils/include/Format.hxx>
+#include <iostream>
+#include <fstream>
+#include <cmath>
 
 namespace SoDa {
   NCO::NCO(double _sample_rate, double frequency)  {
@@ -51,15 +52,15 @@ namespace SoDa {
   }
   
   template<typename T> 
-  void genGet(std::vector<std::complex<T>> & out, 
+  static void genGet(std::vector<std::complex<T>> & out, 
 	      double & angle, double ang_incr, 
 	      NCO::SumIt sum) {
     for(auto & v : out) {
       if(sum == NCO::ADD) {
-	v += std::complex<T>(cos(angle), sin(angle));
+	v += std::complex<T>(std::cos(angle), std::sin(angle));
       }
       else {
-	v = std::complex<T>(cos(angle), sin(angle));	
+	v = std::complex<T>(std::cos(angle), std::sin(angle));	
       }
       angle += ang_incr; 
       if(angle > M_PI) angle = angle - 2.0 * M_PI;
@@ -76,6 +77,6 @@ namespace SoDa {
   }
 
   NCO::FreqOutOfBounds::FreqOutOfBounds(double fs, double fr) : 
-    std::runtime_error(SoDa::Format("SoDa::NCO::setFreq Frequency is out-of bounds. Sample Freq %0 Requested Freq %1\n").addF(fs, 'e').addF(fr, 'e').str()) {
+    SoDa::Exception(SoDa::Format("SoDa::NCO::setFreq Frequency is out-of bounds. Sample Freq %0 Requested Freq %1\n").addF(fs, 'e').addF(fr, 'e').str()) {
   }
 } 

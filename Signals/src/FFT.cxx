@@ -30,11 +30,21 @@
 #include <Utils/include/Format.hxx>
 #include <Utils/include/Exception.hxx>
 
+#include <mutex>
+
 namespace SoDa {
 
+  bool FFT::first_fft_created = false;
+  std::mutex FFT::mtx;
   
   FFT::FFT(unsigned int len, FFTOpt opt) : len(len) {
-    fftwf_set_timelimit(1.0);
+    {
+      std::lock_guard<std::mutex> lock(mtx);
+      if(!first_fft_created) {
+	fftwf_set_timelimit(1.0);
+	first_fft_created = true; 
+      }
+    }
     
     unsigned int fftw_flag; 
 
@@ -65,8 +75,13 @@ namespace SoDa {
     fftwf_free(f_dummy_in);
     fftwf_free(f_dummy_out);
   }
-    
-  void FFT::fft(std::vector<std::complex<float>> & in, 
+
+  FFT::~FFT() {
+    fftwf_destroy_plan(forward_plan);
+    fftwf_destroy_plan(backward_plan);
+  }
+  
+  void FFT::fft(const std::vector<std::complex<float>> & in, 
 		std::vector<std::complex<float>> & out) {
     if(in.size() != out.size()) {
       throw UnmatchedSizes("fft", in.size(), out.size());
@@ -83,7 +98,7 @@ namespace SoDa {
       // buffers are misaligned.  sigh. make a copy
       in_p = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * in.size());
       out_p = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * out.size());
-      for(int i = 0; i < in.size(); i++) {
+      for(size_t i = 0; i < in.size(); i++) {
 	in_p[i][0] = in[i].real();
 	in_p[i][1] = in[i].imag();
       }
@@ -97,7 +112,7 @@ namespace SoDa {
     fftwf_execute_dft(forward_plan, in_p, out_p);
 
     if(do_fixup) {
-      for(int i = 0; i < out.size(); i++) {
+      for(size_t i = 0; i < out.size(); i++) {
 	out[i] = std::complex<float>(out_p[i][0], out_p[i][1]);
       }
       fftwf_free(in_p);
@@ -105,13 +120,13 @@ namespace SoDa {
     }
   }
 
-  void FFT::ifft(std::vector<std::complex<float>> & in, 
+  void FFT::ifft(const std::vector<std::complex<float>> & in, 
 		 std::vector<std::complex<float>> & out) {
     if(in.size() != out.size()) {
-      throw UnmatchedSizes("fft", in.size(), out.size());
+      throw UnmatchedSizes("ifft", in.size(), out.size());
     }
     if(in.size() != len) {
-      throw BadSize("fft", in.size(), len);
+      throw BadSize("ifft", in.size(), len);
     }
 
     auto in_p = (fftwf_complex*) in.data();
@@ -121,7 +136,7 @@ namespace SoDa {
       // buffers are misaligned.  sigh. make a copy
       in_p = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * in.size());
       out_p = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * out.size());
-      for(int i = 0; i < in.size(); i++) {
+      for(size_t i = 0; i < in.size(); i++) {
 	in_p[i][0] = in[i].real();
 	in_p[i][1] = in[i].imag();
       }
@@ -131,7 +146,7 @@ namespace SoDa {
     fftwf_execute_dft(backward_plan, in_p, out_p);
 
     if(do_fixup) {
-      for(int i = 0; i < out.size(); i++) {
+      for(size_t i = 0; i < out.size(); i++) {
 	out[i] = std::complex<float>(out_p[i][0], out_p[i][1]);
       }
       fftwf_free(in_p);
@@ -156,7 +171,7 @@ namespace SoDa {
     auto temp = in; 
     unsigned int mid = (in.size() - 1) / 2;
     unsigned int mod = in.size();
-    for(int i = 0; i < in.size(); i++) {
+    for(size_t i = 0; i < in.size(); i++) {
       out[(mid + i) % mod] = temp[i];
     }
   }
@@ -172,7 +187,7 @@ namespace SoDa {
     auto temp = in;
     unsigned int mid = (in.size() + 1) / 2;
     unsigned int mod = in.size();
-    for(int i = 0; i < in.size(); i++) {
+    for(size_t i = 0; i < in.size(); i++) {
       out[(mid + i) % mod] = temp[i]; 
     }
   }

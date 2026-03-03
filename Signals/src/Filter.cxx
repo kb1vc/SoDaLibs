@@ -213,7 +213,7 @@ namespace SoDa {
     float scale = 1.0 / float(H.size());
     if(in_out_mode.xform_out) {
       // now multiply
-      for(int i = 0; i < tbuf_ptr->size(); i++) {
+      for(size_t i = 0; i < tbuf_ptr->size(); i++) {
 	(*tbuf_ptr)[i] = (*tbuf_ptr)[i] * H[i] * scale;
       }
       // invert
@@ -222,7 +222,7 @@ namespace SoDa {
     else {
       // they want frequency output
       // multiply directly into output buffer
-      for(int i = 0; i < out_buf.size(); i++) {
+      for(size_t i = 0; i < out_buf.size(); i++) {
 	out_buf[i] = (*tbuf_ptr)[i] * H[i] * scale;
       }
     }
@@ -243,13 +243,13 @@ namespace SoDa {
       temp_out_buf.resize(buffer_size); 
     }
     // first fill a complex vector
-    for(int i = 0; i < in_buf.size(); i++) {
+    for(size_t i = 0; i < in_buf.size(); i++) {
       temp_in_buf[i] = std::complex<float>(in_buf[i], 0.0); 
     }
     // now apply 
     apply(temp_in_buf, temp_out_buf);
 
-    for(int i = 0; i < out_buf.size(); i++) {
+    for(size_t i = 0; i < out_buf.size(); i++) {
       out_buf[i] = temp_out_buf[i].real();
     }
     return in_buf.size();    
@@ -259,10 +259,12 @@ namespace SoDa {
   std::pair<float, float> Filter::getFilterEdges() {
     // scan from the bottom and top to find the first
     // H sample over 0.5
-    int hi, lo;
+    int lo = 0; // Claude found this - Mar 2 2026
+    int hi = (int)H.size() - 1;
+    
     std::vector<float> Himg(H.size());
     int half_size = H.size() / 2;
-    for(int i = 0; i < H.size(); i++) {
+    for(size_t i = 0; i < H.size(); i++) {
       int j; 
       if(i < half_size) {
 	j = half_size + i;
@@ -273,13 +275,13 @@ namespace SoDa {
       Himg[i] = std::abs(H[j]);
     }
     
-    for(int i = 0; i < Himg.size(); i++) {
+    for(size_t i = 0; i < Himg.size(); i++) {
       if(std::abs(Himg[i]) > 0.5) {
 	lo = i; 
 	break; 
       }
     }
-    for(int i = H.size() - 1; i >= 0; i--) {
+    for(size_t i = H.size() - 1; i >= 0; i--) {
       if(std::abs(Himg[i]) > 0.5) {
 	hi = i; 
 	break; 
@@ -300,7 +302,7 @@ namespace SoDa {
 				       unsigned int in, 
 				       unsigned int out, 
 				       unsigned int req) :
-	std::runtime_error(SoDa::Format("Filter::%3 input and output buffer sizes (%0 and %1) must be equal to %2\n")
+    SoDa::Exception(SoDa::Format("Filter::%3 input and output buffer sizes (%0 and %1) must be equal to %2\n")
 			   .addI(in)
 			   .addI(out)
 			   .addI(req)

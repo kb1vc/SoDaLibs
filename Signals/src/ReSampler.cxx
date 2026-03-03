@@ -27,10 +27,7 @@
  */
 
 #include "ReSampler.hxx"
-#include <string.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+
 #include <iostream>
 #include <fstream>
 #include <Utils/include/Format.hxx>
@@ -120,18 +117,18 @@ namespace SoDa {
     // if we're upsampling, we will apply the LPF to the Y buffer (output)
     if(FS_out > FS_in) {
       float up_ratio = float(FS_out / FS_in);
-      lpf_p = std::unique_ptr<SoDa::Filter>(new SoDa::Filter(-cutoff, cutoff, 
-							     0.015 * cutoff, 
-							     FS_out, 
-							     num_taps, Ly,
-							     up_ratio));
+      lpf_p = std::make_unique<SoDa::Filter>(-cutoff, cutoff, 
+					     0.015 * cutoff, 
+					     FS_out, 
+					     num_taps, Ly,
+					     up_ratio);
     }
     else {
       // downsampling, filter on the X buffer before the cut-down
-      lpf_p = std::unique_ptr<SoDa::Filter>(new SoDa::Filter(-cutoff, cutoff, 
-							     0.015 * cutoff, 
-							     FS_in, 
-							     num_taps, Lx));
+      lpf_p = std::make_unique<SoDa::Filter>(-cutoff, cutoff, 
+					     0.015 * cutoff, 
+					     FS_in, 
+					     num_taps, Lx);
     }
 
     
@@ -152,8 +149,8 @@ namespace SoDa {
     }
 
     // create the input and output FFTs.
-    in_fft_p = std::unique_ptr<SoDa::FFT>(new SoDa::FFT(Lx));
-    out_fft_p = std::unique_ptr<SoDa::FFT>(new SoDa::FFT(Ly));    
+    in_fft_p = std::make_unique<SoDa::FFT>(Lx);
+    out_fft_p = std::make_unique<SoDa::FFT>(Ly);    
     
   }
 
@@ -174,7 +171,6 @@ namespace SoDa {
     return save_count + 1;
   }
   
-  int apcount = 0; 
   uint32_t ReSampler::apply(std::vector<std::complex<float>> & in,
 			    std::vector<std::complex<float>> & out) {
     if(in.size() != getInputBufferSize()) {
@@ -236,12 +232,10 @@ namespace SoDa {
     out_fft_p->ifft(Y, y);
       
     // and copy to the output
-    for(int i = 0; i < getOutputBufferSize(); i++) {
+    for(size_t i = 0; i < getOutputBufferSize(); i++) {
       out.at(i) = y.at(i + discard_count);
     }
 
-    apcount++; 
-    
     // and that's it!
     return 0;
   }
@@ -251,11 +245,11 @@ namespace SoDa {
     // not exactly optimal, but what were people thinking anyway?
     std::vector<std::complex<float>> tin(in.size());
     std::vector<std::complex<float>> tout(out.size());    
-    for(int i = 0; i < in.size(); i++) {
+    for(size_t i = 0; i < in.size(); i++) {
       tin[i] = std::complex<float>(in[i], 0.0);
     }
     apply(tin, tout);
-    for(int i = 0; i < out.size(); i++) {
+    for(size_t i = 0; i < out.size(); i++) {
       out[i] = tout[i].real();
     }
 
@@ -264,7 +258,7 @@ namespace SoDa {
   }
 
   ReSampler::BadBufferSize::BadBufferSize(const std::string & st, uint32_t got_size, uint32_t should_be_size) :
-	std::runtime_error(SoDa::Format("ReSampler::BadBufferSize:: %0 buffer was length %1 should have been %2\n")
+	SoDa::Exception(SoDa::Format("ReSampler::BadBufferSize:: %0 buffer was length %1 should have been %2\n")
 			   .addS(st)
 			   .addI(got_size)
 			   .addI(should_be_size)

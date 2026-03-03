@@ -1,10 +1,7 @@
-#include "Options.hxx"
-#include "Utils.hxx"
-#include "Format.hxx"
 /*
 BSD 2-Clause License
 
-Copyright (c) 2021, Matt Reilly - kb1vc
+Copyright (c) 2021, 2026 Matt Reilly - kb1vc
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,6 +33,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <cctype>
+#include "Options.hxx"
+#include "Utils.hxx"
+#include "Format.hxx"
 
 namespace SoDa {
 

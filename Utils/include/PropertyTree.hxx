@@ -1,10 +1,3 @@
-#pragma once
-#include <string>
-#include <memory>
-
-#include "Exception.hxx"
-
-
 /*
 BSD 2-Clause License
 
@@ -32,6 +25,14 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+
+#pragma once
+#include <string>
+#include <memory>
+
+#include "Exception.hxx"
+
+
 
 /**
  * @file PropertyTree.hxx
@@ -91,10 +92,15 @@ namespace SoDa {
      * Create a property tree from an input Json file.
      *
      * @param filename the name of a json file containing the properties
+     *
      */
     PropertyTree(const std::string & filename);
 
 
+    PropertyTree(const PropertyTree & pt) = delete;
+    PropertyTree & operator=(const PropertyTree& pt) = delete; 
+    
+    ~PropertyTree();
 
     /**
      * @brief Read a property file
@@ -125,7 +131,7 @@ namespace SoDa {
      * Levels in the tree are separated with ":" as in "top:next:leaf"
      * @param throw_exception throws an exception if the pathname is not
      * found or if the type of the value cannot be read from the property at that node.
-     * @returns true if the value was found and was readable from the property node, false otherwise. 
+     * @return true if the value was found and was readable from the property node, false otherwise. 
      * @throws SoDa::PropertyTree::PropertyNotFound 
      * @throws SoDa::PropertyTree::BadPropertyType
      */

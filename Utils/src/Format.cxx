@@ -3,11 +3,11 @@
 #include <sstream>
 #include <iomanip>
 #include <cmath>
-#include <ctype.h>
-#include <time.h>
+#include <cctype>
+#include <ctime>
 #include <regex>
 #include <algorithm>
-#include <iomanip>
+
 
 /*
 BSD 2-Clause License
@@ -190,8 +190,8 @@ namespace SoDa {
     std::stringstream pre_ss;
     std::string result; 
     std::string valstr; 
-    bool not_hex = true; 
-    bool not_oct = true; 
+    bool is_hex = false; 
+    bool is_oct = false;
 
     std::string prefix("");
     switch(fmt) {
@@ -201,13 +201,13 @@ namespace SoDa {
     case 'H':
       valstr = toHex(v, w, (fmt == 'X') || (fmt == 'H'));
       prefix = "";
-      not_hex = false; 
+      is_hex = true;
       break;
     case 'o': 
     case 'O':
       valstr = toOct(v, w); 
       prefix = "";
-      not_oct = false;       
+      is_oct = true;
       break;
     case 'd':
     case 'D':
@@ -232,10 +232,10 @@ namespace SoDa {
       int cc = 0; 
       int sep_lim = valstr.size();
       
-      if(!not_hex) {
+      if(is_hex) {
 	sep_lim -= 2; 
       }
-      else if(!not_oct) {
+      else if(is_oct) {
 	sep_lim -= 1; 
       }
       for(char c : valstr) {
@@ -281,7 +281,7 @@ namespace SoDa {
   }
   
   
-  int log1k(double v, double & v_norm, int sig_digs) {
+  int Format::log1k(double v, double & v_norm, int sig_digs) {
     int ret = 0;
     v_norm = v; 
     // round it first
@@ -299,10 +299,9 @@ namespace SoDa {
     for(int s = 0; s < sig_digs; s++) {
       ri = ri / 10.0;
     }
-    // std::cerr << "ri = " << ri << " sig_digs " << sig_digs << "\n";
+
     // now do the round-up add
     v_norm += ri;
-    //std::cerr << "Now v_norm = " << v_norm << "\n";
 
     // now restore v_norm to the original magnitude more or less
     v_norm = v_norm * remul;
@@ -332,7 +331,7 @@ namespace SoDa {
     return ret; 
   }
   
-  void fractionate(double v, unsigned int significant_digits, 
+  void Format::fractionate(double v, unsigned int significant_digits, 
 		   int & int_part, int & frac_part,
 		   int & int_wid, int & frac_wid) {
     // v is in the range 1 to 1000 - epsilon. 
@@ -343,10 +342,7 @@ namespace SoDa {
     double dfrac_part, dint_part;
     dfrac_part = modf(v, &dint_part); 
     
-    //std::cerr << "dint_part " << dint_part << " dfrac_part " << dfrac_part 
-    //	      << "\n";
     int_part = (int) dint_part;
-    //std::cerr << "int_part " << int_part << "\n";
     
     // now we need to zap off any integer parts
     // if we don't have enough significant digits.
@@ -357,26 +353,19 @@ namespace SoDa {
       iw--;
     }
 
-    //std::cerr << " int_part " << int_part << " vs modval " << modval;
     int_part = int_part - (int_part % modval);      
-    //std::cerr << " gets us " << int_part << "\n";
     
-    //std::cerr << "dfrac_part " << dfrac_part  << "\n";
     // now trim the fractional part. 
     frac_wid = 0; frac_part = 0;
     int sd_left = significant_digits - iw;
-    //std::cerr << "sd_left = " << sd_left << "\n";
+
     while(sd_left > 0) {
       dfrac_part = dfrac_part * 10.0;
-      //std::cerr << "New dfrac_part " << dfrac_part << " floor(dfp) " << floor(dfrac_part) 
-      //		<< " frac_part " << frac_part << "\n";
+
       frac_part = 10 * frac_part + floor(dfrac_part);
       double junk;
       dfrac_part = modf(dfrac_part, &junk);
-      //std::cerr << "new frac_part " << frac_part 
-      //		<< " dfrac_part " << dfrac_part
-      //	<< " trunc(df_p) " << trunc(dfrac_part)
-      //	<< "\n";
+
       frac_wid++;
       sd_left--;
     }
@@ -435,7 +424,6 @@ namespace SoDa {
 
       // it is possible that the value is 0.  if so, just jump skip the rest of this.
       if(v == 0.0) {
-	//std::cerr << "Got zero " << v << "\n";
 	ss << "0" << separator << std::left 
 	   << std::setw(significant_digits - 1) << std::setfill('0') << 0 << "e0";
       }
@@ -492,23 +480,13 @@ namespace SoDa {
   Format & Format::addS(const std::string & v, int width) {
     std::string fstr;
     if(width < 0)  {
-      for(auto c : v) {
-	fstr.push_back(c);
-      }
       int spaces = (- width) - v.size();
-      for(int i = 0; i < spaces; i++) {
-	fstr.push_back(' ');
-      }
+      fstr = v + std::string(spaces, ' ');
       insertField(fstr);      
     }
     else if (width > 0) {
       int spaces = width - v.size();
-      for(int i = 0; i < spaces; i++) {
-	fstr.push_back(' ');
-      }
-      for(auto c : v) {
-	fstr.push_back(c);
-      }
+      fstr = std::string(spaces, ' ') + v;
       insertField(fstr);
     }
     else {

@@ -69,7 +69,7 @@ namespace SoDa {
     buffer_size = _buffer_size; 
 
     unsigned int fft_size = buffer_size + num_taps - 1;
-    filter_p = std::unique_ptr<Filter>(new Filter(H, fft_size, gain, window_choice));
+    filter_p = std::make_unique<Filter>(H, fft_size, gain, window_choice);
     // now size all the buffers. 
     x_augmented.resize(fft_size);
     y_augmented.resize(fft_size);
@@ -101,7 +101,7 @@ namespace SoDa {
       
     filter_spec.setTaps(taps);
     
-    filter_p = std::unique_ptr<Filter>(new Filter(filter_spec, good_size, gain, window));
+    filter_p = std::make_unique<Filter>(filter_spec, good_size, gain, window);
     
     // now size all the buffers. 
     x_augmented.resize(good_size);
@@ -123,11 +123,11 @@ namespace SoDa {
     
     // copy from the end of x_augmented to the start
     uint32_t end_start = x_augmented.size() - save_buf.size();
-    for(int i = 0; i < save_buf.size(); i++) {
+    for(size_t i = 0; i < save_buf.size(); i++) {
       x_augmented.at(i) = x_augmented.at(end_start + i); 
     }
     // now fill the rest
-    for(int i = save_buf.size(); i < x_augmented.size(); i++) {
+    for(size_t i = save_buf.size(); i < x_augmented.size(); i++) {
       int j = i - save_buf.size();
       x_augmented.at(i) = in_buf.at(j); 
     }
@@ -135,7 +135,7 @@ namespace SoDa {
     filter_p->apply(x_augmented, y_augmented); 
 
     // throw away the early samples
-    for(int i = 0;  i < out_buf.size(); i++) {
+    for(size_t i = 0;  i < out_buf.size(); i++) {
       out_buf.at(i) = y_augmented.at(i + save_buf.size()) * gain;
     }
 
@@ -149,13 +149,13 @@ namespace SoDa {
       throw BadBufferSize("applyVF", in_buf.size(), out_buf.size(), buffer_size); 
     }
 
-    for(int i = 0; i < in_buf.size(); i++) {
+    for(size_t i = 0; i < in_buf.size(); i++) {
       real_in.at(i) = std::complex<float>(in_buf.at(i), 0.0);
     }
     
     apply(real_in, real_out, gain);
     
-    for(int i = 0; i < out_buf.size(); i++) {
+    for(size_t i = 0; i < out_buf.size(); i++) {
       out_buf.at(i) = real_out.at(i).real();
     }
     return in_buf.size();    
@@ -165,7 +165,7 @@ namespace SoDa {
 					 unsigned int in, 
 					 unsigned int out, 
 					 unsigned int req) :
-	std::runtime_error(SoDa::Format("OSFilter::%3 input and output buffer sizes (%0 and %1) must be equal to %2\n")
+	SoDa::Exception(SoDa::Format("OSFilter::%3 input and output buffer sizes (%0 and %1) must be equal to %2\n")
 			   .addI(in)
 			   .addI(out)
 			   .addI(req)

@@ -45,6 +45,7 @@
 #include <complex>
 #include <stdexcept>
 
+#include <Utils/include/Exception.hxx>
 
 namespace SoDa {
 
@@ -83,13 +84,13 @@ namespace SoDa {
     /**
      * @class BadRealSpec
      *
-     * @brief a subclass of std::runtime error thrown when a "real" valued filter spec is passed
+     * @brief a subclass of SoDa::Exception thrown when a "real" valued filter spec is passed
      * a negative frequency.
      *
      * @param st a string explaining who was annoyed
      * @param freq the frequency at which it happened. 
      */
-    class BadRealSpec : public std::runtime_error {
+    class BadRealSpec : public SoDa::Exception {
     public:
       BadRealSpec(const std::string & st, float freq);
     };
@@ -127,11 +128,6 @@ namespace SoDa {
 	       float stop_band_attenuation_dB = 60.0
 	       );
     
-    /**
-     * copy constructor
-     *
-     */
-    FilterSpec(const FilterSpec & f);
 
     /**
      * Set the starting gain for this filter. (Defaults to 1e-20)

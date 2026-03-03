@@ -92,10 +92,6 @@ namespace SoDa {
   void FilterSpec::fillHproto(std::vector<std::complex<float>> & Hproto) {
     if(!sorted) sortSpec();
     Hproto.resize(taps);
-    
-    std::list<std::pair<Corner,Corner>> edges;
-    float start_freq = (filter_type == REAL) ? 0.0 : - (sample_rate / 2);
-    float end_freq = sample_rate/2;
 
     for(int i = 0; i < taps; i++) Hproto.at(i) = std::complex<float>(0.0,0.0);
     for(auto v : spec) {
@@ -139,8 +135,8 @@ namespace SoDa {
     std::pair<float, float> ret;
     ret.first = (filter_type == REAL) ? 0.0 : -(sample_rate / 2);
     ret.second = sample_rate / 2;
-    bool looking_low;
-    float last_freq; 
+    bool looking_low = true;
+    float last_freq = ret.first; 
     for(const auto v : spec) {
       if(looking_low) {
 	if(v.gain > (1 - 0.01)) {
@@ -179,7 +175,7 @@ namespace SoDa {
   }
 
   FilterSpec::BadRealSpec::BadRealSpec(const std::string & st, float freq) :
-    std::runtime_error(SoDa::Format("FilterSpec::%1 specification for REAL valued filter contains a negative frequency %0. Not good.\n")
+    SoDa::Exception(SoDa::Format("FilterSpec::%1 specification for REAL valued filter contains a negative frequency %0. Not good.\n")
 		       .addF(freq).addS(st).str()) { }
 
   

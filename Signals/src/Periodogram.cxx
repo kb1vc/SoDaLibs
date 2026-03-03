@@ -49,7 +49,7 @@ namespace SoDa {
     accumulation_count = 0; 
     
     // build the FFT
-    fft_p = std::unique_ptr<FFT>(new FFT(segment_length));
+    fft_p = std::make_unique<FFT>(segment_length);
 
     // create the window
     window.resize(segment_length);
@@ -70,16 +70,14 @@ namespace SoDa {
   }
 
   void Periodogram::setAlpha(const float _alpha) {
-    alpha = abs(_alpha);     
+    alpha = std::fabs(_alpha);     
 
-    if(abs(alpha) < 1e-20) {
+    if(std::fabs(alpha) < 1e-20) {
       alpha = 0.1; 
     }
     beta = 1.0 - alpha;
   }
 
-  int acc_in_count = 0;
-  
   void Periodogram::accumulate(const std::vector<std::complex<float>> & in) {
     size_t curpos = 0; 
 
@@ -107,7 +105,7 @@ namespace SoDa {
 
       // accumulate
       for(int i = 0; i < segment_length; i++) {
-	acc_buffer[i] = alpha * std::abs(fft_out_buffer[i]) * fft_scale + beta * acc_buffer[i];
+	acc_buffer[i] = alpha * std::fabs(fft_out_buffer[i]) * fft_scale + beta * acc_buffer[i];
 	//	acc_buffer[i] = fft_out_buffer[i] +  acc_buffer[i]; 	
       }
       accumulation_count++; 

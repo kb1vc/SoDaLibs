@@ -196,8 +196,10 @@ namespace SoDa {
     public:
       SubscriptionMismatch(const std::string & should_be
 			   , const std::string & was) : 
-	Exception(should_be, SoDa::Format("caller specified the wrong mailbox")
-		  .addS(was).str()) {
+	Exception(should_be, SoDa::Format("caller specified the wrong mailbox %0. It should have been %1")
+		  .addS(was)
+		  .addS(should_be)
+		  .str()) {
       }
     }; 
 
@@ -232,11 +234,16 @@ namespace SoDa {
       auto ret = std::dynamic_pointer_cast<MBoxT>(p);
       if((ret == nullptr) && (throw_on_fail)) {
 	int st1, st2; 
-	// this demangling is pretty dicey... 
-	throw BadConversion(p->name, abi::__cxa_demangle(typeid(p).name(), 
-							 nullptr, nullptr, &st1), 
-			    abi::__cxa_demangle(typeid(ret).name(), 
-						nullptr, nullptr, &st2));
+	// this demangling is pretty dicey...
+	char* rt1 = abi::__cxa_demangle(typeid(p).name(), nullptr, nullptr, &st1);
+	std::string demangled_1 = rt1 ? rt1 : typeid(p).name();
+	free(rt1);
+	char * rt2 = abi::__cxa_demangle(typeid(ret).name(), 
+					 nullptr, nullptr, &st2);
+	std::string demangled_2 = rt2 ? rt2 : typeid(ret).name();	
+	free(rt2);
+	
+	throw BadConversion(p->name, demangled_1, demangled_2);
       }
       return ret; 
     }
@@ -262,10 +269,9 @@ namespace SoDa {
      * @return the name.
      */
     const std::string & getName() const { return name; }
-    
-    std::string name;
 
-    
+  private:
+    std::string name;
   }; 
 
   

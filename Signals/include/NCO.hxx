@@ -29,6 +29,7 @@
 
 #include <complex>
 #include <vector>
+#include <Utils/include/Exception.hxx>
 
 namespace SoDa {
   /**
@@ -122,7 +123,7 @@ namespace SoDa {
      * @brief the request would set the oscillator frequency above or below the nyquist limit for
      * this sample rate.
      */ 
-    class FreqOutOfBounds : public std::runtime_error {
+    class FreqOutOfBounds : public SoDa::Exception {
     public:
       /**
        * @brief Signal a violation of the nyquist limit

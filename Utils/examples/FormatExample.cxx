@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 class MyFormat : public SoDa::Format_ext<MyFormat> {
 public:
-  MyFormat(const std::string & fmt_string) : Format_ext<MyFormat>(fmt_string, this) {
+  MyFormat(const std::string & fmt_string) : Format_ext<MyFormat>(fmt_string) {
   }
 
   MyFormat & addSBW(const std::string & v) {

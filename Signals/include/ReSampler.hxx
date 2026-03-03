@@ -171,7 +171,7 @@ namespace SoDa {
      * @brief The filter was built to process a buffer of a size different from the
      * one that was passed to "apply."
      */
-    class BadBufferSize : public std::runtime_error {
+    class BadBufferSize : public SoDa::Exception {
     public:
       BadBufferSize(const std::string & st, uint32_t got_size, uint32_t should_be_size);
     };

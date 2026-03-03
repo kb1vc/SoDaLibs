@@ -30,6 +30,8 @@
 
 #include <cstdint>
 #include <memory>
+#include <mutex>
+
 #ifdef SODA_LIB_BUILD
 #include <Utils/include/Exception.hxx>
 #else
@@ -115,6 +117,11 @@ namespace SoDa {
     FFT(unsigned int len, FFTOpt opt = ESTIMATE); 
 
     /**
+     * @brief clean up the mess
+     */ 
+    ~FFT();
+    
+    /**
      * @brief Find a we-hope-is-close-to-optimal size for the operation
      * The buffer size is of the form 2^n * 3^m * 5^p * 7^q -- The factors
      * are sufficient for most interesting radio sample rates, and for audio
@@ -135,7 +142,7 @@ namespace SoDa {
      * Throws BadSize and UnmatchedSizes if it is annoyed.     
      * 
      */
-    void fft(std::vector<std::complex<float>> & in, 
+    void fft(const std::vector<std::complex<float>> & in, 
 	     std::vector<std::complex<float>> & out);
 
     /**
@@ -148,7 +155,7 @@ namespace SoDa {
      * Throws BadSize and UnmatchedSizes.
      * 
      */
-    void ifft(std::vector<std::complex<float>> & in, 
+    void ifft(const std::vector<std::complex<float>> & in, 
 	     std::vector<std::complex<float>> & out);
 
     /**
@@ -204,7 +211,11 @@ namespace SoDa {
     fftwf_plan forward_plan; ///< fftw maintains a "plan" that contains the optimization information. 
     fftwf_plan backward_plan; ///< the optimization information for the reverse fft
     
-    unsigned int len; ///< the required length for input and output operands. 
+    unsigned int len; ///< the required length for input and output operands.
+
+  private:
+    static bool first_fft_created;
+    static std::mutex mtx; 
   };
 }
 

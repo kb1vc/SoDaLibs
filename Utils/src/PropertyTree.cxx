@@ -1,16 +1,7 @@
-#include "PropertyTree.hxx"
-#include <iostream>
-#include <fstream>
-#include <memory>
-#include <json/json.h>
-
-#include "Utils.hxx"
-#include "Format.hxx"
-
 /*
 BSD 2-Clause License
 
-Copyright (c) 2022, 2025 Matt Reilly - kb1vc
+Copyright (c) 2022, 2025, 2026 Matt Reilly - kb1vc
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,6 +26,16 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "PropertyTree.hxx"
+#include <iostream>
+#include <fstream>
+#include <memory>
+#include <json/json.h>
+
+#include "Utils.hxx"
+#include "Format.hxx"
+
+
 
 namespace SoDa {
   PropertyTree::PropertyTree() {
@@ -47,6 +48,10 @@ namespace SoDa {
     readFile(fname);
   }
 
+  PropertyTree::~PropertyTree() {
+    delete root_p; 
+  }
+  
   Json::Value * PropertyTree::getJsonNode(bool & found, 
 					  const std::string & path, 
 					  bool create, 
@@ -266,7 +271,7 @@ namespace SoDa {
   PropertyTree::BadPropertyType::BadPropertyType(const std::string & path_name, 
 							   const std::string & type_name, 
 							   Json::Value * node) :
-    Exception(SoDa::Format("PropertyTree::BadPropertyType at node name \"%0\" with value string \"%1\" which cannot be converted to type \"2\"")
+    Exception(SoDa::Format("PropertyTree::BadPropertyType at node name \"%0\" with value string \"%1\" which cannot be converted to type \"%2\"")
 	      .addS(path_name)
 	      .addS(convertNodeType(node))
 	      .addS(type_name)

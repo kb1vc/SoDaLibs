@@ -528,13 +528,17 @@ namespace SoDa {
      * 
      * For those in locales where pi is 3,14159 or so, the separater
      * may be replaced, like this: 
+     *
+     * @param sep new separator character.
      * 
-     * \code SoDa::Format::separator = ','; \endcode
+     * \code SoDa::Format::setSeparator(','); \endcode
      * 
      */
-    static char separator; 
+    static void setSeparator(char sep) { separator = sep; }
 
   protected:
+    
+    static char separator;     
     /**
      * @brief convert to a 16 character hex string, then pad/remove
      * leading zeros to fit the field. 
@@ -547,6 +551,28 @@ namespace SoDa {
     std::string toHex(unsigned long v, int width = 0, bool uppercase = false);
 
     std::string toOct(unsigned long v, int width = 0);
+    
+    
+    int log1k(double v, double & v_norm, int sig_digs);
+
+    void fractionate(double v, unsigned int significant_digits, 
+		     int & int_part, int & frac_part,
+		     int & int_wid, int & frac_wid);    
+    
+    double roundToSigDigs(double v, int sig_digits);
+    
+    std::string orig_fmt_string;
+    
+    const std::string & getOrig() const {
+      return orig_fmt_string; 
+    }
+    
+    unsigned int cur_arg_number;
+
+    void initialScan(const std::string & fmt_string); 
+
+    void insertField(const std::string & s);
+
     
   private:
     // We need a privately declared class for fiddling with the format string.
@@ -562,23 +588,9 @@ namespace SoDa {
     };
 
     std::list<FmtStringSeg> format_string_segments;
-    
-  protected:
 
-    double roundToSigDigs(double v, int sig_digits);
-    
-    std::string orig_fmt_string;
-    
-    const std::string & getOrig() const {
-      return orig_fmt_string; 
-    }
-    
-    unsigned int cur_arg_number;
 
-    void initialScan(const std::string & fmt_string); 
-
-    void insertField(const std::string & s);
-
+    
   };
 
 
@@ -598,11 +610,8 @@ namespace SoDa {
      * methods. 
      * 
      * @param fmt_string the format string with placeholders and stuff.
-     * @param p a pointer to the instance of an object of the type T derived
-     * from Format_ext. 
      */
-    Format_ext(const std::string & fmt_string, T * p) : Format(fmt_string) {
-      saved_ptr = p; 
+    Format_ext(const std::string & fmt_string) : Format(fmt_string) {
     }
 
     /**
@@ -612,37 +621,35 @@ namespace SoDa {
      */
     T & addI(int v, unsigned int width = 0, char sep = '\000') { 
       Format::addI(v, width, sep);
-      return *saved_ptr; 
+      return *static_cast<T*>(this);
     }
 
     T & addU(unsigned int v, char fmt = 'd', unsigned int width = 0,
 	     char sep = '\000',
 	     unsigned int group_count = 4) {
       Format::addU(v, fmt, width, sep, group_count);
-      return *saved_ptr;       
+      return *static_cast<T*>(this);     
     }
 
     T & addF(double v, char fmt = 'f', unsigned int width = 0, unsigned int significant_digits = 6) {
       Format::addF(v, fmt, width, significant_digits);
-      return *saved_ptr; 
+      return *static_cast<T*>(this);           
     }
 
     T & addS(const std::string & v, int width = 0) {
       Format::addS(v, width);
-      return *saved_ptr; 
+      return *static_cast<T*>(this);           
     }
     
     T & addC(char v) {
       Format::addC(v);
-      return *saved_ptr; 
+      return *static_cast<T*>(this);
     }
     
     T & addB(bool v) {
       Format::addB(v);
-      return *saved_ptr; 
+      return *static_cast<T*>(this);
     }
-  private:
-    T * saved_ptr; 
   };
 }
 
