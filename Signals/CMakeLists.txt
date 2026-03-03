@@ -28,10 +28,11 @@ INCLUDE(GNUInstallDirs)
 INCLUDE(CTest)
 
 # 4.3.0 fixed scaling problem with upsampling. Through-loss was fsamp_hi / fsamp_lo.
-# This was not a problem for downsampling. 
+# This was not a problem for downsampling.
+# 4.3.2 Claude code review corrections.
 SET(SoDaSignals_VERSION_MAJOR 4)
 SET(SoDaSignals_VERSION_MINOR 3)
-SET(SoDaSignals_VERSION_PATCH 0)
+SET(SoDaSignals_VERSION_PATCH 1)
 SET(SoDaSignals_VERSION "${SoDaSignals_VERSION_MAJOR}.${SoDaSignals_VERSION_MINOR}.${SoDaSignals_VERSION_PATCH}")
 
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" ${CMAKE_MODULE_PATH} )
