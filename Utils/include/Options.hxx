@@ -1,6 +1,4 @@
 #pragma once
-#include "UtilsBase.hxx"
-#include <memory>
 /*
 BSD 2-Clause License
 
@@ -46,6 +44,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdexcept>
 #include <functional>
 #include <algorithm>
+#include <memory>
+
+#include "UtilsBase.hxx"
+
 
 namespace SoDa {
 
@@ -649,6 +651,8 @@ posargs =
       virtual bool hasDefault() { return has_default; }
 
       virtual void reset() { }
+
+      virtual std::string getDefault() = 0;
       
       std::string long_name;
       char ab_name;
@@ -764,6 +768,16 @@ posargs =
 	  *u_val_ptr = def_val; 
 	}
       }
+
+      std::string getDefault() {
+	std::stringstream oss;
+	oss << def_val; 
+	std::string ret;
+	oss >> ret;
+
+	return ret; 
+      }
+      
     protected: 
       T * u_val_ptr;
       T def_val;
@@ -826,6 +840,8 @@ posargs =
 	}
       }
 
+      std::string getDefault() { return ""; }
+      
       std::shared_ptr<std::vector<T>> s_arg_vec_ptr;
       std::vector<T> * u_arg_vec_ptr; 
       std::function<bool(T)> test_func;       
@@ -883,6 +899,8 @@ posargs =
 	present = false;
 
       }
+
+      std::string getDefault() { return "False"; }
       
       std::shared_ptr<bool> s_val_ptr; 
       bool * u_val_ptr; 

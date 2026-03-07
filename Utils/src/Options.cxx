@@ -306,7 +306,7 @@ namespace SoDa {
     
   }
   std::ostream & Options::OptBase::printHelp(std::ostream & os) {
-    os << doc_str;
+    os << doc_str << " (default: " << getDefault() << ")"; 
     return os; 
   }
 
