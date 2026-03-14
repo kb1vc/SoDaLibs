@@ -1,29 +1,29 @@
 /*
-BSD 2-Clause License
+  BSD 2-Clause License
 
-Copyright (c) 2021, 2026 Matt Reilly - kb1vc
-All rights reserved.
+  Copyright (c) 2021, 2026 Matt Reilly - kb1vc
+  All rights reserved.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
 
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
+  1. Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
+  2. Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 /**
@@ -160,97 +160,95 @@ namespace SoDa {
     return 1; 
   }
 
-  bool Options::parse(int argc, char * argv[]) {
+  bool Options::parse(int argc, char * argv[], std::ostream & help_stream) {
     std::list<std::string> tokens = buildTokenList(argc, argv);
 
-    return is_kvp ? parseKeyValue(tokens) : parse(tokens);
+    return is_kvp ? parseKeyValue(tokens) : parse(tokens, help_stream);
   }
 
-  bool Options::parse(const std::string & s) {
+  bool Options::parse(const std::string & s, std::ostream & help_stream) {
     if(is_kvp) return parseKeyValue(s);
     
     std::list<std::string> tokens = buildTokenList(s);
 
-    return parse(tokens);
+    return parse(tokens, help_stream);
   }
 
-  bool Options::parse(std::list<std::string> tokens) {
+  bool Options::parse(std::list<std::string> tokens, std::ostream & help_stream) {
     OptBase_p arg_p = nullptr;
     try {
-    while(!tokens.empty()) {
-      std::string tkn = tokens.front();
-      tokens.pop_front();
+      while(!tokens.empty()) {
+	std::string tkn = tokens.front();
+	tokens.pop_front();
 
-      int sw_len;
-      if((arg_p == nullptr) || (arg_p->hasDefault())) {
-	sw_len = isSwitch(tkn);      	
-      }
-      else {
-	// we have an argpointer and there is no default
-	// we need to eat the next token. 
-	sw_len = 0; 
-      }
-
-
-      if(sw_len == 0) {
-	// we know this is either a positional argument, or 
-	// a value for the previous arg_p;
-	if(arg_p != nullptr) {
-	  arg_p->setVal(tkn);
-	  waiting_for_signed = false; 
-	  arg_p = nullptr; 
+	int sw_len;
+	if((arg_p == nullptr) || (arg_p->hasDefault())) {
+	  sw_len = isSwitch(tkn);      	
 	}
 	else {
-	  // it is a positional argument.
-	  pos_arg_vec.push_back(tkn);
+	  // we have an argpointer and there is no default
+	  // we need to eat the next token. 
+	  sw_len = 0; 
 	}
-      }
-      else {
-	if(arg_p != nullptr) {
-	  arg_p->setPresent(); 
-	  waiting_for_signed = arg_p->is_signed; 
-	}
-	
-	arg_p = nullptr;
-	
-	if(sw_len == 1) {
-	  if(tkn[1] == 'h') {
-	    printHelp(std::cerr); 
-	    return false; 
+
+
+	if(sw_len == 0) {
+	  // we know this is either a positional argument, or 
+	  // a value for the previous arg_p;
+	  if(arg_p != nullptr) {
+	    arg_p->setVal(tkn);
+	    waiting_for_signed = false; 
+	    arg_p = nullptr; 
 	  }
-	  arg_p = findOpt(tkn[1]);
+	  else {
+	    // it is a positional argument.
+	    pos_arg_vec.push_back(tkn);
+	  }
 	}
 	else {
-	  if(tkn == "--help") {
-	    printHelp(std::cerr);
-	    return false; 
+	  if(arg_p != nullptr) {
+	    arg_p->setPresent(); 
+	    waiting_for_signed = arg_p->is_signed; 
 	  }
-	  arg_p = findOpt(tkn.substr(2));
-	}
+	
+	  arg_p = nullptr;
+	
+	  if(sw_len == 1) {
+	    if(tkn[1] == 'h') {
+	      printHelp(help_stream);
+	    }
+	    arg_p = findOpt(tkn[1]);
+	  }
+	  else {
+	    if(tkn == "--help") {
+	      printHelp(help_stream);
+	    }
+	    arg_p = findOpt(tkn.substr(2));
+	  }
 
-	if(arg_p == nullptr) {
-	  throw BadOptionNameException(tkn); 
-	}
+	  if(arg_p == nullptr) {
+	    throw BadOptionNameException(tkn); 
+	  }
 
-	if(arg_p->is_signed) {
-	  waiting_for_signed = true; 
-	}
+	  if(arg_p->is_signed) {
+	    waiting_for_signed = true; 
+	  }
 
-	if(arg_p->isPresentOpt()) {
-	  arg_p->setPresent();
-	  arg_p->setVal("");
-	  arg_p = nullptr; 
+	  if(arg_p->isPresentOpt()) {
+	    arg_p->setPresent();
+	    arg_p->setVal("");
+	    arg_p = nullptr; 
+	  }
 	}
       }
-    }
     }
     catch (BadOptValueException & exc) {
-      std::cerr << exc.what() << "\n";
+      help_stream << exc.what() << "\n";
       return false; 
     }
     catch (BadOptionNameException & exc) {
-      std::cerr << exc.what() << "\n";
-      printHelp(std::cerr);
+      help_stream << exc.what() << "\n";
+      printHelp(help_stream);
       return false; 
     }
     catch (...) {
@@ -289,7 +287,7 @@ namespace SoDa {
   }
 
   void Options::registerOpt(OptBase_p arg_p, 
-		  const std::string & long_name, 
+			    const std::string & long_name, 
 			    char ab_name) {
     arg_p->setNames(long_name, ab_name); 
     long_map[long_name] = arg_p;
@@ -310,7 +308,7 @@ namespace SoDa {
     return os; 
   }
 
-  bool Options::parseKeyValue(const std::string & s) {
+  bool Options::parseKeyValue(const std::string & s, std::ostream & help_stream) {
     // first split the list at commas.
     if(s.size() == 0) return false;    
     auto kvp_list = SoDa::split(s, std::string(","));
@@ -319,7 +317,7 @@ namespace SoDa {
     return parseKeyValue(kvp_list);
   }
   
-  bool Options::parseKeyValue(const std::list<std::string> & l_kvp) {
+  bool Options::parseKeyValue(const std::list<std::string> & l_kvp, std::ostream & help_stream) {
     // for each item in the kvp list,
     // trim the item,
     // add the pair to a token list
@@ -342,6 +340,6 @@ namespace SoDa {
       // find the option name
     }
 
-    return parse(tknlist);    
+    return parse(tknlist, help_stream);    
   }
 }

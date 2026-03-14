@@ -12,6 +12,8 @@ add_executable(FormatTest ${TST_FMT_SRCS})
 
 add_executable(FormatNaN FormatNaN.cxx ../src/Format.cxx)
 
+add_executable(FormatCopy FormatCopy.cxx ../src/Format.cxx)
+
 add_executable(SplitTest SplitTest.cxx)
 target_link_libraries(SplitTest sodautils)
 
@@ -27,6 +29,9 @@ target_link_libraries(BarrierTest sodautils Threads::Threads)
 
 add_executable(OptionsTest OptionsTest.cxx)
 target_link_libraries(OptionsTest sodautils) 
+
+add_executable(OptionsHelp OptionsHelp.cxx)
+target_link_libraries(OptionsHelp sodautils) 
 
 add_executable(PropertyTree_Test PropertyTree_Test.cxx)
 target_link_libraries(PropertyTree_Test sodautils)
@@ -68,8 +73,14 @@ add_test(NAME FormatHexTest
 add_test(NAME FormatNaN 
   COMMAND $<TARGET_FILE:FormatNaN>)
 
+add_test(NAME FormatCopy
+  COMMAND $<TARGET_FILE:FormatCopy>)
+
 add_test(NAME OptionsTestSimple 
   COMMAND $<TARGET_FILE:OptionsTest> -t 100000)
+
+add_test(NAME OptionsHelp 
+  COMMAND $<TARGET_FILE:OptionsHelp>)
 
 add_test(NAME PropertyTreeTest1
   COMMAND $<TARGET_FILE:PropertyTree_Test> ${CMAKE_CURRENT_LIST_DIR}/test1.json)

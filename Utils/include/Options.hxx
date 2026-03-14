@@ -480,34 +480,37 @@ posargs =
      * 
      * @param argc count of token on the line (including the program name)
      * @param argv pointers to each token
-     * 
+     * @param help_stream if --help or -h appears, print the help message here
+     *
      * @return true if there was no problem interpreting the command line. 
      * false on error. 
      *
      */
-    bool parse(int argc, char * argv[]);
+    bool parse(int argc, char * argv[], std::ostream & help_stream = std::cerr);
 
     /**
      * @brief Parse a list of tokens.
      * 
-     * @param arglist list of tokens to be parsed. 
-     * 
+     * @param arglist list of tokens to be parsed.
+     * @param help_stream if --help or -h appears, print the help message here
+     *
      * @return true if there was no problem interpreting the list.
      * false on error. 
      *
      */
-    bool parse(std::list<std::string> arglist);
+    bool parse(std::list<std::string> arglist, std::ostream & help_stream = std::cerr);
 
     /**
      * @brief Parse a list of tokens from a string
      * 
-     * @param s string of tokens to be parsed. 
+     * @param s string of tokens to be parsed.
+     * @param help_stream if --help or -h appears, print the help message here     
      * 
      * @return true if there was no problem interpreting the list.
      * false on error. 
      *
      */
-    bool parse(const std::string & s);
+    bool parse(const std::string & s, std::ostream & help_stream = std::cerr);
     
     /**
      * @brief print the help and info strings. 
@@ -580,14 +583,15 @@ posargs =
      * since lists-within-lists don't really work all that well. 
      * 
      * Indvidual key-value pairs should be separated by commas
-     * 
+     *
      * @param s string of key=value pairs to be parsed
+     * @param help_stream if the key is --help or -h print the help text
      * 
      * @return true if there was no problem interpreting the list
      * false on error. 
      * 
      */
-    bool parseKeyValue(const std::string & s);
+    bool parseKeyValue(const std::string & s, std::ostream & help_stream = std::cerr);
 
 /**
      * @brief parse argument list in the form of a key-value pair
@@ -601,12 +605,13 @@ posargs =
      * Indvidual key-value pairs should be separated by commas
      * 
      * @param ls a list of a string of key=value pairs to be parsed
+     * @param help_stream if the key is --help or -h print the help text
      * 
      * @return true if there was no problem interpreting the list
      * false on error. 
      * 
      */
-    bool parseKeyValue(const std::list<std::string> & ls);
+    bool parseKeyValue(const std::list<std::string> & ls, std::ostream & help_stream = std::cerr);
     
   private:
 
