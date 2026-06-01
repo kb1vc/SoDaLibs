@@ -233,15 +233,14 @@ namespace SoDa {
       
       auto ret = std::dynamic_pointer_cast<MBoxT>(p);
       if((ret == nullptr) && (throw_on_fail)) {
-	int st1, st2; 
-	// this demangling is pretty dicey...
-	char* rt1 = abi::__cxa_demangle(typeid(p).name(), nullptr, nullptr, &st1);
-	std::string demangled_1 = rt1 ? rt1 : typeid(p).name();
-	free(rt1);
-	char * rt2 = abi::__cxa_demangle(typeid(ret).name(), 
-					 nullptr, nullptr, &st2);
-	std::string demangled_2 = rt2 ? rt2 : typeid(ret).name();	
-	free(rt2);
+	int st1, st2;
+	std::unique_ptr<char, decltype(&free)> rt1(
+	    abi::__cxa_demangle(typeid(p).name(), nullptr, nullptr, &st1), &free);
+	std::string demangled_1 = rt1 ? rt1.get() : typeid(p).name();
+
+	std::unique_ptr<char, decltype(&free)> rt2(
+	    abi::__cxa_demangle(typeid(ret).name(), nullptr, nullptr, &st2), &free);
+	std::string demangled_2 = rt2 ? rt2.get() : typeid(ret).name();
 	
 	throw BadConversion(p->name, demangled_1, demangled_2);
       }
