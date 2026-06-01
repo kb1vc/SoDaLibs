@@ -288,7 +288,7 @@ namespace SoDa {
 			      bool create = false,
 			      bool throw_exception = false);
 
-    Json::Value * root_p; 
+    std::unique_ptr<Json::Value> root_p;
   };
 }
 

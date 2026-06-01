@@ -39,18 +39,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SoDa {
   PropertyTree::PropertyTree() {
-    root_p = new Json::Value; 
-    // nothing to do. 
+    root_p = std::make_unique<Json::Value>();
   }
 
   PropertyTree::PropertyTree(const std::string & fname) {
-    root_p = new Json::Value; 
+    root_p = std::make_unique<Json::Value>();
     readFile(fname);
   }
 
-  PropertyTree::~PropertyTree() {
-    delete root_p; 
-  }
+  PropertyTree::~PropertyTree() = default;
   
   Json::Value * PropertyTree::getJsonNode(bool & found, 
 					  const std::string & path, 
@@ -59,7 +56,7 @@ namespace SoDa {
     // first split the path
     auto pathv = SoDa::split(path, ":", true);
 
-    auto current_node_p = root_p; 
+    auto current_node_p = root_p.get();
 
     // stride down the pathlist
     for(auto pe : pathv) {
@@ -69,7 +66,7 @@ namespace SoDa {
 
       if(current_node_p == nullptr) {
 	found = false;
-	return root_p;
+	return root_p.get();
       }
 
       // is it a member?            
@@ -85,7 +82,7 @@ namespace SoDa {
       }
       else {
 	found = false;
-	return root_p; // gotta return something
+	return root_p.get(); // gotta return something
       }
     }
 
@@ -284,16 +281,12 @@ namespace SoDa {
     if(ifs.is_open()) {
       Json::CharReaderBuilder builder;
       std::string errs;
-      if(!parseFromStream(builder, ifs, root_p, &errs)) {
-	ifs.close();
-	// we got some kind of error
-	delete root_p;
+      if(!parseFromStream(builder, ifs, root_p.get(), &errs)) {
 	throw FileParseError(filename, errs);
       }
     }
     else {
-      delete root_p;      
-      throw FileNotFound(filename); 
+      throw FileNotFound(filename);
     }
     ifs.close();
   }
