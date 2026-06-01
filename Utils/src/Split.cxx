@@ -61,7 +61,7 @@ namespace SoDa {
     }
 
     while((pos = ret.find(' ', pos)) != std::string::npos) {
-      if((pos < ret.length() - 1) && (ret[pos+1] == ' ')) {
+      if((pos + 1 < ret.length()) && (ret[pos+1] == ' ')) {
 	ret.erase(pos, 1);
       }
       else {
