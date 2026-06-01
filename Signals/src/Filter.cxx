@@ -102,7 +102,7 @@ namespace SoDa {
     }
 
     if(apply_window) {
-      for(int i = 0; i < num_taps; i++) {
+      for(size_t i = 0; i < num_taps; i++) {
 	hproto[i] = hproto[i] * window[i];
       }
     }
@@ -113,12 +113,12 @@ namespace SoDa {
     h.resize(buffer_size);
     auto f21 = std::unique_ptr<FFT>(new FFT(buffer_size));
 
-    for(int i = 0; i < num_taps; i++) {
+    for(size_t i = 0; i < num_taps; i++) {
       h[i] = hproto[i];
     }
 
     // zero the rest
-    for(int i = num_taps; i < buffer_size; i++) {
+    for(size_t i = num_taps; i < static_cast<size_t>(buffer_size); i++) {
       h[i] = std::complex<float>(0.0, 0.0);
     }
 
@@ -281,10 +281,10 @@ namespace SoDa {
 	break; 
       }
     }
-    for(size_t i = H.size() - 1; i >= 0; i--) {
+    for(size_t i = H.size(); i-- > 0; ) {
       if(std::abs(Himg[i]) > 0.5) {
-	hi = i; 
-	break; 
+	hi = i;
+	break;
       }
     }
     

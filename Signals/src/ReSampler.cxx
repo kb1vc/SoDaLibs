@@ -203,10 +203,11 @@ namespace SoDa {
       // we are downsampling.
       // trim out the potential aliasing components
       lpf_p->apply(X, X, Filter::InOutMode(false,false));            
-      auto y_half_count = ((Ly + 1)/ 2);
-      for(int i = 0; i < y_half_count - 1; i++) {
-	Y.at(i) = X.at(i);	
-	Y.at(Ly - 1 - i) = X.at(Lx - 1 - i);	
+      if(Ly == 0) return;
+      uint32_t y_half_count = ((Ly + 1) / 2);
+      for(uint32_t i = 0; i < y_half_count - 1; i++) {
+	Y.at(i) = X.at(i);
+	Y.at(Ly - 1 - i) = X.at(Lx - 1 - i);
       }
       Y.at(y_half_count) = X.at(y_half_count);
     }

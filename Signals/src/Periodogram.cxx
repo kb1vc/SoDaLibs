@@ -96,15 +96,15 @@ namespace SoDa {
       
       // else
       // apply the window
-      for(int i = 0; i < segment_length; i++) {
-	fft_in_buffer[i] = input_save_buffer[i] * window[i]; 
+      for(unsigned int i = 0; i < segment_length; i++) {
+	fft_in_buffer[i] = input_save_buffer[i] * window[i];
       }
 
       // do the FFT
-      fft_p->fft(fft_in_buffer, fft_out_buffer); 
+      fft_p->fft(fft_in_buffer, fft_out_buffer);
 
       // accumulate
-      for(int i = 0; i < segment_length; i++) {
+      for(unsigned int i = 0; i < segment_length; i++) {
 	acc_buffer[i] = alpha * std::fabs(fft_out_buffer[i]) * fft_scale + beta * acc_buffer[i];
 	//	acc_buffer[i] = fft_out_buffer[i] +  acc_buffer[i]; 	
       }
