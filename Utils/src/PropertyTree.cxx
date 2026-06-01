@@ -286,11 +286,13 @@ namespace SoDa {
       std::string errs;
       if(!parseFromStream(builder, ifs, root_p, &errs)) {
 	ifs.close();
-	// we got some kind of error	
+	// we got some kind of error
+	delete root_p;
 	throw FileParseError(filename, errs);
       }
     }
     else {
+      delete root_p;      
       throw FileNotFound(filename); 
     }
     ifs.close();

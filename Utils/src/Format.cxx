@@ -104,6 +104,9 @@ namespace SoDa {
 	break; 
       case ACC_FLDNUM:
 	if(isdigit(c)) {
+	  if(cur_fldnum > 10000) {
+	    throw BadFormat("Absurdly high value index in format string[" + fmt_string + "]", *this);	    
+	  }
 	  cur_fldnum = cur_fldnum * 10 + ((unsigned int) (c - '0'));
 	}
 	else {
