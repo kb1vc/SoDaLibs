@@ -23,9 +23,10 @@ PROJECT(SoDaLibs)
 # version 5.5.1 bumped SoDaUtils version - corrected problem with OptionsTest
 # version 5.6.0 bumped Signals to 4.3.0 - fixed a problem with upsampling in ReSampler widget.
 # version 5.6.1 bumped Signals to 4.3.1, Utils to 5.1.4 - fixes based on Claude review.
+# version 5.6.2 applied recommended security/stability fixes from Claude
 SET(SoDaLibs_VERSION_MAJOR 5)
 SET(SoDaLibs_VERSION_MINOR 6)
-SET(SoDaLibs_VERSION_PATCH 1)
+SET(SoDaLibs_VERSION_PATCH 2)
 SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDaLibs_VERSION_PATCH}")
 
 INCLUDE(GNUInstallDirs)
