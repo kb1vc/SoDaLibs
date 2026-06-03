@@ -37,6 +37,9 @@ add_executable(PropertyTree_Test PropertyTree_Test.cxx)
 target_link_libraries(PropertyTree_Test sodautils)
 # target_link_lilbraries(PropertyTree_Test PRIVATE jsoncpp)
 
+add_executable(SafeOutTest SafeOutTest.cxx)
+target_link_libraries(SafeOutTest sodautils Threads::Threads)
+
 
 enable_testing()
 
@@ -90,6 +93,11 @@ add_test(NAME PropertyTreeTest1
 add_test(NAME SplitTest
   COMMAND $<TARGET_FILE:SplitTest> -m 500 -t 20 -r 100)
 set_tests_properties(SplitTest PROPERTIES
+  FAIL_REGULAR_EXPRESSION "FAIL")
+
+add_test(NAME SafeOutTest
+  COMMAND $<TARGET_FILE:SafeOutTest> --threads 8 --messages 500)
+set_tests_properties(SafeOutTest PROPERTIES
   FAIL_REGULAR_EXPRESSION "FAIL")
 
 ############################################################################

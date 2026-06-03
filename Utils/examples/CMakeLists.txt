@@ -45,6 +45,9 @@ target_link_libraries(Format_Test PRIVATE sodautils)
 add_executable(BarrierExample BarrierExample.cxx)
 target_link_libraries(BarrierExample PRIVATE sodautils Threads::Threads)
 
+add_executable(SafeOutExample SafeOutExample.cxx)
+target_link_libraries(SafeOutExample PRIVATE sodautils Threads::Threads)
+
 add_executable(PropertyTreeExample PropertyTreeExample.cxx)
 target_link_libraries(PropertyTreeExample PRIVATE sodautils Threads::Threads)
 

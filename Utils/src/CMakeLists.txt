@@ -5,6 +5,7 @@ set(UTILS_SRCS
 	Split.cxx
 	Options.cxx
 	Format.cxx
+	SafeOut.cxx
 	UtilsBase.cxx
 	Barrier.cxx
 	PropertyTree.cxx
