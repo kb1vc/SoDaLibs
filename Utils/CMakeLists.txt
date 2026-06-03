@@ -41,9 +41,13 @@ INCLUDE(CTest)
 # 5.1.4 Claude code review corrections.
 # 5.2.0 Options::printHelp now prints default option values
 # 5.2.1 More Claude corrections
+# 5.3.0 Adds
+#    SafeOut     Mutex protected file/stream IO.
+#    TCPSockets  Secure (SSL) TCP sockets
+#    UDSockets   Unix domain (filesystem) sockets (borrowed from SoDaRadio)
 SET(SoDaUtils_VERSION_MAJOR 5)
-SET(SoDaUtils_VERSION_MINOR 2)
-SET(SoDaUtils_VERSION_PATCH 1)
+SET(SoDaUtils_VERSION_MINOR 3)
+SET(SoDaUtils_VERSION_PATCH 0)
 SET(SoDaUtils_VERSION "${SoDaUtils_VERSION_MAJOR}.${SoDaUtils_VERSION_MINOR}.${SoDaUtils_VERSION_PATCH}")
 
 MESSAGE("SoDaUtils_VERSION=[${SoDaUtils_VERSION}]")

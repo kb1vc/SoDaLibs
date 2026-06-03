@@ -1,11 +1,15 @@
 
 ########### next target ###############
 
+find_package(OpenSSL REQUIRED)
+
 set(UTILS_SRCS
 	Split.cxx
 	Options.cxx
 	Format.cxx
 	SafeOut.cxx
+	TCPSockets.cxx
+	UDSockets.cxx
 	UtilsBase.cxx
 	Barrier.cxx
 	PropertyTree.cxx
@@ -16,7 +20,7 @@ set(UTILS_SRCS
 add_library(sodautils STATIC ${UTILS_SRCS})
 add_library(sodautils::sodautils ALIAS sodautils)
 set_target_properties(sodautils PROPERTIES VERSION ${SoDaUtils_VERSION})
-target_link_libraries(sodautils PRIVATE Threads::Threads)
+target_link_libraries(sodautils PRIVATE Threads::Threads OpenSSL::SSL OpenSSL::Crypto)
 
 
 

@@ -48,6 +48,12 @@ target_link_libraries(BarrierExample PRIVATE sodautils Threads::Threads)
 add_executable(SafeOutExample SafeOutExample.cxx)
 target_link_libraries(SafeOutExample PRIVATE sodautils Threads::Threads)
 
+add_executable(TCPSocketsExample TCPSocketsExample.cxx)
+target_link_libraries(TCPSocketsExample PRIVATE sodautils Threads::Threads)
+
+add_executable(UDSocketsExample UDSocketsExample.cxx)
+target_link_libraries(UDSocketsExample PRIVATE sodautils Threads::Threads)
+
 add_executable(PropertyTreeExample PropertyTreeExample.cxx)
 target_link_libraries(PropertyTreeExample PRIVATE sodautils Threads::Threads)
 

@@ -1,4 +1,6 @@
 
+find_package(OpenSSL REQUIRED)
+
 ########### next target ###############
 
 set(TST_FMT_SRCS
@@ -39,6 +41,12 @@ target_link_libraries(PropertyTree_Test sodautils)
 
 add_executable(SafeOutTest SafeOutTest.cxx)
 target_link_libraries(SafeOutTest sodautils Threads::Threads)
+
+add_executable(TCPSocketsTest TCPSocketsTest.cxx)
+target_link_libraries(TCPSocketsTest sodautils Threads::Threads OpenSSL::SSL OpenSSL::Crypto)
+
+add_executable(UDSocketsTest UDSocketsTest.cxx)
+target_link_libraries(UDSocketsTest sodautils Threads::Threads)
 
 
 enable_testing()
@@ -98,6 +106,16 @@ set_tests_properties(SplitTest PROPERTIES
 add_test(NAME SafeOutTest
   COMMAND $<TARGET_FILE:SafeOutTest> --threads 8 --messages 500)
 set_tests_properties(SafeOutTest PROPERTIES
+  FAIL_REGULAR_EXPRESSION "FAIL")
+
+add_test(NAME TCPSocketsTest
+  COMMAND $<TARGET_FILE:TCPSocketsTest> --port 19320)
+set_tests_properties(TCPSocketsTest PROPERTIES
+  FAIL_REGULAR_EXPRESSION "FAIL")
+
+add_test(NAME UDSocketsTest
+  COMMAND $<TARGET_FILE:UDSocketsTest> --path /tmp/UDSocketsTest)
+set_tests_properties(UDSocketsTest PROPERTIES
   FAIL_REGULAR_EXPRESSION "FAIL")
 
 ############################################################################
