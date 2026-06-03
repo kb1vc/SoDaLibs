@@ -205,18 +205,17 @@ static void runEchoServer(int port, const DemoCerts &dc,
 // ---------------------------------------------------------------------------
 
 static void runClient(int port, const DemoCerts &dc,
-                      const std::string & identity,
+                      const std::string & client_crt,
+                      const std::string & client_key,
                       const std::vector<std::string> & msgs) {
 //! [create client]
   // Each client presents its own cert; the server reads the CN as the identity.
   auto cli = SoDa::TCP::ClientSocket::make(
       "127.0.0.1", (size_t)port,
       dc.ca_crt,
-      dc.alice_crt,  // replaced by the actual client cert in practice
-      dc.alice_key);
+      client_crt,
+      client_key);
 //! [create client]
-  // (The identity variable selects which cert to use; simplified here.)
-  (void)identity;
 
   for (const auto & msg : msgs) {
 //! [send and receive]
@@ -254,12 +253,12 @@ int main(int argc, char ** argv) {
 
 //! [alice session]
   std::cout << "\n--- Alice connects ---\n";
-  runClient(port, dc, "alice", { "Hello from alice", "How are you?" });
+  runClient(port, dc, dc.alice_crt, dc.alice_key, { "Hello from alice", "How are you?" });
 //! [alice session]
 
 //! [bob session]
   std::cout << "\n--- Bob connects ---\n";
-  runClient(port, dc, "bob",   { "Hi, I am bob" });
+  runClient(port, dc, dc.bob_crt, dc.bob_key, { "Hi, I am bob" });
 //! [bob session]
 
   srv_thread.join();
