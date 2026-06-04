@@ -48,7 +48,11 @@
 #include <stdexcept>
 #include "Filter.hxx"
 
-#include "../../Utils/include/NoCopy.hxx"
+#ifdef SODA_LIB_BUILD
+#include <Utils/include/NoCopy.hxx>
+#else
+#include <SoDa/NoCopy.hxx>
+#endif
 
 namespace SoDa {
 

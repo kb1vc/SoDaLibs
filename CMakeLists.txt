@@ -28,6 +28,7 @@ PROJECT(SoDaLibs)
 #    SafeOut     Mutex protected file/stream IO.
 #    TCPSockets  Secure (SSL) TCP sockets
 #    UDSockets   Unix domain (filesystem) sockets (borrowed from SoDaRadio)
+# version 5.7.1 fixes problems with include paths from Signals headers.
 SET(SoDaLibs_VERSION_MAJOR 5)
 SET(SoDaLibs_VERSION_MINOR 7)
 SET(SoDaLibs_VERSION_PATCH 0)

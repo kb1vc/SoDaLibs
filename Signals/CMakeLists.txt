@@ -31,9 +31,10 @@ INCLUDE(CTest)
 # This was not a problem for downsampling.
 # 4.3.2 Claude code review corrections.
 # 4.3.3 More claude corrections
+# 4.3.4 Include paths were broken relative to new include directory layout.
 SET(SoDaSignals_VERSION_MAJOR 4)
 SET(SoDaSignals_VERSION_MINOR 3)
-SET(SoDaSignals_VERSION_PATCH 3)
+SET(SoDaSignals_VERSION_PATCH 4)
 SET(SoDaSignals_VERSION "${SoDaSignals_VERSION_MAJOR}.${SoDaSignals_VERSION_MINOR}.${SoDaSignals_VERSION_PATCH}")
 
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" ${CMAKE_MODULE_PATH} )
