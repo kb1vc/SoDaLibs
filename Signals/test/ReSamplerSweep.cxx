@@ -199,7 +199,7 @@ bool testRatio(double fs_in, double fs_out) {
   bool is_ok = true;
   
   // first create the resampler sized for 50 mS blocks.
-  SoDa::ReSampler resamp(fs_in, fs_out, 0.05); 
+  SoDa::ReSampler resamp(float(fs_in), float(fs_out), 0.05f);
 
   auto ncosr = std::max(fs_out, fs_in);
   SoDa::NCO nco(ncosr, ncosr * 0.125); // initial setting.  

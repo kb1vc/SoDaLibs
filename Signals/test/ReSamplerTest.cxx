@@ -108,7 +108,7 @@ int main(int argc, char * argv[]) {
   bool passed = true;
   
   for(auto fp : test_freqs) {
-    SoDa::ReSampler resamp(fp.first, fp.second, 0.05);
+    SoDa::ReSampler resamp(fp.first, fp.second, 0.05f);
     
     SoDa::Checker chk(fp.second,
 		      resamp.getFilterLength(),

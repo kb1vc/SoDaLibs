@@ -44,114 +44,116 @@ namespace SoDa {
     }
   }
 
-  ReSamplerPtr ReSampler::make(float FS_in,
-			       float FS_out,
-			       float time_span_min) {
-    return std::make_shared<ReSampler>(FS_in, FS_out, time_span_min); 
-  }
-  
-  ReSampler::ReSampler(float FS_in,
-		       float FS_out,
-		       float time_span_min) {
-    uint32_t i_fs_in = ((uint32_t) FS_in);
-    uint32_t i_fs_out = ((uint32_t) FS_out);
-    auto gcd = getGCD(i_fs_in, i_fs_out);
-
-    U = uint32_t(i_fs_out / gcd);
-    D = uint32_t(i_fs_in / gcd);
-
-    // if FS_in > FS_out we do this:
-    //
-    // in --> FFT -- LPF -- <sample middle samples> -- IFFT --> out
-    //
-    // if FS_in < FS_out we do this:
-    //
-    // in --> FFT -- zero stuff --> LPF -- IFFT --> out
-
-    // the LPF is designed for the larger of the two FT images. 
-
-    // How big is the low pass filter? 
-    double corner_factor = 0.45; 
+  // Compute the overlap-and-save save_count from filter design parameters.
+  // save_count depends only on sample rates and D, never on buffer size.
+  static uint32_t calcSaveCount(float FS_in, float FS_out, uint32_t D) {
     double passband = std::min(FS_in, FS_out);
-    double cutoff = passband * corner_factor; 
-
-    double skirt_proportion = std::max(FS_in, FS_out) / (passband * (0.5 - corner_factor));
-
-    double supression = 60.0;
-    // use fred harris's estimate.
-    // transition band is 10 % of FS_out
-    uint32_t num_taps = int(0.5 + skirt_proportion * supression / 22.0); 
+    double skirt_proportion = std::max(FS_in, FS_out) / (passband * (0.5 - 0.45));
+    uint32_t num_taps = uint32_t(0.5 + skirt_proportion * 60.0 / 22.0);
     if((num_taps % 2) == 0) num_taps++;
     if(num_taps < 121) num_taps = 121;
-    
-    // now find the input buffer size -- make it long enough to span time_span_min
-    uint32_t min_in_samples = uint32_t(FS_in * time_span_min);
-    uint32_t min_out_samples = (U * min_in_samples) / D;
+    uint32_t sc = uint32_t((int(num_taps) + int(D) - 1) / int(D)) * D;
+    if(sc < num_taps + 1) sc += D;
+    return sc;
+  }
 
-    while((min_in_samples < 1000) || (min_out_samples < 1000)) {
-      // need to goose min_in_samples until it is big enough
-      min_in_samples += 1000;
-      min_out_samples = (U * min_in_samples) / D;
-    }
-    
+  uint32_t ReSampler::quantumSize(float FS_in, float FS_out) {
+    uint32_t i_fs_in = uint32_t(FS_in);
+    uint32_t i_fs_out = uint32_t(FS_out);
+    return i_fs_in / getGCD(i_fs_in, i_fs_out);
+  }
+
+  ReSamplerPtr ReSampler::make(float FS_in, float FS_out, float time_span_min) {
+    return std::make_shared<ReSampler>(FS_in, FS_out, time_span_min);
+  }
+
+  ReSamplerPtr ReSampler::make(float FS_in, float FS_out, uint32_t input_buffer_size) {
+    return std::make_shared<ReSampler>(FS_in, FS_out, input_buffer_size);
+  }
+
+  void ReSampler::setup(float FS_in, float FS_out, uint32_t lx) {
+    // lx is the full FFT buffer size and must be a multiple of D (already set).
+    double corner_factor = 0.45;
+    double passband = std::min(FS_in, FS_out);
+    double cutoff = passband * corner_factor;
+
+    double skirt_proportion = std::max(FS_in, FS_out) / (passband * (0.5 - corner_factor));
+    uint32_t num_taps = uint32_t(0.5 + skirt_proportion * 60.0 / 22.0);
+    if((num_taps % 2) == 0) num_taps++;
+    if(num_taps < 121) num_taps = 121;
+
     scale_factor = float(D) / float(U);
-    
-    auto k = (min_in_samples + D - 1) / D;
-    Lx = k * D;
-    Ly = k * U;
 
-    // setup the save buffer -- it is at least as long as the filter, and must
-    // be a multiple of D.
-    int savek = (num_taps + D - 1) / D;
-    save_count = savek * D;
+    int savek = (int(num_taps) + int(D) - 1) / int(D);
+    save_count = uint32_t(savek) * D;
+    if(save_count < (num_taps + 1)) save_count += D;
 
-    // it must be longer than the filter by at least one. 
-    if(save_count < (num_taps + 1)) save_count = save_count + D;
-    
-    // remember our discard
     discard_count = save_count * U / D;
-
-    // finally, the save window is one less than the number of taps
     num_taps = save_count + 1;
 
-    // if we're upsampling, we will apply the LPF to the Y buffer (output)
+    Lx = lx;
+    Ly = Lx * U / D;
+
     if(FS_out > FS_in) {
       float up_ratio = float(FS_out / FS_in);
-      lpf_p = std::make_unique<SoDa::Filter>(-cutoff, cutoff, 
-					     0.015 * cutoff, 
-					     FS_out, 
+      lpf_p = std::make_unique<SoDa::Filter>(-cutoff, cutoff,
+					     0.015 * cutoff,
+					     FS_out,
 					     num_taps, Ly,
 					     up_ratio);
     }
     else {
-      // downsampling, filter on the X buffer before the cut-down
-      lpf_p = std::make_unique<SoDa::Filter>(-cutoff, cutoff, 
-					     0.015 * cutoff, 
-					     FS_in, 
+      lpf_p = std::make_unique<SoDa::Filter>(-cutoff, cutoff,
+					     0.015 * cutoff,
+					     FS_in,
 					     num_taps, Lx);
     }
 
-    
-    // create the input and output buffers
     x.resize(Lx);
     y.resize(Ly);
     X.resize(Lx);
     Y.resize(Ly);
-    
-    // zero the input buffer since we use the
-    // end of it for the save buffer. 
-    for(auto & s : x) {
-      s = std::complex<float>(0.0,0.0);
-    }
-    // zero the output Y vector, as we may be upsampling
-    for(auto & s : Y) {
-      s = std::complex<float>(0.0,0.0);
+
+    for(auto & s : x) s = std::complex<float>(0.0, 0.0);
+    for(auto & s : Y) s = std::complex<float>(0.0, 0.0);
+
+    in_fft_p = std::make_unique<SoDa::FFT>(Lx);
+    out_fft_p = std::make_unique<SoDa::FFT>(Ly);
+  }
+
+  ReSampler::ReSampler(float FS_in, float FS_out, float time_span_min) {
+    uint32_t i_fs_in = uint32_t(FS_in);
+    uint32_t i_fs_out = uint32_t(FS_out);
+    auto gcd = getGCD(i_fs_in, i_fs_out);
+    U = i_fs_out / gcd;
+    D = i_fs_in / gcd;
+
+    uint32_t min_in_samples = uint32_t(FS_in * time_span_min);
+    uint32_t min_out_samples = (U * min_in_samples) / D;
+    while((min_in_samples < 1000) || (min_out_samples < 1000)) {
+      min_in_samples += 1000;
+      min_out_samples = (U * min_in_samples) / D;
     }
 
-    // create the input and output FFTs.
-    in_fft_p = std::make_unique<SoDa::FFT>(Lx);
-    out_fft_p = std::make_unique<SoDa::FFT>(Ly);    
-    
+    auto k = (min_in_samples + D - 1) / D;
+    setup(FS_in, FS_out, k * D);
+  }
+
+  ReSampler::ReSampler(float FS_in, float FS_out, uint32_t input_buffer_size) {
+    uint32_t i_fs_in = uint32_t(FS_in);
+    uint32_t i_fs_out = uint32_t(FS_out);
+    auto gcd = getGCD(i_fs_in, i_fs_out);
+    U = i_fs_out / gcd;
+    D = i_fs_in / gcd;
+
+    if(input_buffer_size % D != 0) {
+      throw BadQuantum(input_buffer_size, D);
+    }
+
+    // save_count depends only on sample rates and D, so we can compute it
+    // before calling setup to derive the full FFT buffer size lx.
+    uint32_t sc = calcSaveCount(FS_in, FS_out, D);
+    setup(FS_in, FS_out, input_buffer_size + sc);
   }
 
 
@@ -263,6 +265,12 @@ namespace SoDa {
 			   .addS(st)
 			   .addI(got_size)
 			   .addI(should_be_size)
+			   .str()) { }
+
+  ReSampler::BadQuantum::BadQuantum(uint32_t input_buffer_size, uint32_t quantum) :
+	SoDa::Exception(SoDa::Format("ReSampler::BadQuantum: input_buffer_size %0 must be a multiple of %1\n")
+			   .addI(input_buffer_size)
+			   .addI(quantum)
 			   .str()) { }
   
 }

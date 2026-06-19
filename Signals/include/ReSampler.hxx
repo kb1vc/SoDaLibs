@@ -112,6 +112,23 @@ namespace SoDa {
 	      float output_sample_rate,
 	      float time_span);
 
+    /**
+     * @brief Constructor specifying an exact input buffer size.
+     *
+     * @param input_sample_rate
+     * @param output_sample_rate
+     * @param input_buffer_size exact number of input samples per call to apply()
+     *
+     * Unlike the time_span constructor, this guarantees that
+     * getInputBufferSize() == input_buffer_size exactly.
+     *
+     * input_buffer_size must be a multiple of
+     * quantumSize(input_sample_rate, output_sample_rate); a BadQuantum
+     * exception is thrown if it is not.
+     */
+    ReSampler(float input_sample_rate,
+	      float output_sample_rate,
+	      uint32_t input_buffer_size);
 
     /**
      * @brief make a resampler and return a shared pointer to it. (Nobody should
@@ -119,12 +136,36 @@ namespace SoDa {
      *
      * @param input_sample_rate
      * @param output_sample_rate
-     * @param time_span how many samples (in time) should a buffer hold? 
+     * @param time_span how many samples (in time) should a buffer hold?
      *
-     */ 
+     */
     static ReSamplerPtr make (float input_sample_rate,
 			      float output_sample_rate,
 			      float time_span);
+
+    /**
+     * @brief make a resampler with an exact input buffer size.
+     *
+     * @param input_sample_rate
+     * @param output_sample_rate
+     * @param input_buffer_size exact number of input samples per call to apply()
+     *
+     */
+    static ReSamplerPtr make (float input_sample_rate,
+			      float output_sample_rate,
+			      uint32_t input_buffer_size);
+
+    /**
+     * @brief Return the alignment quantum for input_buffer_size.
+     *
+     * Any input_buffer_size passed to the uint32_t constructor must be a
+     * multiple of quantumSize(input_sample_rate, output_sample_rate).
+     *
+     * @param input_sample_rate
+     * @param output_sample_rate
+     * @return the required divisor for input_buffer_size
+     */
+    static uint32_t quantumSize(float input_sample_rate, float output_sample_rate);
     
     /**
      * @brief take the resampler apart.
@@ -176,8 +217,18 @@ namespace SoDa {
       BadBufferSize(const std::string & st, uint32_t got_size, uint32_t should_be_size);
     };
 
-    
+    /**
+     * @class BadQuantum
+     * @brief Thrown when input_buffer_size is not a multiple of quantumSize().
+     */
+    class BadQuantum : public SoDa::Exception {
+    public:
+      BadQuantum(uint32_t input_buffer_size, uint32_t quantum);
+    };
+
   private:
+    void setup(float FS_in, float FS_out, uint32_t lx);
+
     std::unique_ptr<SoDa::Filter> lpf_p; /// the anti-aliasing low pass filter. 
     std::unique_ptr<SoDa::FFT> in_fft_p;
     std::unique_ptr<SoDa::FFT> out_fft_p;    

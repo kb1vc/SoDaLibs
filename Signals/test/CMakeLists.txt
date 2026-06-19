@@ -36,6 +36,11 @@ target_link_libraries(ReSamplerSweep sodasignals  sodautils)
 target_include_directories(ReSamplerSweep PRIVATE ${PROJECT_SOURCE_DIR})
 target_compile_definitions(ReSamplerSweep PRIVATE SODA_LIB_BUILD)
 
+add_executable(ReSamplerBufTest ReSamplerBufTest.cxx Checker.cxx)
+target_link_libraries(ReSamplerBufTest sodasignals sodautils)
+target_include_directories(ReSamplerBufTest PRIVATE ${PROJECT_SOURCE_DIR})
+target_compile_definitions(ReSamplerBufTest PRIVATE SODA_LIB_BUILD)
+
 enable_testing()
 
 add_test(NAME PeriodogramTest_1
@@ -98,6 +103,71 @@ set_tests_properties(ReSamplerTest_I4 PROPERTIES
 add_test(NAME ReSamplerTest_I5
   COMMAND $<TARGET_FILE:ReSamplerTest> --fsout 1.25e6 --fsin 48e3)
 set_tests_properties(ReSamplerTest_I5 PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_1
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsin 48e3 --fsout 8e3)
+set_tests_properties(ReSamplerBufTest_1 PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_2
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsin 625e3 --fsout 48e3)
+set_tests_properties(ReSamplerBufTest_2 PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_3
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsin 120e3 --fsout 48e3)
+set_tests_properties(ReSamplerBufTest_3 PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_4
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsin 1.2e6 --fsout 48e3)
+set_tests_properties(ReSamplerBufTest_4 PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_5
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsin 1.25e6 --fsout 48e3)
+set_tests_properties(ReSamplerBufTest_5 PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_6
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsin 2.5e6 --fsout 48e3)
+set_tests_properties(ReSamplerBufTest_6 PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_I1
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsout 48e3 --fsin 8e3)
+set_tests_properties(ReSamplerBufTest_I1 PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_I2
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsout 625e3 --fsin 48e3)
+set_tests_properties(ReSamplerBufTest_I2 PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_I3
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsout 120e3 --fsin 48e3)
+set_tests_properties(ReSamplerBufTest_I3 PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_I4
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsout 1.2e6 --fsin 48e3)
+set_tests_properties(ReSamplerBufTest_I4 PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_I5
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsout 1.25e6 --fsin 48e3)
+set_tests_properties(ReSamplerBufTest_I5 PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_exact_down
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsin 625e3 --fsout 48e3 --bufsize 30000 --expectedout 2304)
+set_tests_properties(ReSamplerBufTest_exact_down PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME ReSamplerBufTest_exact_up
+  COMMAND $<TARGET_FILE:ReSamplerBufTest> --fsin 48e3 --fsout 625e3 --bufsize 2304 --expectedout 30000)
+set_tests_properties(ReSamplerBufTest_exact_up PROPERTIES
   PASS_REGULAR_EXPRESSION "PASSED")
 
 if(ABSOLUTELY_NUTS)
