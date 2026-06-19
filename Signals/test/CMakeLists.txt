@@ -36,6 +36,16 @@ target_link_libraries(ReSamplerSweep sodasignals  sodautils)
 target_include_directories(ReSamplerSweep PRIVATE ${PROJECT_SOURCE_DIR})
 target_compile_definitions(ReSamplerSweep PRIVATE SODA_LIB_BUILD)
 
+add_executable(ResampPerf ResampPerf.cxx)
+target_link_libraries(ResampPerf sodasignals sodautils)
+target_include_directories(ResampPerf PRIVATE ${PROJECT_SOURCE_DIR})
+target_compile_definitions(ResampPerf PRIVATE SODA_LIB_BUILD)
+
+add_executable(PolyphaseResampTest PolyphaseResampTest.cxx Checker.cxx)
+target_link_libraries(PolyphaseResampTest sodasignals sodautils)
+target_include_directories(PolyphaseResampTest PRIVATE ${PROJECT_SOURCE_DIR})
+target_compile_definitions(PolyphaseResampTest PRIVATE SODA_LIB_BUILD)
+
 add_executable(ReSamplerBufTest ReSamplerBufTest.cxx Checker.cxx)
 target_link_libraries(ReSamplerBufTest sodasignals sodautils)
 target_include_directories(ReSamplerBufTest PRIVATE ${PROJECT_SOURCE_DIR})
@@ -188,6 +198,31 @@ add_test(NAME FilterTest
 set_tests_properties(FilterTest PROPERTIES
   PASS_REGULAR_EXPRESSION "PASSED")
 
+
+add_test(NAME PolyphaseResampTest_8k_48k
+  COMMAND $<TARGET_FILE:PolyphaseResampTest> --fsin 8e3 --fsout 48e3)
+set_tests_properties(PolyphaseResampTest_8k_48k PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME PolyphaseResampTest_48k_625k
+  COMMAND $<TARGET_FILE:PolyphaseResampTest> --fsin 48e3 --fsout 625e3)
+set_tests_properties(PolyphaseResampTest_48k_625k PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME PolyphaseResampTest_48k_1200k
+  COMMAND $<TARGET_FILE:PolyphaseResampTest> --fsin 48e3 --fsout 1.2e6)
+set_tests_properties(PolyphaseResampTest_48k_1200k PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME PolyphaseResampTest_625k_48k
+  COMMAND $<TARGET_FILE:PolyphaseResampTest> --fsin 625e3 --fsout 48e3)
+set_tests_properties(PolyphaseResampTest_625k_48k PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME PolyphaseResampTest_48k_8k
+  COMMAND $<TARGET_FILE:PolyphaseResampTest> --fsin 48e3 --fsout 8e3)
+set_tests_properties(PolyphaseResampTest_48k_8k PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
 
 
 ############################################################################

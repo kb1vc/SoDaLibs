@@ -1,6 +1,6 @@
 # BSD 2-Clause License
 # 
-# Copyright (c) 2021, 2025 kb1vc
+# Copyright (c) 2021, 2025, 2026 kb1vc
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,10 @@ INCLUDE(CTest)
 # 4.3.2 Claude code review corrections.
 # 4.3.3 More claude corrections
 # 4.3.4 Include paths were broken relative to new include directory layout.
+# 4.4.0 Added new Resampler constructor that fixes input buffer size. Also added polyphase resampler - it has no real advantage.
 SET(SoDaSignals_VERSION_MAJOR 4)
-SET(SoDaSignals_VERSION_MINOR 3)
-SET(SoDaSignals_VERSION_PATCH 4)
+SET(SoDaSignals_VERSION_MINOR 4)
+SET(SoDaSignals_VERSION_PATCH 0)
 SET(SoDaSignals_VERSION "${SoDaSignals_VERSION_MAJOR}.${SoDaSignals_VERSION_MINOR}.${SoDaSignals_VERSION_PATCH}")
 
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" ${CMAKE_MODULE_PATH} )

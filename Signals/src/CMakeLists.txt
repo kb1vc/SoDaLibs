@@ -4,6 +4,8 @@ set(SIGNALS_SRCS
 	Filter.cxx
 	FilterSpec.cxx
 	ReSampler.cxx
+	PolyphaseResamp.cxx
+	CascadeResamp.cxx
 	NCO.cxx
 	OSFilter.cxx
 )

@@ -29,8 +29,9 @@ PROJECT(SoDaLibs)
 #    TCPSockets  Secure (SSL) TCP sockets
 #    UDSockets   Unix domain (filesystem) sockets (borrowed from SoDaRadio)
 # version 5.7.1 fixes problems with include paths from Signals headers.
+# version 5.8.0 Adds new resampler support
 SET(SoDaLibs_VERSION_MAJOR 5)
-SET(SoDaLibs_VERSION_MINOR 7)
+SET(SoDaLibs_VERSION_MINOR 8)
 SET(SoDaLibs_VERSION_PATCH 0)
 SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDaLibs_VERSION_PATCH}")
 
