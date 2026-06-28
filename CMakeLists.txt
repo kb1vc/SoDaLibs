@@ -30,8 +30,9 @@ PROJECT(SoDaLibs)
 #    UDSockets   Unix domain (filesystem) sockets (borrowed from SoDaRadio)
 # version 5.7.1 fixes problems with include paths from Signals headers.
 # version 5.8.0 Adds new resampler support
+# version 5.9.0 Adds STATIC target and cleans up cmake config files
 SET(SoDaLibs_VERSION_MAJOR 5)
-SET(SoDaLibs_VERSION_MINOR 8)
+SET(SoDaLibs_VERSION_MINOR 9)
 SET(SoDaLibs_VERSION_PATCH 0)
 SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDaLibs_VERSION_PATCH}")
 
@@ -103,9 +104,24 @@ IF(SoDa_FFTW_FOUND)
   ADD_SUBDIRECTORY(Signals)
 ENDIF()
 
-IF(BUILD_RPM OR BUILD_DEB)
-  INCLUDE(cmake/BuildPackage.cmake)
-ENDIF()
+# BUILD_PACKAGE=ON auto-detects the distro and sets BUILD_RPM or BUILD_DEB.
+# BUILD_RPM and BUILD_DEB can also be set directly for cross-build scenarios.
+option(BUILD_PACKAGE "Build a distribution package (auto-detects RPM vs DEB)" OFF)
+if(BUILD_PACKAGE AND NOT BUILD_RPM AND NOT BUILD_DEB)
+  if(EXISTS "/etc/fedora-release" OR EXISTS "/etc/redhat-release" OR
+     (EXISTS "/etc/os-release" AND CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux"
+      AND EXISTS "/usr/bin/rpm"))
+    set(BUILD_RPM ON)
+  elseif(EXISTS "/etc/debian_version" OR EXISTS "/usr/bin/dpkg")
+    set(BUILD_DEB ON)
+  else()
+    message(WARNING "BUILD_PACKAGE: unrecognized distro -- set BUILD_RPM or BUILD_DEB explicitly")
+  endif()
+endif()
+
+if(BUILD_RPM OR BUILD_DEB)
+  include(cmake/BuildPackage.cmake)
+endif()
 
 
 ############################################################################

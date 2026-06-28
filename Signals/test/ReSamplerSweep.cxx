@@ -34,8 +34,8 @@
 #include <cmath>
 #include <vector>
 #include <complex>
-#include <Utils/include/Options.hxx>
-#include <Utils/include/Format.hxx>
+#include <SoDa/Options.hxx>
+#include <SoDa/Format.hxx>
 
 typedef std::vector<std::complex<float>> CVec;
 typedef std::vector<float> FVec; 

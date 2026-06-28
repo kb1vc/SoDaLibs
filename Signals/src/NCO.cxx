@@ -26,7 +26,7 @@
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "../include/NCO.hxx"
-#include <Utils/include/Format.hxx>
+#include <SoDa/Format.hxx>
 #include <iostream>
 #include <fstream>
 #include <cmath>

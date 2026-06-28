@@ -27,8 +27,8 @@
  */
 
 #include "FFT.hxx"
-#include <Utils/include/Format.hxx>
-#include <Utils/include/Exception.hxx>
+#include <SoDa/Format.hxx>
+#include <SoDa/Exception.hxx>
 
 #include <mutex>
 

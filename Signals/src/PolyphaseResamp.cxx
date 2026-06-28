@@ -29,7 +29,7 @@
 #include "PolyphaseResamp.hxx"
 #include <cmath>
 #include <algorithm>
-#include <Utils/include/Format.hxx>
+#include <SoDa/Format.hxx>
 
 namespace SoDa {
 

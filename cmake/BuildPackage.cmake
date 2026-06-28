@@ -1,63 +1,50 @@
-# Borrowed from https://wiki.o-ran-sc.org/display/ORAN/Packaging+Libraries+for+Linux+Distributions+with+CMake
+# CPack configuration for SoDaLibs.
+# SoDaLibs produces static libraries + headers, so this is a development
+# package.  Runtime deps are the static-lib build deps: fftw-devel and
+# openssl-devel on RPM-based distros, libfftw3-dev and libssl-dev on Debian.
 
-IF( EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake" )
-  include( InstallRequiredSystemLibraries )
+if(NOT EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+  message(WARNING "CPack not available -- skipping package generation")
+  return()
+endif()
 
-  # can only build one of the two packages
-  set( CPACK_SET_DESTDIR "off" )
-  set( CPACK_PACKAGING_INSTALL_PREFIX "${install_root}" )
-  set(CPACK_GENERATOR "")
-  if(BUILD_RPM) 
-    list(APPEND CPACK_GENERATOR "RPM" )
-    set(KIT_GEN_STRING "CC_FED")
-  endif()
-  if(BUILD_DEB)
-    list(APPEND CPACK_GENERATOR "DEB" )
-    set(KIT_GEN_STRING "CC_UBUNTU")    
-  endif()
+set(CPACK_SET_DESTDIR "off")
+set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+set(CPACK_GENERATOR "")
 
-  set(CPACK_PACKAGE_NAME "sodalibs")
-  
-  if(PACKAGE_SYSTEM_NAME)
-    set(TARGET_SYSNAME "_${PACKAGE_SYSTEM_NAME}")
-  else()
-    set(TARGET_SYSNAME "_${CMAKE_HOST_SYSTEM}")
-  endif()
+if(BUILD_RPM)
+  list(APPEND CPACK_GENERATOR "RPM")
+endif()
+if(BUILD_DEB)
+  list(APPEND CPACK_GENERATOR "DEB")
+endif()
 
-  
-  set( CPACK_PACKAGE_DESCRIPTION "SoDa package for string formatting, command-line parsing, and signal processing." )
+set(CPACK_PACKAGE_NAME "sodalibs-devel")
+set(CPACK_PACKAGE_DESCRIPTION
+  "SoDa Libraries: string formatting, command-line parsing, and DSP signal processing. \
+Provides static libraries SoDaUtils and SoDaSignals with their CMake config files.")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SoDa Libraries (static libs + headers)")
+set(CPACK_PACKAGE_VENDOR "kb1vc")
+set(CPACK_PACKAGE_CONTACT "https://github.com/kb1vc/")
+set(CPACK_PACKAGE_VERSION_MAJOR "${SoDaLibs_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${SoDaLibs_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${SoDaLibs_VERSION_PATCH}")
+set(CPACK_PACKAGE_VERSION
+  "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 
-  set( CPACK_PACKAGE_DESCRIPTION_SUMMARY "SoDa Libraries" )
-  set( CPACK_PACKAGE_VENDOR "kb1vc" )
-  set( CPACK_PACKAGE_CONTACT "https://github.com/kb1vc/" )
-  set( CPACK_PACKAGE_VERSION_MAJOR "${SoDaLibs_VERSION_MAJOR}")
-  set( CPACK_PACKAGE_VERSION_MINOR "${SoDaLibs_VERSION_MINOR}")
-  set( CPACK_PACKAGE_VERSION_PATCH "${SoDaLibs_VERSION_PATCH}")
+set(CPACK_PACKAGE_FILE_NAME
+  "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_PROCESSOR}")
 
+# RPM: static .a files live in -devel packages on Fedora/RHEL
+set(CPACK_RPM_PACKAGE_REQUIRES "fftw-devel >= 3.0, openssl-devel >= 1.0")
+set(CPACK_RPM_ARCHITECTURE "${CMAKE_SYSTEM_PROCESSOR}")
+set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
 
-  set( CPACK_PACKAGE_VERSON "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+# DEB: static .a files live in -dev packages on Ubuntu/Debian
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libfftw3-dev, libssl-dev")
+set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+set(CPACK_DEBIAN_PACKAGE_SECTION "libdevel")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "kb1vc@kb1vc.org")
+set(CPACK_DEBIAN_ARCHITECTURE "${CMAKE_SYSTEM_PROCESSOR}")
 
-  set( CPACK_PACKAGE_FILE_NAME
-    "${CMAKE_PROJECT_NAME}_${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}_${CMAKE_HOST_SYSTEM_VERSION}" )
-
-  set( CPACK_SOURCE_PACKAGE_FILE_NAME
-    "${CMAKE_PROJECT_NAME}_${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}" )
-  
-
-  set( CPACK_RPM_PACKAGE_REQUIRES "fftw-devel >= 1.0.0, gcc-g++ >= 5.0.0")
-
-  set( CPACK_RPM_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR} )
-  set( CPACK_RPM_PACKAGE_VERSION ${CPACK_PACKAGE_VERSION})
-
-  message(STATUS "CPACK_RPM_PACKAGE_VERSION [${CPACK_RPM_PACKAGE_VERSION}]")
-  
-  set( CPACK_DEBIAN_PACKAGE_PRIORITY "optional" )
-  set( CPACK_DEBIAN_PACKAGE_SECTION "devel" )
-  set( CPACK_DEBIAN_PACKAGE_MAINTAINER "kb1vc@kb1vc.org")
-  set( CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR} )
-
-  set( CPACK_DEBIAN_PACKAGE_DEPENDS "libfftw3-dev, gcc, g++, build-essential, git, cmake, make")
-  
-INCLUDE( CPack )
-
-ENDIF()
+include(CPack)

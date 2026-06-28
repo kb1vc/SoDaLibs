@@ -32,11 +32,7 @@
 #include <memory>
 #include <mutex>
 
-#ifdef SODA_LIB_BUILD
-#include <Utils/include/Exception.hxx>
-#else
 #include <SoDa/Exception.hxx>
-#endif
 
 ///
 ///  @file FFT.hxx

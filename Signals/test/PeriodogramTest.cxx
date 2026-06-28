@@ -6,8 +6,8 @@
 #include <complex>
 #include <vector>
 
-#include <Utils/include/Format.hxx>
-#include <Utils/include/Options.hxx>
+#include <SoDa/Format.hxx>
+#include <SoDa/Options.hxx>
 
 typedef std::vector<std::complex<float>> CVec;
 typedef std::vector<float> FVec;

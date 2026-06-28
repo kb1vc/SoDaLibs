@@ -58,7 +58,15 @@ CONFIGURE_FILE("${CMAKE_CURRENT_LIST_DIR}/version.hxx.in"
 
 SET(SODAUTILS_BUILD_VERSION_INCL_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/include)
+# Create a SoDa/ symlink in the binary tree so that #include <SoDa/Foo.hxx>
+# works during the build, matching the post-install layout where headers land
+# in ${CMAKE_INSTALL_INCLUDEDIR}/SoDa/.
+set(_soda_inc_alias "${CMAKE_CURRENT_BINARY_DIR}/soda_inc_alias")
+file(MAKE_DIRECTORY "${_soda_inc_alias}")
+file(CREATE_LINK "${CMAKE_CURRENT_LIST_DIR}/include"
+     "${_soda_inc_alias}/SoDa" SYMBOLIC)
+
+INCLUDE_DIRECTORIES(${_soda_inc_alias} ${PROJECT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/include)
 
 FILE(GLOB all_includes ${CMAKE_CURRENT_LIST_DIR}/include/*.hxx)
 
@@ -98,7 +106,7 @@ INSTALL(FILES
 
 target_include_directories(sodautils
   PUBLIC
-  $<BUILD_INTERFACE:${CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${_soda_inc_alias}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
@@ -110,6 +118,7 @@ set(UTILS_CONFIG_EXPORT_DIR "${CMAKE_INSTALL_DATADIR}/cmake/SoDaUtils")
 message("******* Installing Utils to [${UTILS_CONFIG_EXPORT_DIR}]")
 install(EXPORT SoDaUtilsTargets
   FILE SoDaUtilsTargets.cmake
+  NAMESPACE SoDaUtils::
   DESTINATION ${UTILS_CONFIG_EXPORT_DIR}
   )
 
@@ -129,6 +138,7 @@ write_basic_package_version_file(
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/SoDaUtilsConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/SoDaUtilsConfigVersion.cmake
   DESTINATION ${UTILS_CONFIG_EXPORT_DIR}
 )
 

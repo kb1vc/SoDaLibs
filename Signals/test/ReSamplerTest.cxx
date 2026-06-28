@@ -32,8 +32,8 @@
 #include <cmath>
 #include <vector>
 #include <complex>
-#include <Utils/include/Options.hxx>
-#include <Utils/include/Format.hxx>
+#include <SoDa/Options.hxx>
+#include <SoDa/Format.hxx>
 
 #include "../test/Checker.hxx"
 

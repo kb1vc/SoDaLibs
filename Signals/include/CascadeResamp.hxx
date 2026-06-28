@@ -34,11 +34,7 @@
 #include <string>
 #include <ostream>
 
-#ifdef SODA_LIB_BUILD
-#include <Utils/include/Exception.hxx>
-#else
 #include <SoDa/Exception.hxx>
-#endif
 
 namespace SoDa {
   class CascadeResamp;

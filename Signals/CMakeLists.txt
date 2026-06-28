@@ -65,6 +65,7 @@ include(InstallRequiredSystemLibraries)
 message("******* Installing Signals to [${SIGNALS_CONFIG_EXPORT_DIR}]")
 install(EXPORT SoDaSignalsTargets
   FILE SoDaSignalsTargets.cmake
+  NAMESPACE SoDaSignals::
   DESTINATION ${SIGNALS_CONFIG_EXPORT_DIR}
 )
 
@@ -85,6 +86,7 @@ write_basic_package_version_file(
   
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/SoDaSignalsConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/SoDaSignalsConfigVersion.cmake
   DESTINATION ${SIGNALS_CONFIG_EXPORT_DIR}
 )
 
@@ -102,7 +104,13 @@ INSTALL(FILES
   RENAME SoDa_FFTWConfig.cmake
 )
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${SIGNALS_SUBLIB_SOURCE_DIR}/include)
+# Symlink alias so #include <SoDa/Foo.hxx> resolves to Utils/include/Foo.hxx
+# during the build, matching the post-install header layout.
+set(_soda_inc_alias "${CMAKE_CURRENT_BINARY_DIR}/soda_inc_alias")
+file(MAKE_DIRECTORY "${_soda_inc_alias}")
+file(CREATE_LINK "${CMAKE_SOURCE_DIR}/Utils/include"
+     "${_soda_inc_alias}/SoDa" SYMBOLIC)
+INCLUDE_DIRECTORIES(${_soda_inc_alias} ${CMAKE_CURRENT_BINARY_DIR} ${SIGNALS_SUBLIB_SOURCE_DIR}/include)
 
 # redirect sodautils includes
 set(sodautils_include_dirs ${CMAKE_CURRENT_SOURCE_DIR}/Utils/include)

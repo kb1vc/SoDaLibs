@@ -1,31 +1,16 @@
-# - Config file for the SoDaUtils package
-# inspired/borrowed from https://github.com/jbeder/yaml-cpp.git
-#
-# It defines the following variables
-#  SoDaUtils_INCLUDE_DIR       - include directory
-#  SoDaUtils_LIBRARY_DIR       - directory containing libraries
-#  SoDaUtils_LIBRARIES         - libraries to link against
+# Config file for the SoDaUtils package.
+# Usage: find_package(SoDaUtils REQUIRED)
+# Provides imported target: SoDaUtils::sodautils
 
 @PACKAGE_INIT@
-include(${CMAKE_CURRENT_LIST_DIR}/SoDaUtilsTargets.cmake)
-
-set(SoDaUtils_INCLUDE_DIR "@CMAKE_INSTALL_PREFIX@/include")
-set(SoDaUtils_LIBRARY_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
-set(SoDaUtils_LIBRARIES "@EXPORT_TARGET@")
-set(SoDaUtils_FOUND TRUE)
-
-if(NOT TARGET sodautils)
-  add_library(sodautils INTERFACE IMPORTED)
-  target_link_libraries(sodautils INTERFACE sodautils::sodautils)
-  target_include_directories(sodautils INTERFACE ${SoDaUtils_INCLUDE_DIR})
-endif()
 
 include(CMakeFindDependencyMacro)
-#find_dependency(jsoncpp REQUIRED)
 find_dependency(Threads REQUIRED)
+find_dependency(OpenSSL REQUIRED)
 
-# Our library dependencies (contains definitions for IMPORTED targets)
-#  include(@PACKAGE_CONFIG_EXPORT_DIR@/sodautils-targets.cmake)
- 
+include("${CMAKE_CURRENT_LIST_DIR}/SoDaUtilsTargets.cmake")
 
-### check_required_components(@EXPORT_TARGETS@)
+set(SoDaUtils_INCLUDE_DIR "${PACKAGE_PREFIX_DIR}/include")
+set(SoDaUtils_LIBRARY_DIR "${PACKAGE_PREFIX_DIR}/lib")
+set(SoDaUtils_LIBRARIES SoDaUtils::sodautils)
+set(SoDaUtils_FOUND TRUE)

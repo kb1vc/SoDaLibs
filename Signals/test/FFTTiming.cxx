@@ -29,8 +29,8 @@
 #include <complex>
 #include <vector>
 #include <iostream>
-#include <Utils/include/Format.hxx>
-#include <Utils/include/Options.hxx>
+#include <SoDa/Format.hxx>
+#include <SoDa/Options.hxx>
 #include <random>
 #include <chrono>
 #include <string>

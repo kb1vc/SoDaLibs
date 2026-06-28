@@ -1,55 +1,33 @@
 
 add_executable(FFTTest FFTTest.cxx)
-
-
-target_link_libraries(FFTTest   sodasignals sodautils::sodautils)
-target_include_directories(FFTTest PRIVATE ${PROJECT_SOURCE_DIR})
-target_compile_definitions(FFTTest PRIVATE SODA_LIB_BUILD)
+target_link_libraries(FFTTest sodasignals sodautils)
 
 add_executable(FFTTiming FFTTiming.cxx)
-target_link_libraries(FFTTiming sodasignals  sodautils)
-target_include_directories(FFTTiming PRIVATE ${PROJECT_SOURCE_DIR})
-target_compile_definitions(FFTTiming PRIVATE SODA_LIB_BUILD)
+target_link_libraries(FFTTiming sodasignals sodautils)
 
 add_executable(FilterTest FilterTest.cxx Checker.cxx)
-target_link_libraries(FilterTest sodasignals  sodautils)
-target_include_directories(FilterTest PRIVATE ${PROJECT_SOURCE_DIR})
-target_compile_definitions(FilterTest PRIVATE SODA_LIB_BUILD)
+target_link_libraries(FilterTest sodasignals sodautils)
 
 add_executable(OSFilterTest OSFilterTest.cxx Checker.cxx)
-target_link_libraries(OSFilterTest sodasignals  sodautils)
-target_include_directories(OSFilterTest PRIVATE ${PROJECT_SOURCE_DIR})
-target_compile_definitions(OSFilterTest PRIVATE SODA_LIB_BUILD)
+target_link_libraries(OSFilterTest sodasignals sodautils)
 
 add_executable(PeriodogramTest PeriodogramTest.cxx)
-target_link_libraries(PeriodogramTest sodasignals  sodautils)
-target_include_directories(PeriodogramTest PRIVATE ${PROJECT_SOURCE_DIR})
-target_compile_definitions(PeriodogramTest PRIVATE SODA_LIB_BUILD)
+target_link_libraries(PeriodogramTest sodasignals sodautils)
 
 add_executable(ReSamplerTest ReSamplerTest.cxx Checker.cxx)
-target_link_libraries(ReSamplerTest sodasignals  sodautils)
-target_include_directories(ReSamplerTest PRIVATE ${PROJECT_SOURCE_DIR})
-target_compile_definitions(ReSamplerTest PRIVATE SODA_LIB_BUILD)
+target_link_libraries(ReSamplerTest sodasignals sodautils)
 
 add_executable(ReSamplerSweep ReSamplerSweep.cxx)
-target_link_libraries(ReSamplerSweep sodasignals  sodautils)
-target_include_directories(ReSamplerSweep PRIVATE ${PROJECT_SOURCE_DIR})
-target_compile_definitions(ReSamplerSweep PRIVATE SODA_LIB_BUILD)
+target_link_libraries(ReSamplerSweep sodasignals sodautils)
 
 add_executable(ResampPerf ResampPerf.cxx)
 target_link_libraries(ResampPerf sodasignals sodautils)
-target_include_directories(ResampPerf PRIVATE ${PROJECT_SOURCE_DIR})
-target_compile_definitions(ResampPerf PRIVATE SODA_LIB_BUILD)
 
 add_executable(PolyphaseResampTest PolyphaseResampTest.cxx Checker.cxx)
 target_link_libraries(PolyphaseResampTest sodasignals sodautils)
-target_include_directories(PolyphaseResampTest PRIVATE ${PROJECT_SOURCE_DIR})
-target_compile_definitions(PolyphaseResampTest PRIVATE SODA_LIB_BUILD)
 
 add_executable(ReSamplerBufTest ReSamplerBufTest.cxx Checker.cxx)
 target_link_libraries(ReSamplerBufTest sodasignals sodautils)
-target_include_directories(ReSamplerBufTest PRIVATE ${PROJECT_SOURCE_DIR})
-target_compile_definitions(ReSamplerBufTest PRIVATE SODA_LIB_BUILD)
 
 enable_testing()
 
