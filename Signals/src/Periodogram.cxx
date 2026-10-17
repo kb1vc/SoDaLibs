@@ -70,9 +70,9 @@ namespace SoDa {
   }
 
   void Periodogram::setAlpha(const float _alpha) {
-    alpha = std::fabs(_alpha);     
+    alpha = std::abs(_alpha);     
 
-    if(std::fabs(alpha) < 1e-20) {
+    if(std::abs(alpha) < 1e-20) {
       alpha = 0.1; 
     }
     beta = 1.0 - alpha;
@@ -105,7 +105,7 @@ namespace SoDa {
 
       // accumulate
       for(unsigned int i = 0; i < segment_length; i++) {
-	acc_buffer[i] = alpha * std::fabs(fft_out_buffer[i]) * fft_scale + beta * acc_buffer[i];
+	acc_buffer[i] = alpha * std::abs(fft_out_buffer[i]) * fft_scale + beta * acc_buffer[i];
 	//	acc_buffer[i] = fft_out_buffer[i] +  acc_buffer[i]; 	
       }
       accumulation_count++; 

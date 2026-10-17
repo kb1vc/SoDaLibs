@@ -35,7 +35,7 @@ INCLUDE(CTest)
 # 4.4.0 Added new Resampler constructor that fixes input buffer size. Also added polyphase resampler - it has no real advantage.
 SET(SoDaSignals_VERSION_MAJOR 4)
 SET(SoDaSignals_VERSION_MINOR 4)
-SET(SoDaSignals_VERSION_PATCH 0)
+SET(SoDaSignals_VERSION_PATCH 1)
 SET(SoDaSignals_VERSION "${SoDaSignals_VERSION_MAJOR}.${SoDaSignals_VERSION_MINOR}.${SoDaSignals_VERSION_PATCH}")
 
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" ${CMAKE_MODULE_PATH} )
