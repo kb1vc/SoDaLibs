@@ -47,7 +47,7 @@ INCLUDE(CTest)
 #    UDSockets   Unix domain (filesystem) sockets (borrowed from SoDaRadio)
 SET(SoDaUtils_VERSION_MAJOR 5)
 SET(SoDaUtils_VERSION_MINOR 3)
-SET(SoDaUtils_VERSION_PATCH 0)
+SET(SoDaUtils_VERSION_PATCH 1)
 SET(SoDaUtils_VERSION "${SoDaUtils_VERSION_MAJOR}.${SoDaUtils_VERSION_MINOR}.${SoDaUtils_VERSION_PATCH}")
 
 MESSAGE("SoDaUtils_VERSION=[${SoDaUtils_VERSION}]")

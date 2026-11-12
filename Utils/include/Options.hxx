@@ -770,8 +770,9 @@ posargs =
 	}
 
 	if(u_val_ptr != nullptr) {
-	  *u_val_ptr = def_val; 
+	  *u_val_ptr = def_val;
 	}
+	present = false;
       }
 
       std::string getDefault() {
@@ -843,6 +844,7 @@ posargs =
 	if(u_arg_vec_ptr != nullptr) {
 	  u_arg_vec_ptr->clear();
 	}
+	present = false;
       }
 
       std::string getDefault() { return ""; }

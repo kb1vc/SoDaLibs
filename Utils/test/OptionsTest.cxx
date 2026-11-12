@@ -411,6 +411,281 @@ void dumpArgV(const std::list<std::string> & arg_list) {
 }
 
 
+// ============================================================
+// Deterministic corner-case tests
+// ============================================================
+
+// Unknown long option name returns false
+static bool cc_unknownLongOpt() {
+  SoDa::Options cmd;
+  cmd.add<int>("count", 'c', 0, "a count");
+  std::ostringstream sink;
+  return !cmd.parse(std::list<std::string>{"--notanoption", "5"}, sink);
+}
+
+// Unknown short option name returns false
+static bool cc_unknownShortOpt() {
+  SoDa::Options cmd;
+  cmd.add<int>("count", 'c', 0, "a count");
+  std::ostringstream sink;
+  return !cmd.parse(std::list<std::string>{"-z"}, sink);
+}
+
+// Non-numeric string for int option returns false
+static bool cc_badIntValue() {
+  SoDa::Options cmd;
+  cmd.add<int>("count", 'c', 0, "a count");
+  std::ostringstream sink;
+  return !cmd.parse(std::list<std::string>{"--count", "notanumber"}, sink);
+}
+
+// Non-numeric string for double option returns false
+static bool cc_badDoubleValue() {
+  SoDa::Options cmd;
+  cmd.add<double>("freq", 'f', 0.0, "a frequency");
+  std::ostringstream sink;
+  return !cmd.parse(std::list<std::string>{"--freq", "notanumber"}, sink);
+}
+
+// User-supplied test_func rejecting a value causes parse() to return false
+static bool cc_validatorRejects() {
+  SoDa::Options cmd;
+  cmd.add<int>("count", 'c', 0, "a count",
+    [](int v){ return v > 0; }, "must be positive");
+  std::ostringstream sink;
+  return !cmd.parse(std::list<std::string>{"--count", "0"}, sink);
+}
+
+// User-supplied test_func accepting a value: parse succeeds, value is set
+static bool cc_validatorAccepts() {
+  SoDa::Options cmd;
+  auto val = cmd.add<int>("count", 'c', 0, "a count",
+    [](int v){ return v > 0; }, "must be positive");
+  bool ok = cmd.parse(std::list<std::string>{"--count", "5"});
+  return ok && (*val == 5);
+}
+
+// Negative integer value is parsed correctly via the has_default=false path
+static bool cc_negativeInt() {
+  SoDa::Options cmd;
+  auto val = cmd.add<int>("count", 'c', 0, "a count");
+  bool ok = cmd.parse(std::list<std::string>{"--count", "-5"});
+  return ok && (*val == -5);
+}
+
+// reset() restores defaults and clears isPresent; subsequent parse works
+static bool cc_resetAndReparse() {
+  SoDa::Options cmd;
+  auto val = cmd.add<int>("count", 'c', 42, "a count");
+
+  cmd.parse(std::list<std::string>{"--count", "10"});
+  if (*val != 10) return false;
+  if (!cmd.isPresent("count")) return false;
+
+  cmd.reset();
+  if (*val != 42) return false;
+  if (cmd.isPresent("count")) return false;
+
+  cmd.parse(std::list<std::string>{"--count", "20"});
+  return (*val == 20) && cmd.isPresent("count");
+}
+
+// Positional arguments are collected independently of option values
+static bool cc_positionalArgs() {
+  SoDa::Options cmd;
+  auto val = cmd.add<int>("count", 'c', 0, "a count");
+  cmd.parse(std::list<std::string>{"foo", "--count", "5", "bar"});
+  auto pos = cmd.getPosArgs();
+  return (pos.size() == 2)
+    && (pos[0] == "foo")
+    && (pos[1] == "bar")
+    && (*val == 5);
+}
+
+// addV accumulates each occurrence instead of overwriting
+static bool cc_vectorOption() {
+  SoDa::Options cmd;
+  auto vec = cmd.addV<std::string>("name", 'n', "name values");
+  cmd.parse(std::list<std::string>{"--name", "alice", "--name", "bob", "-n", "carol"});
+  return (vec->size() == 3)
+    && ((*vec)[0] == "alice")
+    && ((*vec)[1] == "bob")
+    && ((*vec)[2] == "carol");
+}
+
+// --help prints help text to the provided stream (parse returns false because
+// "help" is not a registered option, triggering BadOptionNameException)
+static bool cc_helpFlagLong() {
+  SoDa::Options cmd;
+  cmd.add<int>("count", 'c', 0, "a count");
+  std::ostringstream out;
+  bool result = cmd.parse(std::list<std::string>{"--help"}, out);
+  return !result && (out.str().find("count") != std::string::npos);
+}
+
+// -h behaves the same as --help
+static bool cc_helpFlagShort() {
+  SoDa::Options cmd;
+  cmd.add<int>("count", 'c', 0, "a count");
+  std::ostringstream out;
+  bool result = cmd.parse(std::list<std::string>{"-h"}, out);
+  return !result && (out.str().find("count") != std::string::npos);
+}
+
+// isPresent(long_name) is true only for options that actually appeared
+static bool cc_isPresentLongName() {
+  SoDa::Options cmd;
+  cmd.add<int>("count", 'c', 0, "a count");
+  cmd.add<double>("freq", 'f', 0.0, "a frequency");
+  cmd.parse(std::list<std::string>{"--count", "5"});
+  return cmd.isPresent("count") && !cmd.isPresent("freq");
+}
+
+// isPresent(char) mirrors the long-name form
+static bool cc_isPresentShortName() {
+  SoDa::Options cmd;
+  cmd.add<int>("count", 'c', 0, "a count");
+  cmd.add<double>("freq", 'f', 0.0, "a frequency");
+  cmd.parse(std::list<std::string>{"-c", "3"});
+  return cmd.isPresent('c') && !cmd.isPresent('f');
+}
+
+// Option at end of line with no following value: parse returns true,
+// value stays at default, option is NOT marked present (silent miss).
+static bool cc_missingValueAtEnd() {
+  SoDa::Options cmd;
+  auto val = cmd.add<int>("count", 'c', 42, "a count");
+  bool ok = cmd.parse(std::list<std::string>{"--count"});
+  return ok && (*val == 42) && !cmd.isPresent("count");
+}
+
+// parse(string) tokenises correctly
+static bool cc_parseFromString() {
+  SoDa::Options cmd;
+  auto name = cmd.add<std::string>("name", 'n', "", "a name");
+  bool ok = cmd.parse(std::string("--name hello"));
+  return ok && (*name == "hello");
+}
+
+// parse(string) with a double-quoted value preserves internal spaces
+static bool cc_parseFromStringWithQuotes() {
+  SoDa::Options cmd;
+  auto name = cmd.add<std::string>("name", 'n', "", "a name");
+  bool ok = cmd.parse(std::string("--name \"hello world\""));
+  return ok && (*name == "hello world");
+}
+
+// Empty argument list: all values remain at defaults, nothing is present
+static bool cc_emptyArgList() {
+  SoDa::Options cmd;
+  auto val = cmd.add<int>("count", 'c', 99, "a count");
+  bool ok = cmd.parse(std::list<std::string>{});
+  return ok && (*val == 99) && !cmd.isPresent("count");
+}
+
+// Short-form option sets value correctly
+static bool cc_shortFormOption() {
+  SoDa::Options cmd;
+  auto val = cmd.add<int>("count", 'c', 0, "a count");
+  bool ok = cmd.parse(std::list<std::string>{"-c", "7"});
+  return ok && (*val == 7);
+}
+
+// addP presence flag: false when absent, true when flag appears on command line
+static bool cc_presenceFlagOnOff() {
+  SoDa::Options cmd;
+  auto flag = cmd.addP("verbose", 'v', "verbose mode");
+
+  cmd.parse(std::list<std::string>{});
+  if (*flag) return false;
+
+  cmd.reset();
+
+  cmd.parse(std::list<std::string>{"--verbose"});
+  return *flag;
+}
+
+// parseKeyValue parses comma-separated key=value pairs
+static bool cc_keyValueParse() {
+  SoDa::Options cmd;
+  auto count = cmd.add<int>("count", 'c', 0, "a count");
+  auto name  = cmd.add<std::string>("name", 'n', "", "a name");
+  bool ok = cmd.parseKeyValue(std::string("count=5, name=hello"));
+  return ok && (*count == 5) && (*name == "hello");
+}
+
+// parseKeyValue with an unknown key returns false
+static bool cc_keyValueUnknownKey() {
+  SoDa::Options cmd;
+  cmd.add<int>("count", 'c', 0, "a count");
+  std::ostringstream sink;
+  return !cmd.parseKeyValue(std::string("count=5, unknown=hello"), sink);
+}
+
+// Mix of short and long forms in one parse call
+static bool cc_mixedShortAndLong() {
+  SoDa::Options cmd;
+  auto count = cmd.add<int>("count", 'c', 0, "a count");
+  auto freq  = cmd.add<double>("freq", 'f', 0.0, "a frequency");
+  auto name  = cmd.add<std::string>("name", 'n', "", "a name");
+  bool ok = cmd.parse(std::list<std::string>{"--count", "3", "-f", "14.225", "--name", "kb1vc"});
+  return ok && (*count == 3) && doubleEQ(*freq, 14.225) && (*name == "kb1vc");
+}
+
+// numPosArgs() returns the right count
+static bool cc_numPosArgs() {
+  SoDa::Options cmd;
+  cmd.parse(std::list<std::string>{"a", "b", "c"});
+  return cmd.numPosArgs() == 3;
+}
+
+bool runCornerCaseTests() {
+  struct Entry { const char * name; bool (*fn)(); };
+  static const Entry tests[] = {
+    { "unknown long option",           cc_unknownLongOpt       },
+    { "unknown short option",          cc_unknownShortOpt      },
+    { "bad int value",                 cc_badIntValue          },
+    { "bad double value",              cc_badDoubleValue       },
+    { "validator rejects value",       cc_validatorRejects     },
+    { "validator accepts value",       cc_validatorAccepts     },
+    { "negative int (signed path)",    cc_negativeInt          },
+    { "reset and re-parse",            cc_resetAndReparse      },
+    { "positional args",               cc_positionalArgs       },
+    { "vector option (addV)",          cc_vectorOption         },
+    { "--help flag",                   cc_helpFlagLong         },
+    { "-h flag",                       cc_helpFlagShort        },
+    { "isPresent (long name)",         cc_isPresentLongName    },
+    { "isPresent (short name)",        cc_isPresentShortName   },
+    { "missing value at end of line",  cc_missingValueAtEnd    },
+    { "parse from string",             cc_parseFromString      },
+    { "parse from string with quotes", cc_parseFromStringWithQuotes },
+    { "empty arg list",                cc_emptyArgList         },
+    { "short form option",             cc_shortFormOption      },
+    { "presence flag on/off",          cc_presenceFlagOnOff    },
+    { "parseKeyValue",                 cc_keyValueParse        },
+    { "parseKeyValue unknown key",     cc_keyValueUnknownKey   },
+    { "mixed short and long forms",    cc_mixedShortAndLong    },
+    { "numPosArgs",                    cc_numPosArgs           },
+  };
+
+  bool all_pass = true;
+  std::cerr << "\n--- Corner case tests ---\n";
+  for (const auto & t : tests) {
+    bool passed = false;
+    try {
+      passed = t.fn();
+    } catch (const std::exception & e) {
+      std::cerr << "  EXCEPTION in [" << t.name << "]: " << e.what() << "\n";
+    } catch (...) {
+      std::cerr << "  UNKNOWN EXCEPTION in [" << t.name << "]\n";
+    }
+    std::cerr << (passed ? "  pass: " : "  FAIL: ") << t.name << "\n";
+    if (!passed) all_pass = false;
+  }
+  std::cerr << "--- Corner cases " << (all_pass ? "PASSED" : "FAILED") << " ---\n\n";
+  return all_pass;
+}
+
 int main(int argc, char ** argv) {
 
   SoDa::Options cmd;
@@ -419,17 +694,18 @@ int main(int argc, char ** argv) {
   if(!cmd.parse(argc, argv)) exit(-1);
 
   std::cerr << "Number of trials [" << *num_trials_p << "]\n";
-  
+
   int max_opts = 50;
 
-  
-  bool is_good = true; 
+  bool corner_pass = runCornerCaseTests();
+
+  bool is_good = true;
   for(int i = 0; i < *num_trials_p; i++) {
     if(!is_good) {
       std::cerr << "Failed after " << i << " trials\n";
       break;
     }
-    SoDa::Options cmd; 
+    SoDa::Options cmd;
     if((i % 10000) == 0) {
       std::cerr << SoDa::Format("Trial %0/%1\r")
 	.addI(i, 10)
@@ -463,7 +739,7 @@ int main(int argc, char ** argv) {
   }
 
   std::cout << "\n";
-  if(is_good) std::cout << "PASS\n";
+  if(is_good && corner_pass) std::cout << "PASS\n";
   else std::cout << "FAIL\n";
 }
  
