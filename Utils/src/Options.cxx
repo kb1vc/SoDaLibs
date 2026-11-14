@@ -216,12 +216,14 @@ namespace SoDa {
 	  if(sw_len == 1) {
 	    if(tkn[1] == 'h') {
 	      printHelp(help_stream);
+	      return false;
 	    }
 	    arg_p = findOpt(tkn[1]);
 	  }
 	  else {
 	    if(tkn == "--help") {
 	      printHelp(help_stream);
+	      return false; 
 	    }
 	    arg_p = findOpt(tkn.substr(2));
 	  }

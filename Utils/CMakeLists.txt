@@ -45,9 +45,10 @@ INCLUDE(CTest)
 #    SafeOut     Mutex protected file/stream IO.
 #    TCPSockets  Secure (SSL) TCP sockets
 #    UDSockets   Unix domain (filesystem) sockets (borrowed from SoDaRadio)
+# 5.3.2 Fixed problem with printHelp printing the help info twice.
 SET(SoDaUtils_VERSION_MAJOR 5)
 SET(SoDaUtils_VERSION_MINOR 3)
-SET(SoDaUtils_VERSION_PATCH 1)
+SET(SoDaUtils_VERSION_PATCH 2)
 SET(SoDaUtils_VERSION "${SoDaUtils_VERSION_MAJOR}.${SoDaUtils_VERSION_MINOR}.${SoDaUtils_VERSION_PATCH}")
 
 MESSAGE("SoDaUtils_VERSION=[${SoDaUtils_VERSION}]")
