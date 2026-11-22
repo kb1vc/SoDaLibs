@@ -111,7 +111,7 @@ jobs:
           ls -l *."$EXT"
 
       - name: Upload kit artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: kit-${{ matrix.distro }}-${{ matrix.version }}
           path: build/*.${{ matrix.ext }}
@@ -142,7 +142,7 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends ca-certificates
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: kit-${{ matrix.distro }}-${{ matrix.version }}
           path: pkg
@@ -172,10 +172,17 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           set -euo pipefail
-          deb_file=$(find pkg -maxdepth 1 -name '*.deb' | head -1)
+          echo "Contents of pkg/:"
+          ls -laR pkg/
+          deb_file=$(find pkg -type f -name '*.deb' | head -1)
           test -n "$deb_file"
+          test -f "$deb_file"
+          echo "Installing: $deb_file"
           apt-get update
-          apt-get install -y --no-install-recommends "$deb_file"
+          # Leading ./ tells apt "this is a file path, not a package name
+          # with a release suffix" -- without it apt silently reinterprets
+          # pkg/foo.deb as package 'pkg' from release 'foo.deb'.
+          apt-get install -y --no-install-recommends "./$deb_file"
           dpkg -s sodalibs-devel >/dev/null
           missing=""
           for f in $(dpkg -L sodalibs-devel); do
@@ -196,7 +203,7 @@ jobs:
     needs: [prelude, build, test-install]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           path: artifacts
 
