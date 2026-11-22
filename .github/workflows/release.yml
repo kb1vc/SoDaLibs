@@ -7,6 +7,13 @@ on:
 permissions:
   contents: write
 
+# Container jobs default to /bin/sh (dash on Ubuntu), which doesn't support
+# `set -o pipefail`.  Force bash everywhere; fedora:* and ubuntu:* base
+# images all ship /bin/bash.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   # ------------------------------------------------------------------
   # Read charliecloud_test/versions.conf and emit a single flat matrix
@@ -19,7 +26,7 @@ jobs:
       matrix: ${{ steps.matrix.outputs.matrix }}
       release_type: ${{ steps.release_type.outputs.release_type }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build matrix from versions.conf
         id: matrix
@@ -80,7 +87,7 @@ jobs:
             build-essential git cmake pkg-config ca-certificates \
             libfftw3-dev libssl-dev
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Configure, build, test, package
         env:
