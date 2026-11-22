@@ -111,7 +111,10 @@ static X509 *makeCert(EVP_PKEY *key, const char *cn,
   X509_gmtime_adj(X509_getm_notAfter(cert), 365L * 24 * 3600);
   X509_set_pubkey(cert, key);
 
-  X509_NAME *name = X509_get_subject_name(cert);
+  // OpenSSL 3.0+ returns const here; the storage it points into is still
+  // mutable (it's cert's own subject-name struct, meant to be populated),
+  // so cast to allow X509_NAME_add_entry_by_txt below.
+  X509_NAME *name = const_cast<X509_NAME *>(X509_get_subject_name(cert));
   X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC,
                              (const unsigned char *)cn, -1, -1, 0);
 
