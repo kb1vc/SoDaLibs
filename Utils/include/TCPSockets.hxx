@@ -197,8 +197,9 @@ namespace SoDa {
      * @brief Shared base holding TLS state and the put/get helpers used by
      *        ServerSocket and ClientSocket.
      *
-     * TLS state is stored via SslSession*/SslContext* -- forward-declared
-     * opaque structs whose real types live only in TCPSockets.cxx.
+     * TLS state is stored via SslSession and SslContext pointers --
+     * forward-declared opaque structs whose real types live only in
+     * TCPSockets.cxx.
      */
     class NetSocket : public SocketBase {
     protected:

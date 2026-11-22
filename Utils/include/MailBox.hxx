@@ -353,6 +353,20 @@ namespace SoDa {
 	subscription_counter = 0;
       }
 
+    /**
+     * @brief Make a mailbox and return a shared pointer to it.
+     *
+     * Equivalent to the free-function makeMailBox(); provided as a
+     * static factory for callers that prefer the MailBox<T>::make
+     * spelling.
+     *
+     * @param name       Name of the mailbox.
+     * @param max_depth  Per-subscriber queue high-water mark; put() throws
+     *                   QueueFull before exceeding this. Defaults to
+     *                   default_max_queue_depth. Pass SIZE_MAX to disable
+     *                   the check (not recommended in production).
+     * @returns shared pointer to a MailBox object.
+     */
     static std::shared_ptr<MailBox<T>> make(std::string name,
 					    size_t max_depth = default_max_queue_depth) {
       return std::make_shared<MailBox<T>>(name, max_depth);
@@ -574,9 +588,13 @@ namespace SoDa {
    * thing that created the mailbox and spawned the threads that use
    * it. Sure we could rely on good behavior, but why? 
    *
-   * @param mname Name of the mailbox. 
+   * @param mname     Name of the mailbox.
+   * @param max_depth Per-subscriber queue high-water mark; put() throws
+   *                  QueueFull before exceeding this. Defaults to
+   *                  MailBox<T>::default_max_queue_depth. Pass SIZE_MAX
+   *                  to disable the check (not recommended in production).
    * @returns shared pointer to a Mailbox object
-   */ 
+   */
   template<typename T>
   std::shared_ptr<MailBox<T>> makeMailBox(const std::string & mname,
 					  size_t max_depth = MailBox<T>::default_max_queue_depth) {
