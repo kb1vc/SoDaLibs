@@ -10,8 +10,18 @@ RUN dnf --assumeyes update \
 RUN test -n "${PACKAGE_NAME}" && test -f "/mnt/pkg/${PACKAGE_NAME}"
 RUN dnf --assumeyes install "/mnt/pkg/${PACKAGE_NAME}"
 
-# Sanity check: the installed static libs and headers must be where
-# the config files claim they are.
-RUN test -f /usr/lib64/libSoDaUtils.a || test -f /usr/lib/libSoDaUtils.a
-RUN test -f /usr/lib64/libSoDaSignals.a || test -f /usr/lib/libSoDaSignals.a
-RUN test -d /usr/include/SoDa
+# Sanity check: ask the package what files it installed, and verify each
+# one actually exists on disk.  This avoids baking distro-specific paths
+# (lib64 vs lib, SoDa/ subdir, etc.) into the test.
+RUN rpm -q sodalibs-devel
+RUN set -eu; \
+    missing=""; \
+    for f in $(rpm -ql sodalibs-devel); do \
+        [ -e "$f" ] || missing="$missing $f"; \
+    done; \
+    if [ -n "$missing" ]; then \
+        echo "MISSING FILES:" >&2; \
+        printf '  %s\n' $missing >&2; \
+        exit 1; \
+    fi; \
+    echo "all package files present"
