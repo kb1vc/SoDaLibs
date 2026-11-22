@@ -137,7 +137,35 @@
  * subscribers will proceed unimpeeded, but the waiting messages take
  * up storage and can't be freed until the laggard subscriber catches
  * up.
- * 
+ *
+ * \section MailBoxQueueFull Bounded per-subscriber queues
+ *
+ * To prevent a stuck or slow subscriber from consuming unbounded memory,
+ * each mailbox enforces a per-subscriber high-water mark (default
+ * SoDa::MailBox::default_max_queue_depth, 10000 messages). If a call to
+ * '''put''' would push any recipient's queue past the limit, '''put'''
+ * throws SoDa::MailBoxBase::QueueFull and *no* recipient receives the
+ * message -- either every subscriber gets it, or the producer sees the
+ * exception. This lets the producer decide what to do (log, drop, back off,
+ * or kill the laggard) rather than silently leaking memory.
+ *
+ * The cap is injected per mailbox via the constructor. Bursty mailboxes
+ * can raise it:
+ *
+ * \code
+ * auto fast_mbox   = SoDa::MailBox<Msg>::make("fast", 100000);
+ * auto no_limit_mbox = SoDa::MailBox<Msg>::make("stress", (size_t)-1);
+ * \endcode
+ *
+ * Catching the exception:
+ * \code
+ * try {
+ *   mbox->put(msg);
+ * } catch (SoDa::MailBoxBase::QueueFull & e) {
+ *   // handle laggard subscriber
+ * }
+ * \endcode
+ *
  */
 
 /**
@@ -220,9 +248,26 @@ namespace SoDa {
 	Exception(name,
 		  "MailBoxBase::get attempted on empty buffer queue.\n") {
       }
-    }; 
-    
-    
+    };
+
+    /**
+     * @brief Thrown by MailBox::put when any subscriber's queue has reached
+     *        the high-water mark. Protects against runaway memory growth
+     *        when one subscriber stops reading.
+     */
+    class QueueFull : public Exception {
+    public:
+      QueueFull(const std::string & name, int subscriber_id, size_t depth) :
+	Exception(name,
+		  SoDa::Format("MailBox put failed: subscriber %0 queue at high-water (%1 messages)")
+		  .addI(subscriber_id)
+		  .addU(depth)
+		  .str()) {
+      }
+    };
+
+
+
     template<typename MBoxT>
     static std::shared_ptr<MBoxT> convert(std::shared_ptr<MailBoxBase> p, const std::string & mbname, bool throw_on_fail = false)
     {
@@ -283,19 +328,34 @@ namespace SoDa {
   template<typename T>
   class MailBox : public MailBoxBase, NoCopy {
   public:
+    /// Default high-water mark on any per-subscriber queue. put() throws
+    /// QueueFull before enqueueing a message that would push a subscriber
+    /// over this limit; this prevents a slow or stuck subscriber from
+    /// growing the process's memory footprint without bound. The limit
+    /// can be overridden per mailbox via the constructor -- pass a larger
+    /// value for intentionally bursty mailboxes, or SIZE_MAX to disable.
+    static constexpr size_t default_max_queue_depth = 10000;
+
     /**
-     * @brief Create a mailbox. All mailboxes can put and get 
-     * messages from the mailbox. 
-     * 
+     * @brief Create a mailbox. All mailboxes can put and get
+     * messages from the mailbox.
+     *
      * Each subscriber gets  message queue.  It is up to the subscriber
      * to "read the mail"
+     *
+     * @param name        mailbox name used in exception messages.
+     * @param max_depth   per-subscriber queue high-water mark; put() throws
+     *                    QueueFull before exceeding this. Pass SIZE_MAX to
+     *                    disable the check (not recommended in production).
      */
-    MailBox(std::string name) : MailBoxBase(name) {
-	subscription_counter = 0; 
+    MailBox(std::string name, size_t max_depth = default_max_queue_depth)
+      : MailBoxBase(name), max_queue_depth(max_depth) {
+	subscription_counter = 0;
       }
 
-    static std::shared_ptr<MailBox<T>> make(std::string name) {
-      return std::make_shared<MailBox<T>>(name);
+    static std::shared_ptr<MailBox<T>> make(std::string name,
+					    size_t max_depth = default_max_queue_depth) {
+      return std::make_shared<MailBox<T>>(name, max_depth);
     }
 
     ~MailBox() {
@@ -313,8 +373,16 @@ namespace SoDa {
 	subscriber_index = idx; 
       }
 
-      ~SubscriptionCl() {
-	this_mbox->unsubscribe(subscriber_index);
+      // Swallow exceptions: a throw during stack unwinding would call
+      // std::terminate. If the mailbox has already torn down the subscriber
+      // (e.g. after unsubscribe was called explicitly), the second
+      // unsubscribe is a silent no-op.
+      ~SubscriptionCl() noexcept {
+	try {
+	  this_mbox->unsubscribe(subscriber_index);
+	} catch (...) {
+	  // intentional: destructors must not throw
+	}
       }
 
       int getIndex(MailBox<T> * mbox) const {
@@ -386,10 +454,19 @@ namespace SoDa {
      * message queue. 
      */
     void put(T msg, const Subscription & subs = nullptr) {
-      std::lock_guard<std::mutex> lock(mtx);            
+      std::lock_guard<std::mutex> lock(mtx);
       int omit_key = subscription_counter; // points past last allocted subscription id
       if(subs != nullptr) {
 	omit_key = subs->getIndex(this);
+      }
+      // First pass: refuse the whole put if any recipient queue is already
+      // at the high-water mark. Enforcing this up front means we never
+      // partially deliver -- either every recipient gets the message or
+      // the producer sees QueueFull and can decide what to do.
+      for(auto & q : message_queues) {
+	if(q.first != omit_key && q.second.size() >= max_queue_depth) {
+	  throw QueueFull(getName(), q.first, q.second.size());
+	}
       }
       for(auto & q : message_queues) {
 	if(q.first != omit_key) {
@@ -432,13 +509,15 @@ namespace SoDa {
      * subscriber queue. 
      */
     unsigned int minReadyCount() {
-      std::lock_guard<std::mutex> lock(mtx);	      
-      unsigned int ret = ~0;
+      std::lock_guard<std::mutex> lock(mtx);
+      // With no subscribers the min is 0, not UINT_MAX.
+      if (message_queues.empty()) return 0;
+      unsigned int ret = ~0u;
       for(auto q : message_queues) {
 	auto qs = q.second.size();
-	ret = (ret < qs) ? ret : qs; 
+	ret = (ret < qs) ? ret : qs;
       }
-      return ret; 
+      return ret;
     }
     
     
@@ -467,8 +546,9 @@ namespace SoDa {
       return message_queues.size();
     }
   protected:
-    std::map<int, std::queue<T>> message_queues; 
-    int subscription_counter; 
+    std::map<int, std::queue<T>> message_queues;
+    int subscription_counter;
+    size_t max_queue_depth;
 
     std::queue<T> & getQueue(int idx) {
       if(message_queues.count(idx) == 0) {
@@ -498,8 +578,9 @@ namespace SoDa {
    * @returns shared pointer to a Mailbox object
    */ 
   template<typename T>
-  std::shared_ptr<MailBox<T>> makeMailBox(const std::string & mname) {
-    return std::make_shared<MailBox<T>>(mname);
+  std::shared_ptr<MailBox<T>> makeMailBox(const std::string & mname,
+					  size_t max_depth = MailBox<T>::default_max_queue_depth) {
+    return std::make_shared<MailBox<T>>(mname, max_depth);
   }
 
   // You'd think we could use a typedef here, but typedefs and

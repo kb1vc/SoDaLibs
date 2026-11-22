@@ -33,59 +33,122 @@
 #include <netdb.h>
 #include <sys/select.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <algorithm>
 #include <string.h>
 #include <SoDa/Format.hxx>
 
 namespace SoDa {
+  // Maximum size of a single framed message. Any peer-supplied length prefix
+  // above this is treated as hostile and the read is aborted.
+  static constexpr unsigned int max_UD_msg_size = 8u * 1024u * 1024u;
+
+  // Copy `path` into `addr.sun_path`, always NUL-terminated. Throws
+  // UD::SocketError if `path` is too long to fit in sun_path (including the
+  // trailing NUL).
+  static void set_sun_path(struct sockaddr_un & addr, const std::string & path) {
+    if (path.size() >= sizeof(addr.sun_path)) {
+      throw UD::SocketError(Format("socket path too long (%0 >= %1 bytes): %2")
+			    .addU(path.size())
+			    .addU(sizeof(addr.sun_path))
+			    .addS(path)
+			    .str());
+    }
+    memcpy(addr.sun_path, path.c_str(), path.size());
+    addr.sun_path[path.size()] = '\0';
+  }
+
+  // Unlink a stale socket file only if it is actually a Unix domain socket
+  // and owned by our effective uid. Guards against a symlink race in which an
+  // attacker swaps `path` for a victim file (or directory entry) between our
+  // check and our bind.
+  static void safe_unlink_socket(const std::string & path) {
+    struct stat st;
+    if (lstat(path.c_str(), &st) < 0) {
+      // Nothing there (or no permission to see). bind() will report any real
+      // problem.
+      return;
+    }
+    if (!S_ISSOCK(st.st_mode)) {
+      std::cerr << Format("UD: refusing to unlink %0: not a socket (mode=%1)\n")
+	.addS(path)
+	.addU(st.st_mode, 'o');
+      return;
+    }
+    if (st.st_uid != geteuid()) {
+      std::cerr << Format("UD: refusing to unlink %0: owned by uid %1 (we are uid %2)\n")
+	.addS(path)
+	.addU(st.st_uid)
+	.addU(geteuid());
+      return;
+    }
+    unlink(path.c_str());
+  }
   UD::ServerSocket::ServerSocket(const std::string & path)
   {
-    int stat; 
-    // create the socket. 
+    int stat;
+    // create the socket.
     server_socket = socket(AF_UNIX, SOCK_STREAM, 0);
-  
-    // init the debug flag  
-    debug = false; 
-  
+
+    // init the debug flag
+    debug = false;
+
     if(server_socket < 0) {
-      std::cerr << "Failed to create server socket... I quit." << std::endl;
-      exit(-1); 
+      throw UD::SocketError(Format("failed to create server socket for [%0]: %1")
+			    .addS(path)
+			    .addS(strerror(errno))
+			    .str());
     }
 
     int x = fcntl(server_socket, F_GETFL, 0);
     fcntl(server_socket, F_SETFL, x | O_NONBLOCK);
-  
+
     // setup the server address
     bzero((char*) &server_address, sizeof(server_address));
     server_address.sun_family = AF_UNIX;
-    strncpy(server_address.sun_path, path.c_str(), path.size());
-    unlink(path.c_str());
-    int len = sizeof(server_address); // strlen(server_address.sun_path) + sizeof(server_address.sun_family); 
+    set_sun_path(server_address, path);
+    safe_unlink_socket(path);
+    int len = sizeof(server_address); // strlen(server_address.sun_path) + sizeof(server_address.sun_family);
 
-    mailbox_pathname = path; 
+    mailbox_pathname = path;
 
-    std::cerr << "Creating server socket [" << mailbox_pathname << "]\n";
-  
     // now bind it
     if (bind(server_socket, (struct sockaddr *) &server_address, len) < 0) {
-      std::cerr << "Couldn't bind Unix domain socket at path " << path << " I quit." << std::endl;
-      exit(-1); 
+      int e = errno;
+      close(server_socket);
+      throw UD::SocketError(Format("bind failed on [%0]: %1")
+			    .addS(path)
+			    .addS(strerror(e))
+			    .str());
     }
 
     // now let the world know that we're ready for one and only one connection.
     stat = listen(server_socket, 1);
     if(stat < 0) {
-      std::cerr << "Couldn't listen on Unix socket  " << path << " got " << errno << " I quit." << std::endl; 
-      exit(-1); 
+      int e = errno;
+      close(server_socket);
+      throw UD::SocketError(Format("listen failed on [%0]: %1")
+			    .addS(path)
+			    .addS(strerror(e))
+			    .str());
     }
 
-    std::cerr << "Created server socket [" << mailbox_pathname << "]\n";
-    // mark the socket as "not ready" for input -- it needs to accept first. 
-    ready = false; 
+    // mark the socket as "not ready" for input -- it needs to accept first.
+    ready = false;
+  }
+
+  UD::ServerSocket::~ServerSocket()
+  {
+    close(conn_socket);
+    close(server_socket);
+    // Only unlink the socket file if it still looks like ours -- guards
+    // against a late-breaking symlink swap against an unrelated file.
+    safe_unlink_socket(mailbox_pathname);
   }
 
   UD::ClientSocket::ClientSocket(const std::string & path, int startup_timeout_count)
@@ -93,19 +156,20 @@ namespace SoDa {
     int retry_count;
     conn_socket = socket(AF_UNIX, SOCK_STREAM, 0);
     if(conn_socket < 0) {
-      std::cerr << Format("Failed to create client socket on [%0]... I quit.\n")
-	.addS(path); 
-      exit(-1); 
+      throw UD::SocketError(Format("failed to create client socket on [%0]: %1")
+			    .addS(path)
+			    .addS(strerror(errno))
+			    .str());
     }
 
     mailbox_pathname = path;
 
     bzero((char*) &server_address, sizeof(server_address));
     server_address.sun_family = AF_UNIX;
-    strncpy(server_address.sun_path, path.c_str(), path.size());
+    set_sun_path(server_address, path);
     int len = sizeof(server_address);
 
-    int stat; 
+    int stat;
     for(retry_count = 0; retry_count < startup_timeout_count; retry_count++) {
       stat = connect(conn_socket, (struct sockaddr *) &server_address, len);
       if(stat >= 0) break;
@@ -116,22 +180,28 @@ namespace SoDa {
     }
 
     if(stat < 0) {
-      std::cerr << "Client couldn't connect to UNIX socket [" << path << "].  I quit." << std::endl;
-      perror("oops.");
-      exit(-1); 
+      int e = errno;
+      close(conn_socket);
+      throw UD::SocketError(Format("client couldn't connect to UNIX socket [%0]: %1")
+			    .addS(path)
+			    .addS(strerror(e))
+			    .str());
     }
 
     int x = fcntl(conn_socket, F_GETFL, 0);
     fcntl(conn_socket, F_SETFL, x | O_NONBLOCK);
-
-    std::cerr << "Created client socket [" << mailbox_pathname << "]\n";  
   }
 
   bool UD::ServerSocket::isReady(size_t required_len)
   {
+    // Clamp required_len to the local scratch buffer. The kernel is told to
+    // peek up to required_len bytes; without this clamp a caller supplying a
+    // value greater than sizeof(buf) would smash the stack.
+    char buf[32];
+    if (required_len > sizeof(buf)) required_len = sizeof(buf);
+
     if(ready) {
-      // is the socket still open? 
-      char buf[32];
+      // is the socket still open?
       if(recv(conn_socket, buf, required_len, MSG_PEEK | MSG_DONTWAIT) == 0) {
 	// connection has been closed. -- though this never seems to trigger
 	close(conn_socket);
@@ -143,22 +213,20 @@ namespace SoDa {
     else {
       socklen_t ca_len = sizeof(client_address);
       // note that we've set the server_socket to non-block, so if nobody is here,
-      // we should get an EAGAIN or EWOULDBLOCK. 
+      // we should get an EAGAIN or EWOULDBLOCK.
       int ns = accept(server_socket, (struct sockaddr *) & client_address, &ca_len);
-    
+
       if(ns < 0) {
-	ready = false; 
+	ready = false;
       }
       else {
-	std::cerr << Format("%0 got client connection!\n").addS(mailbox_pathname);
 	conn_socket = ns;
 	int x = fcntl(conn_socket, F_GETFL, 0);
 	int stat = fcntl(conn_socket, F_SETFL, x | O_NONBLOCK);
-	char buf[32];
 	ready = (recv(conn_socket, buf, required_len, MSG_PEEK | MSG_DONTWAIT) != 0);
       }
     }
-    return ready; 
+    return ready;
   }
 
   int UD::NetSocket::loopWrite(int fd, const void * ptr, unsigned int nbytes)
@@ -202,33 +270,48 @@ namespace SoDa {
   int UD::NetSocket::get(void * ptr, unsigned int size, bool len_prefix)
   {
     int stat;
-    unsigned int rsize;
-    unsigned int ret_size = 0; 
-
-    int left = size; 
+    size_t rsize = size;
+    unsigned int ret_size = 0;
+    size_t left = size;
 
     if(len_prefix) {
-      stat = read(conn_socket, &rsize, sizeof(unsigned int));
+      // Wire format is a 32-bit length. Read into an unsigned int (matches
+      // put(), which writes sizeof(unsigned int) bytes), then promote to
+      // size_t for all subsequent arithmetic.
+      unsigned int wire_rsize;
+      stat = read(conn_socket, &wire_rsize, sizeof(wire_rsize));
       if(stat <= 0) {
 	if((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
-	  //      std::cerr << ">>>" << std::endl; 
-	  return 0; 
+	  return 0;
 	}
 	else {
-	  perror("Oops -- UD::NetSocket::get -- "); 
+	  perror("Oops -- UD::NetSocket::get -- ");
 	  return stat;
 	}
       }
+      rsize = wire_rsize;
 
-      left = rsize;
+      // Reject any peer-supplied frame larger than the hard cap. Without this
+      // a malicious peer could make us drain gigabytes or overrun the caller's
+      // buffer via integer confusion.
+      if(rsize > max_UD_msg_size) {
+	std::cerr << Format("UD::NetSocket::get: rejecting oversized frame (rsize=%0, max=%1)\n")
+	  .addU(rsize)
+	  .addU(max_UD_msg_size);
+	return -1;
+      }
+
+      // Copy no more bytes than the caller's buffer can hold; drain the rest
+      // below.
+      left = (rsize < size) ? rsize : size;
     }
 
-    char * bptr = (char*) ptr; 
+    char * bptr = (char*) ptr;
     while(left > 0) {
       int ls = read(conn_socket, bptr, left);
       if(ls < 0) {
 	if((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
-	  continue; 
+	  continue;
 	}
 	else {
 	  perror("Ooops -- read buffer continued");
@@ -237,31 +320,32 @@ namespace SoDa {
       }
       else {
 	left -= ls;
-	bptr += ls; 
-	ret_size += ls; 
+	bptr += ls;
+	ret_size += ls;
       }
     }
-  
-    if(rsize > size) {
+
+    if(len_prefix && rsize > size) {
       char dmy[100];
-      unsigned int left = rsize - size;
-      while(left != 0) {
-	int ls; 
-	ls = read(conn_socket, dmy, (left > 100) ? 100 : left);
+      size_t drain_left = rsize - size;
+      while(drain_left != 0) {
+	int ls;
+	size_t chunk = (drain_left > sizeof(dmy)) ? sizeof(dmy) : drain_left;
+	ls = read(conn_socket, dmy, chunk);
 	if(ls < 0) {
 	  if((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
-	    continue; 
+	    continue;
 	  }
 	  else {
 	    perror("Ooops -- read buffer continued");
 	    return ls;
 	  }
 	}
-	left -= ls; 
+	drain_left -= (size_t)ls;
       }
     }
 
-    return ret_size; 
+    return ret_size;
 
   }
 }

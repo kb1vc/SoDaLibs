@@ -155,7 +155,11 @@ int objMailBoxTest(SoDa::MailBoxPtr<MyMsgPtr> mailbox_p,
   
 int testObjMessage(int msg_count, int num_threads, int num_trials, bool no_echo) {
   //! [create a mailbox]
-  SoDa::MailBoxPtr<MyMsgPtr> mailbox_p = SoDa::MailBox<MyMsgPtr>::make("MessageMailbox");  
+  // This stress test intentionally floods the mailbox well past the default
+  // 10 000-deep per-subscriber queue, so we opt out of the high-water check
+  // by passing SIZE_MAX. Production code should use the default.
+  SoDa::MailBoxPtr<MyMsgPtr> mailbox_p =
+    SoDa::MailBox<MyMsgPtr>::make("MessageMailbox", (size_t)-1);
   //! [create a mailbox]
 
   // Just testing the pointer conversion to make sure we can build
@@ -239,6 +243,77 @@ void testMBoxConversion() {
   }
 }
 
+// Verify the per-subscriber high-water mark: put() must throw QueueFull as
+// soon as a push would make any recipient's queue exceed the cap, and the
+// mailbox must remain usable after the subscriber drains some messages.
+void testQueueFull() {
+  constexpr size_t cap = 5;
+  auto mbox = SoDa::MailBox<int>::make("CappedMailbox", cap);
+  auto sub  = mbox->subscribe();
+
+  // Fill exactly to the cap: these must all succeed.
+  for (size_t i = 0; i < cap; i++) {
+    try {
+      mbox->put((int)i);
+    } catch (SoDa::MailBoxBase::QueueFull & e) {
+      std::cerr << SoDa::Format("testQueueFull: unexpected QueueFull at message %0: %1\n")
+	.addU(i).addS(e.what());
+      exit(-1);
+    }
+  }
+
+  // The next put() must throw -- otherwise the cap isn't being enforced.
+  bool threw = false;
+  try {
+    mbox->put(999);
+  } catch (SoDa::MailBoxBase::QueueFull & e) {
+    threw = true;
+  }
+  if (!threw) {
+    std::cerr << "testQueueFull: put() past cap did NOT throw QueueFull\n";
+    exit(-1);
+  }
+
+  // The queue must have exactly `cap` messages, not cap+1 -- a partial
+  // delivery would be a correctness bug.
+  if (mbox->readyCount(sub) != cap) {
+    std::cerr << SoDa::Format("testQueueFull: queue depth after failed put() is %0, expected %1\n")
+      .addU(mbox->readyCount(sub)).addU(cap);
+    exit(-1);
+  }
+
+  // Drain one message; put() should now succeed again.
+  int v;
+  if (!mbox->get(sub, v)) {
+    std::cerr << "testQueueFull: get() returned empty on a non-empty queue\n";
+    exit(-1);
+  }
+  try {
+    mbox->put(1000);
+  } catch (SoDa::MailBoxBase::QueueFull & e) {
+    std::cerr << SoDa::Format("testQueueFull: put() after drain unexpectedly threw: %0\n")
+      .addS(e.what());
+    exit(-1);
+  }
+
+  // Sanity check on the content: 1 .. cap-1, then 1000.
+  for (size_t i = 1; i < cap; i++) {
+    mbox->get(sub, v);
+    if ((size_t)v != i) {
+      std::cerr << SoDa::Format("testQueueFull: expected %0, got %1\n")
+	.addU(i).addI(v);
+      exit(-1);
+    }
+  }
+  mbox->get(sub, v);
+  if (v != 1000) {
+    std::cerr << SoDa::Format("testQueueFull: expected 1000, got %0\n").addI(v);
+    exit(-1);
+  }
+
+  std::cerr << "testQueueFull: passed\n";
+}
+
 
 int main(int argc, char ** argv) {
 
@@ -268,10 +343,12 @@ int main(int argc, char ** argv) {
   if(!cmd.parse(argc, argv)) exit(-1);
 
   testMBoxConversion();
-  
+
+  testQueueFull();
+
   // std::cerr << "test 1\n";
   // testVectorMsg(msg_count, num_threads);
-  
+
   std::cerr << "test 2\n";
   testObjMessage(msg_count, num_threads, num_trials, no_echo);
   

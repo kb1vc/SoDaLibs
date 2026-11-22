@@ -79,8 +79,15 @@ namespace SoDa {
   }
 
   std::string Options::getPosArg(int idx) {
-    if(idx > pos_arg_vec.size()) return std::string("");
-    else return pos_arg_vec[idx]; 
+    // Guard against negative idx (which, under signed/unsigned comparison,
+    // would silently promote to a huge size_t and pass the upper-bound test)
+    // and against the off-by-one that let idx == size() read one past the end.
+    // Previously this returned "" on out-of-range, which prevented callers
+    // from distinguishing a legitimately empty arg from an absent one.
+    if (idx < 0 || static_cast<size_t>(idx) >= pos_arg_vec.size()) {
+      throw BadPosArgIndexException(idx, pos_arg_vec.size());
+    }
+    return pos_arg_vec[idx];
   }
 
   std::list<std::string> Options::buildTokenList(int argc, char * argv[]) {
@@ -176,6 +183,9 @@ namespace SoDa {
 
   bool Options::parse(std::list<std::string> tokens, std::ostream & help_stream) {
     OptBase_p arg_p = nullptr;
+    // Clear any carry-over state from a previous parse so an aborted
+    // "--signedarg" doesn't bleed into the next invocation.
+    waiting_for_signed = false;
     try {
       while(!tokens.empty()) {
 	std::string tkn = tokens.front();
@@ -251,12 +261,17 @@ namespace SoDa {
     catch (BadOptionNameException & exc) {
       help_stream << exc.what() << "\n";
       printHelp(help_stream);
-      return false; 
+      return false;
+    }
+    catch (std::exception & exc) {
+      std::cerr << Format("Exception in Options::parse: %0\n").addS(exc.what());
+      return false;
     }
     catch (...) {
-      std::cerr << "Exception in Options::parse -- dunno what it is\n";
+      std::cerr << "Exception in Options::parse -- unknown type\n";
+      return false;
     }
-    return true; 
+    return true;
   }
 
   Options::OptBase_p Options::findOpt(const std::string & long_name) {
@@ -327,9 +342,18 @@ namespace SoDa {
     
     for(auto kv_a : l_kvp) {
       auto kv = SoDa::squashSpaces(kv_a);
-      
+      if (kv.empty()) continue;
+
       // now we've got a key=value pair.  Split that at the =
       auto kvp = SoDa::split(kv, std::string("="));
+      // A well-formed pair splits into exactly 2 tokens. 0 tokens means an
+      // empty entry (just a comma); 1 means no '=' was present. Both of
+      // those used to silently alias key == value via front()/back().
+      if (kvp.size() < 2) {
+	help_stream << Format("Options::parseKeyValue: not a key=value pair: [%0]\n")
+	  .addS(kv_a);
+	return false;
+      }
       auto key = kvp.front();
       auto value = kvp.back();
 

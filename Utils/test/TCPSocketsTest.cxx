@@ -102,7 +102,8 @@ static EVP_PKEY *makeECKey() {
 
 static X509 *makeCert(EVP_PKEY *key, const char *cn,
                       X509 *issuer_cert, EVP_PKEY *issuer_key,
-                      long serial, bool is_ca) {
+                      long serial, bool is_ca,
+                      const char *san = nullptr) {
   X509 *cert = X509_new();
   X509_set_version(cert, 2);
   ASN1_INTEGER_set(X509_get_serialNumber(cert), serial);
@@ -127,6 +128,20 @@ static X509 *makeCert(EVP_PKEY *key, const char *cn,
     X509V3_set_ctx(&v3ctx, cert, cert, nullptr, nullptr, 0);
     X509_EXTENSION *ex = X509V3_EXT_conf_nid(nullptr, &v3ctx,
                                              NID_basic_constraints, "CA:TRUE");
+    if (ex) { X509_add_ext(cert, ex, -1); X509_EXTENSION_free(ex); }
+  }
+
+  // Add a subjectAltName. Required for modern TLS hostname/IP pinning: when
+  // the client calls SSL_set1_host() or X509_VERIFY_PARAM_set1_ip_asc(),
+  // OpenSSL checks SANs, not CN. The server cert in this test needs
+  // "IP:127.0.0.1" since the tests all connect via that address.
+  if (san) {
+    X509V3_CTX v3ctx;
+    X509V3_set_ctx_nodb(&v3ctx);
+    X509V3_set_ctx(&v3ctx, issuer_cert ? issuer_cert : cert, cert,
+                   nullptr, nullptr, 0);
+    X509_EXTENSION *ex = X509V3_EXT_conf_nid(nullptr, &v3ctx,
+                                             NID_subject_alt_name, san);
     if (ex) { X509_add_ext(cert, ex, -1); X509_EXTENSION_free(ex); }
   }
 
@@ -157,9 +172,10 @@ static Certs generateCerts(const std::string &prefix) {
   writeCert(c.ca_crt, ca_cert);
 
   auto issue = [&](const char *cn, long serial,
-                   std::string &crt_out, std::string &key_out) {
+                   std::string &crt_out, std::string &key_out,
+                   const char *san = nullptr) {
     EVP_PKEY *k = makeECKey();
-    X509     *x = makeCert(k, cn, ca_cert, ca_key, serial, false);
+    X509     *x = makeCert(k, cn, ca_cert, ca_key, serial, false, san);
     crt_out = prefix + cn + ".crt";
     key_out = prefix + cn + ".key";
     writeCert(crt_out, x);
@@ -168,7 +184,11 @@ static Certs generateCerts(const std::string &prefix) {
     EVP_PKEY_free(k);
   };
 
-  issue("server", 2, c.srv_crt,   c.srv_key);
+  // Server cert needs a SAN for the address the tests dial: the client now
+  // pins the peer identity to 127.0.0.1, so a CN-only cert is correctly
+  // refused by OpenSSL.
+  issue("server", 2, c.srv_crt,   c.srv_key,
+        "IP:127.0.0.1,DNS:localhost");
   issue("alice",  3, c.alice_crt, c.alice_key);
   issue("bob",    4, c.bob_crt,   c.bob_key);
 

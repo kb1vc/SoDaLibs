@@ -30,9 +30,29 @@
 #include <SoDa/Format.hxx>
 #include <SoDa/Exception.hxx>
 
+#include <memory>
 #include <mutex>
 
 namespace SoDa {
+
+  // Allocate n_complex fftwf_complex elements via fftwf_malloc. Throws
+  // FFT::AllocFailed on NULL return rather than letting the caller dereference
+  // a null pointer.
+  static fftwf_complex * safe_fftwf_alloc(size_t n_complex, const char * context) {
+    auto p = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * n_complex);
+    if (p == nullptr) {
+      throw FFT::AllocFailed(context, n_complex);
+    }
+    return p;
+  }
+
+  // RAII wrapper for an fftwf_malloc'd pointer; frees via fftwf_free on
+  // destruction. Used so a partially-successful allocation can't leak when a
+  // subsequent allocation throws.
+  using FFTWBuf = std::unique_ptr<fftwf_complex, decltype(&fftwf_free)>;
+  static FFTWBuf make_fftw_buf(size_t n_complex, const char * context) {
+    return FFTWBuf(safe_fftwf_alloc(n_complex, context), &fftwf_free);
+  }
 
   bool FFT::first_fft_created = false;
   std::mutex FFT::mtx;
@@ -64,16 +84,17 @@ namespace SoDa {
       break; 
     }
     
-    auto f_dummy_in = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * len);
-    auto f_dummy_out = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * len);  
-  
-    forward_plan = fftwf_plan_dft_1d(len, f_dummy_in, f_dummy_out, 
-				     FFTW_FORWARD, fftw_flag);
-    backward_plan = fftwf_plan_dft_1d(len, f_dummy_in, f_dummy_out, 
-				      FFTW_BACKWARD, fftw_flag); // ESTIMATE);
+    // RAII-managed scratch buffers so that if the second allocation fails,
+    // the first is freed by the unique_ptr destructor as the exception leaves
+    // this ctor.
+    auto f_dummy_in  = make_fftw_buf(len, "FFT ctor (in)");
+    auto f_dummy_out = make_fftw_buf(len, "FFT ctor (out)");
 
-    fftwf_free(f_dummy_in);
-    fftwf_free(f_dummy_out);
+    forward_plan = fftwf_plan_dft_1d(len, f_dummy_in.get(), f_dummy_out.get(),
+				     FFTW_FORWARD, fftw_flag);
+    backward_plan = fftwf_plan_dft_1d(len, f_dummy_in.get(), f_dummy_out.get(),
+				      FFTW_BACKWARD, fftw_flag); // ESTIMATE);
+    // f_dummy_in / f_dummy_out are freed by their unique_ptr destructors.
   }
 
   FFT::~FFT() {
@@ -81,7 +102,7 @@ namespace SoDa {
     fftwf_destroy_plan(backward_plan);
   }
   
-  void FFT::fft(const std::vector<std::complex<float>> & in, 
+  void FFT::fft(const std::vector<std::complex<float>> & in,
 		std::vector<std::complex<float>> & out) {
     if(in.size() != out.size()) {
       throw UnmatchedSizes("fft", in.size(), out.size());
@@ -89,38 +110,41 @@ namespace SoDa {
     if(in.size() != len) {
       throw BadSize("fft", in.size(), len);
     }
-    
-    auto in_p = (fftwf_complex*) in.data();
-    auto out_p = (fftwf_complex*) out.data();    
+
+    auto in_p  = (fftwf_complex*) in.data();
+    auto out_p = (fftwf_complex*) out.data();
     bool do_fixup = false;
-    
+
+    // RAII guards for the misaligned-fixup scratch buffers. Null guards cost
+    // nothing on the fast path; on the fixup path they free the scratch
+    // buffers on scope exit, exception or no.
+    FFTWBuf scratch_in (nullptr, &fftwf_free);
+    FFTWBuf scratch_out(nullptr, &fftwf_free);
+
     if(fftwf_alignment_of((float*)in_p) != fftwf_alignment_of((float*)out_p)) {
-      // buffers are misaligned.  sigh. make a copy
-      in_p = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * in.size());
-      out_p = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * out.size());
+      // buffers are misaligned.  sigh. make a copy.
+      scratch_in  = make_fftw_buf(in.size(),  "fft fixup (in)");
+      scratch_out = make_fftw_buf(in.size(),  "fft fixup (out)");
+      in_p  = scratch_in.get();
+      out_p = scratch_out.get();
       for(size_t i = 0; i < in.size(); i++) {
 	in_p[i][0] = in[i].real();
 	in_p[i][1] = in[i].imag();
       }
-      do_fixup = true; 
+      do_fixup = true;
     }
-    else {
-      in_p = (fftwf_complex*) in.data();
-      out_p = (fftwf_complex*) out.data();      
-    }
-    
+
     fftwf_execute_dft(forward_plan, in_p, out_p);
 
     if(do_fixup) {
       for(size_t i = 0; i < out.size(); i++) {
 	out[i] = std::complex<float>(out_p[i][0], out_p[i][1]);
       }
-      fftwf_free(in_p);
-      fftwf_free(out_p);
+      // scratch_in / scratch_out freed by unique_ptr destructors.
     }
   }
 
-  void FFT::ifft(const std::vector<std::complex<float>> & in, 
+  void FFT::ifft(const std::vector<std::complex<float>> & in,
 		 std::vector<std::complex<float>> & out) {
     if(in.size() != out.size()) {
       throw UnmatchedSizes("ifft", in.size(), out.size());
@@ -129,28 +153,33 @@ namespace SoDa {
       throw BadSize("ifft", in.size(), len);
     }
 
-    auto in_p = (fftwf_complex*) in.data();
-    auto out_p = (fftwf_complex*) out.data();    
+    auto in_p  = (fftwf_complex*) in.data();
+    auto out_p = (fftwf_complex*) out.data();
     bool do_fixup = false;
+
+    FFTWBuf scratch_in (nullptr, &fftwf_free);
+    FFTWBuf scratch_out(nullptr, &fftwf_free);
+
     if(fftwf_alignment_of((float*)in_p) != fftwf_alignment_of((float*)out_p)) {
-      // buffers are misaligned.  sigh. make a copy
-      in_p = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * in.size());
-      out_p = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * out.size());
+      // buffers are misaligned.  sigh. make a copy.
+      scratch_in  = make_fftw_buf(in.size(), "ifft fixup (in)");
+      scratch_out = make_fftw_buf(in.size(), "ifft fixup (out)");
+      in_p  = scratch_in.get();
+      out_p = scratch_out.get();
       for(size_t i = 0; i < in.size(); i++) {
 	in_p[i][0] = in[i].real();
 	in_p[i][1] = in[i].imag();
       }
-      do_fixup = true; 
+      do_fixup = true;
     }
-    
+
     fftwf_execute_dft(backward_plan, in_p, out_p);
 
     if(do_fixup) {
       for(size_t i = 0; i < out.size(); i++) {
 	out[i] = std::complex<float>(out_p[i][0], out_p[i][1]);
       }
-      fftwf_free(in_p);
-      fftwf_free(out_p);
+      // scratch_in / scratch_out freed by unique_ptr destructors.
     }
   }
   
@@ -232,6 +261,13 @@ namespace SoDa {
   FFT::BadSize::BadSize(const std::string & st, unsigned int was, unsigned int should_be) :
     SoDa::Exception(SoDa::Format("Vector arguments to function FFT::%0 must %2 but were %1 instead\n")
 		       .addS(st).addI(was).addI(should_be).str()) { }
+
+  FFT::AllocFailed::AllocFailed(const std::string & context, size_t n_complex) :
+    SoDa::Exception(SoDa::Format("FFT allocation failed at [%0]: fftwf_malloc returned NULL for %1 complex elements (%2 bytes)")
+		    .addS(context)
+		    .addU(n_complex)
+		    .addU(n_complex * sizeof(fftwf_complex))
+		    .str()) { }
 
   std::shared_ptr<FFT> FFT::make(unsigned int len, FFTOpt opt) {
     return std::make_shared<FFT>(len, opt);

@@ -45,8 +45,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <functional>
 #include <algorithm>
 #include <memory>
+#include <type_traits>
 
 #include "UtilsBase.hxx"
+#include "Format.hxx"
 
 
 namespace SoDa {
@@ -229,14 +231,33 @@ posargs =
     BadOptValueException(const std::string & long_name,
 		const std::string & badstr, 
 		const std::string & err_msg) : 
-      runtime_error(long_name + " unacceptable value \"" + 
+      runtime_error(long_name + " unacceptable value \"" +
 		    badstr + "\" " + err_msg) {
     }
-  }; 
+  };
 
   /**
-   * @brief Command line parser class. 
-   * 
+   * @brief Thrown by Options::getPosArg when asked for a positional
+   *        argument index that doesn't exist (negative, or past the end).
+   *
+   * Previously this condition returned an empty string, which prevented
+   * callers from distinguishing "the Nth positional was literally empty"
+   * from "there is no Nth positional." A caller that wants to probe can
+   * still check getPosArgs().size() before indexing.
+   */
+  class BadPosArgIndexException : public std::runtime_error {
+  public:
+    BadPosArgIndexException(int idx, size_t count) :
+      runtime_error(Format("Options::getPosArg index %0 out of range (have %1 positional argument(s))")
+		    .addI(idx)
+		    .addU(count)
+		    .str()) {
+    }
+  };
+
+  /**
+   * @brief Command line parser class.
+   *
    */
   class Options : public UtilsBase {
   public:
@@ -665,27 +686,42 @@ posargs =
       bool is_signed; 
       
     protected:
-      
-      template<typename T> 
+
+      template<typename T>
       void setValBase(T & v, const std::string & vstr) {
-	std::stringstream ss(vstr, std::ios::in); 
+	// Reject a leading '-' for unsigned destination types. Without this,
+	// `std::stringstream >> unsigned` silently wraps -1 to UINT_MAX.
+	if constexpr (std::is_unsigned<T>::value && !std::is_same<T, bool>::value) {
+	  size_t start = vstr.find_first_not_of(" \t");
+	  if (start != std::string::npos && vstr[start] == '-') {
+	    throw BadOptValueException(long_name, vstr, err_msg);
+	  }
+	}
+	std::stringstream ss(vstr, std::ios::in);
 	ss >> v;
 	if(!ss) {
-	  throw BadOptValueException(long_name, vstr, err_msg); 
+	  throw BadOptValueException(long_name, vstr, err_msg);
+	}
+	// Reject trailing junk after the parsed value: "--intarg 42abc" used
+	// to be silently accepted as 42.
+	char trailing;
+	if (ss >> trailing) {
+	  throw BadOptValueException(long_name, vstr, err_msg);
 	}
       }
 
       void setValBase(std::string & v, const std::string & vstr) {
-	v = vstr; 
+	v = vstr;
       }
 
       void setValBase(bool & v, const std::string & vstr) {
 	auto vs = vstr;
-	std::transform(vs.begin(), vs.end(), vs.begin(), 
+	std::transform(vs.begin(), vs.end(), vs.begin(),
 		       [](unsigned char c){ return std::toupper(c);} );
 
 	if(vs.size() == 0) {
 	  v = false;
+	  return;  // was falling through to vs[0] on an empty string
 	}
 	if((vs == "TRUE") || (vs[0] == 'T')) {
 	  v = true;
@@ -698,13 +734,13 @@ posargs =
 	  std::stringstream ss(vs, std::ios::in);
 	  ss >> foo;
 	  if(!ss) {
-	    throw BadOptValueException(long_name, vstr, err_msg); 	    
+	    throw BadOptValueException(long_name, vstr, err_msg);
 	  }
 	  else {
 	    v = (foo != 0);
 	  }
 	}
-	return; 
+	return;
       }
 
       std::string doc_str;

@@ -108,6 +108,7 @@
  */
 
 #include "SocketBase.hxx"
+#include "Exception.hxx"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -128,6 +129,21 @@ namespace SoDa {
    * See @ref SoDa_UD for a full usage guide and examples.
    */
   namespace UD {
+
+    /**
+     * @class SocketError
+     * @brief Thrown by UD socket constructors when the underlying system
+     *        call (socket/bind/listen/connect) fails, or when the caller
+     *        supplied a socket path that cannot be used (too long).
+     *
+     * Previously these conditions called `exit(-1)` from inside the library;
+     * now they propagate as exceptions so the embedding application can
+     * decide how to recover or report.
+     */
+    class SocketError : public SoDa::Exception {
+    public:
+      SocketError(const std::string & msg) : SoDa::Exception("SoDa::UD: " + msg) {}
+    };
 
     class ServerSocket;
     typedef std::shared_ptr<SoDa::UD::ServerSocket> ServerSocketPtr;
@@ -234,14 +250,10 @@ namespace SoDa {
       ServerSocket(const std::string & path);
 
       /**
-       * @brief Close sockets and unlink the socket file.
+       * @brief Close sockets and unlink the socket file (only if it's still
+       *        our socket -- see UDSockets.cxx).
        */
-      ~ServerSocket() {
-        close(conn_socket);
-        close(server_socket);
-        unlink(mailbox_pathname.c_str());
-        std::cerr << "Closing server socket [" << mailbox_pathname << "]\n";
-      }
+      ~ServerSocket();
 
       /**
        * @brief Factory: construct and return a shared_ptr<ServerSocket>.

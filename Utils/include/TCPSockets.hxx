@@ -138,6 +138,7 @@
  */
 
 #include "SocketBase.hxx"
+#include "Exception.hxx"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -148,6 +149,18 @@
 
 namespace SoDa {
   namespace TCP {
+
+    /**
+     * @class SocketError
+     * @brief Thrown by TCP socket constructors when a system call or TLS
+     *        handshake step fails. Previously the library called exit(-1);
+     *        now the condition propagates so the embedding application can
+     *        catch and recover (or at least report cleanly).
+     */
+    class SocketError : public SoDa::Exception {
+    public:
+      SocketError(const std::string & msg) : SoDa::Exception("SoDa::TCP: " + msg) {}
+    };
 
     class ServerSocket;
     typedef std::shared_ptr<SoDa::TCP::ServerSocket> ServerSocketPtr;

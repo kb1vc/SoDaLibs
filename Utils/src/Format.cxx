@@ -39,6 +39,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 namespace SoDa {
+  // Upper bound on any width/padding parameter. Without this cap a caller
+  // passing e.g. UINT_MAX would make Format allocate gigabytes of padding
+  // and effectively DoS the process. 4096 is wider than any legitimate
+  // formatted field.
+  static constexpr unsigned int max_format_width = 4096;
+
+  // Clamp a caller-supplied unsigned width to max_format_width. Keeps the
+  // call sites below readable.
+  static inline unsigned int clamp_width(unsigned int w) {
+    return (w > max_format_width) ? max_format_width : w;
+  }
+
+  // Signed variant: addS accepts a signed width to choose left/right
+  // justification. Clamp the magnitude but preserve the sign.
+  static inline int clamp_signed_width(int w) {
+    if (w >  (int)max_format_width) return  (int)max_format_width;
+    if (w < -(int)max_format_width) return -(int)max_format_width;
+    return w;
+  }
+
   char Format::separator = '.';
 
   Format::FmtStringSeg::FmtStringSeg(const std::string & str) {
@@ -147,6 +167,7 @@ namespace SoDa {
   }
 
   Format & Format::addI(int v, unsigned int w, char sep, char fill) {
+    w = clamp_width(w);
     std::stringstream ss;
     if(fill != '\000') {
       ss << std::setfill(fill);
@@ -189,6 +210,7 @@ namespace SoDa {
 			char sep,
 			unsigned int group_count)
   {
+    w = clamp_width(w);
     std::stringstream ss;
     std::stringstream pre_ss;
     std::string result; 
@@ -375,16 +397,19 @@ namespace SoDa {
   }
 
   static std::string pad(const std::string & s, unsigned int w) {
+    w = clamp_width(w);
     std::string ret = s;
     while(ret.size() < w) {
       ret.push_back(' ');
     }
-    
-    return ret; 
+
+    return ret;
   }
-  
+
   Format & Format::addF(double v, char fmt, unsigned int width, unsigned int significant_digits) {
-    std::stringstream ss;    
+    width = clamp_width(width);
+    significant_digits = clamp_width(significant_digits);
+    std::stringstream ss;
     ss << std::left << std::setfill(' ');
 
     if(width == 0) {
@@ -481,21 +506,27 @@ namespace SoDa {
   }
 
   Format & Format::addS(const std::string & v, int width) {
+    width = clamp_signed_width(width);
     std::string fstr;
     if(width < 0)  {
-      int spaces = (- width) - v.size();
+      // Left-justify in a field of width (-width). If v is already wider than
+      // the field, add no padding -- otherwise `spaces` wraps to a huge size_t
+      // when it goes negative and std::string tries to allocate terabytes.
+      int spaces = (- width) - (int)v.size();
+      if (spaces < 0) spaces = 0;
       fstr = v + std::string(spaces, ' ');
-      insertField(fstr);      
+      insertField(fstr);
     }
     else if (width > 0) {
-      int spaces = width - v.size();
+      int spaces = width - (int)v.size();
+      if (spaces < 0) spaces = 0;
       fstr = std::string(spaces, ' ') + v;
       insertField(fstr);
     }
     else {
       insertField(v);
     }
-    return *this;     
+    return *this;
   }
 
   Format & Format::addC(char c) {

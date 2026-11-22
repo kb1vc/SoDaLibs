@@ -78,7 +78,7 @@ namespace SoDa {
      * @class BadSize
      *
      * @brief a subclass of SoDa::Exception thrown when the input buffer size does not
-     * match the original size passed to the constructor. 
+     * match the original size passed to the constructor.
      */
     class BadSize : public SoDa::Exception {
     public:
@@ -89,7 +89,30 @@ namespace SoDa {
        * @param was the size of the vector passed to FFTW
        * @param should_be the size of the vector expected by this instance of FFT
        */
-      BadSize(const std::string & st, unsigned int was, unsigned int should_be); 
+      BadSize(const std::string & st, unsigned int was, unsigned int should_be);
+    };
+
+    /**
+     * @class AllocFailed
+     *
+     * @brief a subclass of SoDa::Exception thrown when fftwf_malloc returns
+     * NULL -- the process is out of memory, or the requested FFT size is too
+     * large for the aligned allocator to satisfy.
+     *
+     * Previously a NULL return was dereferenced and the process crashed; this
+     * exception lets the caller recover (fall back to a smaller FFT, log,
+     * degrade the signal path) or at least produce a diagnostic.
+     */
+    class AllocFailed : public SoDa::Exception {
+    public:
+      /**
+       * @brief constructor
+       *
+       * @param context description of the call site (ctor / fft fixup / etc.)
+       * @param n_complex number of fftwf_complex elements the caller tried to
+       *                  allocate.
+       */
+      AllocFailed(const std::string & context, size_t n_complex);
     };
 
     ///  Select the level of optimization for fft/ifft operations

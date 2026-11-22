@@ -2,6 +2,9 @@
 add_executable(FFTTest FFTTest.cxx)
 target_link_libraries(FFTTest sodasignals sodautils)
 
+add_executable(FFTAllocFailTest FFTAllocFailTest.cxx)
+target_link_libraries(FFTAllocFailTest sodasignals sodautils)
+
 add_executable(FFTTiming FFTTiming.cxx)
 target_link_libraries(FFTTiming sodasignals sodautils)
 
@@ -174,6 +177,11 @@ set_tests_properties(OSFilterTest PROPERTIES
 add_test(NAME FilterTest
   COMMAND $<TARGET_FILE:FilterTest>)
 set_tests_properties(FilterTest PROPERTIES
+  PASS_REGULAR_EXPRESSION "PASSED")
+
+add_test(NAME FFTAllocFailTest
+  COMMAND $<TARGET_FILE:FFTAllocFailTest>)
+set_tests_properties(FFTAllocFailTest PROPERTIES
   PASS_REGULAR_EXPRESSION "PASSED")
 
 

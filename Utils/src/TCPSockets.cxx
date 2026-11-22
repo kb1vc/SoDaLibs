@@ -34,6 +34,7 @@
  */
 
 #include "TCPSockets.hxx"
+#include "Format.hxx"
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -49,10 +50,15 @@
 #include <cerrno>
 #include <cstring>
 #include <iostream>
+#include <mutex>
 #include <signal.h>
 
 namespace SoDa {
 namespace TCP {
+
+// Maximum size of a single framed message. Any peer-supplied length prefix
+// above this is treated as hostile and the read is aborted.
+static constexpr size_t max_TCP_msg_size = 8u * 1024u * 1024u;
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -99,13 +105,26 @@ static int sslLoopRead(SSL *ssl, void *ptr, int len) {
 // NetSocket — context builders
 // ---------------------------------------------------------------------------
 
+// Install the SIGPIPE-ignore handler exactly once per process. Writing to a
+// closed TLS socket raises SIGPIPE; we want SSL_write to return -1 rather
+// than the signal killing the process. Install from std::once so the library
+// stops stomping on this handler every time a context is built.
+static void ignore_sigpipe_once() {
+  static std::once_flag flag;
+  std::call_once(flag, []{
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGPIPE, &sa, nullptr);
+  });
+}
+
 static SSL_CTX *buildCTX(bool is_server,
                           const std::string & ca_cert_path,
                           const std::string & own_cert_path,
                           const std::string & own_key_path) {
-  // Writing to a closed TLS socket raises SIGPIPE; ignore it so SSL_write
-  // returns -1 instead of killing the process.
-  signal(SIGPIPE, SIG_IGN);
+  ignore_sigpipe_once();
 
   SSL_CTX *ctx = SSL_CTX_new(is_server ? TLS_server_method()
                                        : TLS_client_method());
@@ -177,25 +196,39 @@ int NetSocket::tlsPut(const void *ptr, unsigned int size, bool len_prefix) {
 
 int NetSocket::tlsGet(void *ptr, unsigned int size, bool len_prefix) {
   SSL *s = static_cast<SSL *>(ssl);
-  unsigned int rsize = size;
+  size_t rsize = size;
 
   if (len_prefix) {
-    int n = sslLoopRead(s, &rsize, sizeof(unsigned int));
+    // Wire format is a 32-bit length (matches tlsPut). Promote to size_t
+    // for all arithmetic so an rsize of 0x80000000+ can't poison signed math.
+    unsigned int wire_rsize;
+    int n = sslLoopRead(s, &wire_rsize, sizeof(wire_rsize));
     if (n <= 0) return n;
+    rsize = wire_rsize;
+
+    // Reject any peer-supplied frame larger than the hard cap. Even on a
+    // TLS-authenticated session a compromised or buggy peer must not be able
+    // to pin the server in a multi-gigabyte drain loop.
+    if (rsize > max_TCP_msg_size) {
+      std::cerr << Format("TCP::NetSocket::tlsGet: rejecting oversized frame (rsize=%0, max=%1)\n")
+	.addU(rsize)
+	.addU(max_TCP_msg_size);
+      return -1;
+    }
   }
 
-  unsigned int to_copy = (rsize < size) ? rsize : size;
+  size_t to_copy = (rsize < size) ? rsize : size;
   int n = sslLoopRead(s, ptr, (int)to_copy);
   if (n <= 0) return n;
 
   // Drain surplus bytes that don't fit in the caller's buffer.
-  unsigned int surplus = (rsize > size) ? (rsize - size) : 0;
+  size_t surplus = (rsize > size) ? (rsize - size) : 0;
   while (surplus > 0) {
     char sink[256];
-    unsigned int chunk = (surplus > sizeof(sink)) ? (unsigned int)sizeof(sink) : surplus;
+    size_t chunk = (surplus > sizeof(sink)) ? sizeof(sink) : surplus;
     int r = sslLoopRead(s, sink, (int)chunk);
     if (r <= 0) break;
-    surplus -= (unsigned int)r;
+    surplus -= (size_t)r;
   }
 
   return n;
@@ -212,17 +245,18 @@ ServerSocket::ServerSocket(const std::string & addr, size_t port_num,
   : ready(false) {
   ssl = nullptr;
   conn_socket = -1;
+  server_socket = -1;
 
   ctx = makeServerCTX(ca_cert_path, server_cert_path, server_key_path);
   if (!ctx) {
-    std::cerr << "TCP::ServerSocket: failed to build TLS context\n";
-    exit(-1);
+    throw SocketError("failed to build TLS context (check CA/cert/key paths)");
   }
 
   server_socket = socket(AF_INET, SOCK_STREAM, 0);
   if (server_socket < 0) {
-    std::cerr << "TCP::ServerSocket: socket() failed\n";
-    exit(-1);
+    int e = errno;
+    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    throw SocketError(Format("socket() failed: %0").addS(strerror(e)).str());
   }
 
   int opt = 1;
@@ -239,21 +273,29 @@ ServerSocket::ServerSocket(const std::string & addr, size_t port_num,
   if (addr.empty() || addr == "*") {
     sa.sin_addr.s_addr = INADDR_ANY;
   } else {
-    inet_pton(AF_INET, addr.c_str(), &sa.sin_addr);
+    if (inet_pton(AF_INET, addr.c_str(), &sa.sin_addr) != 1) {
+      close(server_socket);
+      SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+      throw SocketError(Format("bind address [%0] is not a valid IPv4 literal")
+			.addS(addr).str());
+    }
   }
 
   if (bind(server_socket, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
-    std::cerr << "TCP::ServerSocket: bind() failed on "
-              << addr << ":" << port_num << "\n";
-    exit(-1);
+    int e = errno;
+    close(server_socket);
+    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    throw SocketError(Format("bind() failed on %0:%1: %2")
+		      .addS(addr)
+		      .addU(port_num)
+		      .addS(strerror(e)).str());
   }
   if (listen(server_socket, 1) < 0) {
-    std::cerr << "TCP::ServerSocket: listen() failed\n";
-    exit(-1);
+    int e = errno;
+    close(server_socket);
+    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    throw SocketError(Format("listen() failed: %0").addS(strerror(e)).str());
   }
-
-  std::cerr << "TCP::ServerSocket: listening on "
-            << (addr.empty() ? "0.0.0.0" : addr) << ":" << port_num << "\n";
 }
 
 ServerSocket::~ServerSocket() {
@@ -299,9 +341,6 @@ bool ServerSocket::isReady(size_t) {
   conn_socket = ns;
   connected_identity = getPeerCN();
 
-  std::cerr << "TCP::ServerSocket: client [" << connected_identity
-            << "] connected (cipher: " << SSL_get_cipher_name(s) << ")\n";
-
   ready = true;
   return true;
 }
@@ -341,57 +380,95 @@ ClientSocket::ClientSocket(const std::string & addr, size_t port_num,
                            int startup_timeout_count) {
   ssl = nullptr;
   server_socket = -1;
+  conn_socket = -1;
 
   ctx = makeClientCTX(ca_cert_path, client_cert_path, client_key_path);
   if (!ctx) {
-    std::cerr << "TCP::ClientSocket: failed to build TLS context\n";
-    exit(-1);
+    throw SocketError("failed to build TLS client context (check CA/cert/key paths)");
   }
 
-  conn_socket = socket(AF_INET, SOCK_STREAM, 0);
-  if (conn_socket < 0) {
-    std::cerr << "TCP::ClientSocket: socket() failed\n";
-    exit(-1);
-  }
+  // Resolve addr via getaddrinfo (thread-safe, IPv6-aware) instead of the
+  // deprecated gethostbyname. Try each returned address in turn, with up to
+  // startup_timeout_count 1-second retries over the whole set.
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family   = AF_INET;         // keep IPv4-only to match the rest of the module
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = IPPROTO_TCP;
 
-  struct sockaddr_in sa;
-  memset(&sa, 0, sizeof(sa));
-  sa.sin_family = AF_INET;
-  sa.sin_port   = htons((uint16_t)port_num);
-
-  struct hostent *host = gethostbyname(addr.c_str());
-  if (host) {
-    memcpy(&sa.sin_addr, host->h_addr_list[0], (size_t)host->h_length);
-  } else {
-    inet_pton(AF_INET, addr.c_str(), &sa.sin_addr);
+  std::string port_str = Format("%0").addU(port_num).str();
+  struct addrinfo *res = nullptr;
+  int gai = getaddrinfo(addr.c_str(), port_str.c_str(), &hints, &res);
+  if (gai != 0 || !res) {
+    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    throw SocketError(Format("getaddrinfo(%0:%1) failed: %2")
+		      .addS(addr)
+		      .addU(port_num)
+		      .addS(gai_strerror(gai)).str());
   }
 
   int stat = -1;
-  for (int i = 0; i < startup_timeout_count; i++) {
-    stat = connect(conn_socket, (struct sockaddr *)&sa, sizeof(sa));
-    if (stat >= 0) break;
-    sleep(1);
+  for (int attempt = 0; attempt < startup_timeout_count && stat < 0; attempt++) {
+    for (struct addrinfo *ai = res; ai != nullptr && stat < 0; ai = ai->ai_next) {
+      if (conn_socket >= 0) close(conn_socket);
+      conn_socket = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+      if (conn_socket < 0) continue;
+      stat = connect(conn_socket, ai->ai_addr, ai->ai_addrlen);
+    }
+    if (stat < 0) sleep(1);
   }
+  freeaddrinfo(res);
+
   if (stat < 0) {
-    std::cerr << "TCP::ClientSocket: connect() to "
-              << addr << ":" << port_num << " failed\n";
-    exit(-1);
+    int e = errno;
+    if (conn_socket >= 0) close(conn_socket);
+    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    throw SocketError(Format("connect() to %0:%1 failed: %2")
+		      .addS(addr)
+		      .addU(port_num)
+		      .addS(strerror(e)).str());
   }
 
   SSL *s = SSL_new(static_cast<SSL_CTX *>(ctx));
+  if (!s) {
+    close(conn_socket);
+    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    throw SocketError("SSL_new() returned null (out of memory?)");
+  }
   SSL_set_fd(s, conn_socket);
+
+  // Pin the peer identity to the hostname (or IP literal) the caller asked
+  // for. Without this, any cert signed by the trusted CA can impersonate any
+  // server -- OpenSSL only verifies the chain by default, not that the
+  // certificate was issued for the host we're talking to.
+  {
+    struct in_addr  v4;
+    struct in6_addr v6;
+    bool is_ip_literal = (inet_pton(AF_INET,  addr.c_str(), &v4) == 1)
+                      || (inet_pton(AF_INET6, addr.c_str(), &v6) == 1);
+    int ok = is_ip_literal
+      ? X509_VERIFY_PARAM_set1_ip_asc(SSL_get0_param(s), addr.c_str())
+      : SSL_set1_host(s, addr.c_str());
+    if (ok != 1) {
+      logSSLErrors("set peer identity");
+      SSL_free(s);
+      close(conn_socket);
+      SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+      throw SocketError(Format("can't pin peer identity to [%0]").addS(addr).str());
+    }
+  }
 
   if (SSL_connect(s) <= 0) {
     logSSLErrors("SSL_connect");
-    std::cerr << "TCP::ClientSocket: TLS handshake failed\n";
     SSL_free(s);
-    exit(-1);
+    close(conn_socket);
+    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    throw SocketError(Format("TLS handshake with %0:%1 failed")
+		      .addS(addr)
+		      .addU(port_num).str());
   }
 
   ssl = s;
-
-  std::cerr << "TCP::ClientSocket: connected to " << addr << ":" << port_num
-            << " (cipher: " << SSL_get_cipher_name(s) << ")\n";
 }
 
 ClientSocket::~ClientSocket() {
