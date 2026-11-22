@@ -132,7 +132,7 @@ jobs:
     steps:
       - name: Prep (Fedora)
         if: matrix.distro == 'fedora'
-        run: dnf -y install findutils
+        run: dnf -y install findutils cmake make gcc-c++
 
       - name: Prep (Ubuntu)
         if: matrix.distro == 'ubuntu'
@@ -140,7 +140,8 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends ca-certificates
+          apt-get install -y --no-install-recommends \
+            ca-certificates cmake make g++
 
       - uses: actions/download-artifact@v8
         with:
@@ -194,6 +195,21 @@ jobs:
             exit 1
           fi
           echo "all package files present"
+
+      # Build (but don't run) the installed example programs.  Proves
+      # that the kit's headers, static libs, and CMake config files
+      # land where downstream projects expect them.  Shared across
+      # distros: install locations (/usr/share/SoDaUtils/examples and
+      # /usr/share/SoDaSignals/examples) are the same on Fedora and Ubuntu.
+      - name: Build installed examples
+        run: |
+          set -euo pipefail
+          cp -r /usr/share/SoDaUtils/examples /tmp/utils-examples
+          cmake -S /tmp/utils-examples -B /tmp/utils-examples/build
+          cmake --build /tmp/utils-examples/build
+          cp -r /usr/share/SoDaSignals/examples /tmp/signals-examples
+          cmake -S /tmp/signals-examples -B /tmp/signals-examples/build
+          cmake --build /tmp/signals-examples/build
 
   # ------------------------------------------------------------------
   # Collect every artifact, flatten to one directory, and create the

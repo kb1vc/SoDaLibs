@@ -1,6 +1,4 @@
 
-find_package(OpenSSL REQUIRED)
-
 ########### next target ###############
 
 set(TST_FMT_SRCS
@@ -43,7 +41,7 @@ add_executable(SafeOutTest SafeOutTest.cxx)
 target_link_libraries(SafeOutTest sodautils Threads::Threads)
 
 add_executable(TCPSocketsTest TCPSocketsTest.cxx)
-target_link_libraries(TCPSocketsTest sodautils Threads::Threads OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(TCPSocketsTest sodautils Threads::Threads)
 
 add_executable(UDSocketsTest UDSocketsTest.cxx)
 target_link_libraries(UDSocketsTest sodautils Threads::Threads)
