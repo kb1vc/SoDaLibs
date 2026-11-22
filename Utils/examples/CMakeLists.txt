@@ -26,41 +26,41 @@ FIND_PACKAGE(SoDaUtils REQUIRED)
 
 
 add_executable(UtilsExample UtilsExample.cxx)
-target_link_libraries(UtilsExample PRIVATE sodautils)
+target_link_libraries(UtilsExample PRIVATE SoDaUtils::sodautils)
 
 
 add_executable(OptionsExample OptionsExample.cxx)
-target_link_libraries(OptionsExample PRIVATE sodautils)
+target_link_libraries(OptionsExample PRIVATE SoDaUtils::sodautils)
 
 add_executable(SafeOptionsExample SafeOptionsExample.cxx)
-target_link_libraries(SafeOptionsExample PRIVATE sodautils)
+target_link_libraries(SafeOptionsExample PRIVATE SoDaUtils::sodautils)
 
 add_executable(FormatExample FormatExample.cxx)
-target_link_libraries(FormatExample PRIVATE sodautils)
+target_link_libraries(FormatExample PRIVATE SoDaUtils::sodautils)
 
 add_executable(Format_Test Format_Test.cxx)
-target_link_libraries(Format_Test PRIVATE sodautils)
+target_link_libraries(Format_Test PRIVATE SoDaUtils::sodautils)
 
 
 add_executable(BarrierExample BarrierExample.cxx)
-target_link_libraries(BarrierExample PRIVATE sodautils Threads::Threads)
+target_link_libraries(BarrierExample PRIVATE SoDaUtils::sodautils Threads::Threads)
 
 add_executable(SafeOutExample SafeOutExample.cxx)
-target_link_libraries(SafeOutExample PRIVATE sodautils Threads::Threads)
+target_link_libraries(SafeOutExample PRIVATE SoDaUtils::sodautils Threads::Threads)
 
 add_executable(TCPSocketsExample TCPSocketsExample.cxx)
-target_link_libraries(TCPSocketsExample PRIVATE sodautils Threads::Threads)
+target_link_libraries(TCPSocketsExample PRIVATE SoDaUtils::sodautils Threads::Threads)
 
 add_executable(UDSocketsExample UDSocketsExample.cxx)
-target_link_libraries(UDSocketsExample PRIVATE sodautils Threads::Threads)
+target_link_libraries(UDSocketsExample PRIVATE SoDaUtils::sodautils Threads::Threads)
 
 add_executable(PropertyTreeExample PropertyTreeExample.cxx)
-target_link_libraries(PropertyTreeExample PRIVATE sodautils Threads::Threads)
+target_link_libraries(PropertyTreeExample PRIVATE SoDaUtils::sodautils Threads::Threads)
 
 find_package(jsoncpp)
 if(jsoncpp_FOUND)
 add_executable(PropertyTreeExample2 PropertyTreeExample2.cxx)
-target_link_libraries(PropertyTreeExample2 PRIVATE sodautils Threads::Threads jsoncpp_lib)
+target_link_libraries(PropertyTreeExample2 PRIVATE SoDaUtils::sodautils Threads::Threads jsoncpp_lib)
 
 endif()
 
