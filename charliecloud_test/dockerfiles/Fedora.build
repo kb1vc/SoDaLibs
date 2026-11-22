@@ -1,0 +1,25 @@
+ARG FEDORA_VERSION=45
+FROM fedora:${FEDORA_VERSION}
+
+RUN dnf --assumeyes update \
+ && dnf --assumeyes install \
+        gcc-c++ git cmake make pkgconf \
+        fftw-devel openssl-devel \
+        rpm-build
+
+RUN mkdir -p /build
+WORKDIR /build
+
+# /mnt/src is a bind mount of the host SoDaLibs working tree.
+# We clone (not copy) so the result is a clean checkout of dist-test.
+RUN git clone /mnt/src /build/SoDaLibs \
+ && cd /build/SoDaLibs \
+ && git checkout dist-test
+
+WORKDIR /build/SoDaLibs/build
+RUN cmake -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_RPM=ON ../
+RUN make -j"$(nproc)"
+RUN ctest --output-on-failure
+RUN make install
+RUN cpack -G RPM
+RUN mkdir -p /mnt/out && cp *.rpm /mnt/out/

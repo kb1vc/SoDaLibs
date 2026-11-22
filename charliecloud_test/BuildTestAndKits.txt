@@ -1,0 +1,19 @@
+In this directory (charliecloud_test) create scripts and Docker files
+to do the following tasks in charliecloud containers.
+
+1. COmpile and run ctest on SoDaLibs from within a Fedora or Ubuntu
+container.
+2. Build rpm or deb from within a Fedora or Ubuntu container
+3. Test that the RPM or DEB files install correctly on a test container.
+
+
+Do both tasks 1 and 2 for multiple versions of Fedora or Ubuntu. Put
+the version specifiers in a file called versions.conf -- see the
+example in this directory.
+
+The compilation task will build from a cloned repo of SoDaLibs on the
+head of the dist-test branch.
+
+
+
+

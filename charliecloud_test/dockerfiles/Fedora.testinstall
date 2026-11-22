@@ -1,0 +1,17 @@
+ARG FEDORA_VERSION=45
+FROM fedora:${FEDORA_VERSION}
+
+ARG PACKAGE_NAME
+
+RUN dnf --assumeyes update \
+ && dnf --assumeyes install cmake make gcc-c++
+
+# /mnt/pkg is a bind mount of the host packages/ directory.
+RUN test -n "${PACKAGE_NAME}" && test -f "/mnt/pkg/${PACKAGE_NAME}"
+RUN dnf --assumeyes install "/mnt/pkg/${PACKAGE_NAME}"
+
+# Sanity check: the installed static libs and headers must be where
+# the config files claim they are.
+RUN test -f /usr/lib64/libSoDaUtils.a || test -f /usr/lib/libSoDaUtils.a
+RUN test -f /usr/lib64/libSoDaSignals.a || test -f /usr/lib/libSoDaSignals.a
+RUN test -d /usr/include/SoDa

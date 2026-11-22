@@ -1,0 +1,23 @@
+ARG UBUNTU_VERSION=24.04
+FROM ubuntu:${UBUNTU_VERSION}
+
+ARG PACKAGE_NAME
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        cmake make g++ \
+ && rm -rf /var/lib/apt/lists/*
+
+# /mnt/pkg is a bind mount of the host packages/ directory.
+RUN test -n "${PACKAGE_NAME}" && test -f "/mnt/pkg/${PACKAGE_NAME}"
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends "/mnt/pkg/${PACKAGE_NAME}" \
+ && rm -rf /var/lib/apt/lists/*
+
+# Sanity check for installed artifacts.
+RUN test -f /usr/lib/x86_64-linux-gnu/libSoDaUtils.a \
+      || test -f /usr/lib/libSoDaUtils.a
+RUN test -f /usr/lib/x86_64-linux-gnu/libSoDaSignals.a \
+      || test -f /usr/lib/libSoDaSignals.a
+RUN test -d /usr/include/SoDa
