@@ -218,6 +218,10 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          # gh normally reads the repo from .git/config in the workdir, but
+          # this job doesn't check out the repo (it only consumes artifacts),
+          # so point gh at the repo explicitly.
+          GH_REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
           RELEASE_TYPE: ${{ needs.prelude.outputs.release_type }}
         run: |
