@@ -32,9 +32,11 @@ PROJECT(SoDaLibs)
 # version 5.8.0 Adds new resampler support
 # version 5.9.0 Adds STATIC target and cleans up cmake config files
 # version 5.9.1 Fixes deprecation warning in Periodogram re: std::fabs
+# version 5.10.0 Added CI build for rpm and deb files. Safety updates to Utils.
+# Performance and safety updates to Signals. See the associated CMakeLists.txt files
 SET(SoDaLibs_VERSION_MAJOR 5)
-SET(SoDaLibs_VERSION_MINOR 9)
-SET(SoDaLibs_VERSION_PATCH 1)
+SET(SoDaLibs_VERSION_MINOR 10)
+SET(SoDaLibs_VERSION_PATCH 0)
 SET(SoDaLibs_VERSION "${SoDaLibs_VERSION_MAJOR}.${SoDaLibs_VERSION_MINOR}.${SoDaLibs_VERSION_PATCH}")
 
 INCLUDE(GNUInstallDirs)

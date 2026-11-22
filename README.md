@@ -134,6 +134,41 @@ The sodasignals library is a collection of classes that provide
 
 See the doxygen documentation for a more detailed explanation. 
 
+## Installing from Kits
+
+If you don't need to modify or rebuild the libraries, the easiest way
+to install them is to grab a prebuilt kit from the Releases page.
+
+- Latest release: https://github.com/kb1vc/SoDaLibs/releases/latest
+- All releases: https://github.com/kb1vc/SoDaLibs/releases
+
+Each release includes one kit per supported distro and version. The
+filenames carry the distro tag so you can tell them apart at a glance:
+
+- `sodalibs-devel-<version>-x86_64.Fedora-44.rpm`
+- `sodalibs-devel-<version>-x86_64.Fedora-45.rpm`
+- `sodalibs-devel-<version>-x86_64.Ubuntu-24.04.deb`
+- `sodalibs-devel-<version>-x86_64.Ubuntu-26.04.deb`
+
+Download the file matching your distro and install it.
+
+On Fedora:
+
+```
+sudo dnf install ./sodalibs-devel-<version>-x86_64.Fedora-<nn>.rpm
+```
+
+On Ubuntu:
+
+```
+sudo apt install ./sodalibs-devel-<version>-x86_64.Ubuntu-<nn.nn>.deb
+```
+
+Both commands pull in the runtime dependencies (FFTW, OpenSSL) and put
+the static libraries, headers, and CMake config files in the standard
+system locations, so `find_package(SoDaUtils)` and `find_package(SoDaSignals)`
+work out of the box in your own CMake projects.
+
 ## Building the Libraries
 
 I've tried to make this simple. 

@@ -46,9 +46,13 @@ INCLUDE(CTest)
 #    TCPSockets  Secure (SSL) TCP sockets
 #    UDSockets   Unix domain (filesystem) sockets (borrowed from SoDaRadio)
 # 5.3.2 Fixed problem with printHelp printing the help info twice.
+# 5.4.0 Safety fixes to UDSockets and TCPSockets. Options now throws if getPos
+# gets a bad position. There's other stuff just like that... Added high water
+# mark for Mailbox to prevent a wedged subscriber from silently hanging the
+# applicaiton. 
 SET(SoDaUtils_VERSION_MAJOR 5)
-SET(SoDaUtils_VERSION_MINOR 3)
-SET(SoDaUtils_VERSION_PATCH 2)
+SET(SoDaUtils_VERSION_MINOR 4)
+SET(SoDaUtils_VERSION_PATCH 0)
 SET(SoDaUtils_VERSION "${SoDaUtils_VERSION_MAJOR}.${SoDaUtils_VERSION_MINOR}.${SoDaUtils_VERSION_PATCH}")
 
 MESSAGE("SoDaUtils_VERSION=[${SoDaUtils_VERSION}]")
