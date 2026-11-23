@@ -57,11 +57,19 @@ target_link_libraries(UDSocketsExample PRIVATE SoDaUtils::sodautils Threads::Thr
 add_executable(PropertyTreeExample PropertyTreeExample.cxx)
 target_link_libraries(PropertyTreeExample PRIVATE SoDaUtils::sodautils Threads::Threads)
 
-find_package(jsoncpp)
-if(jsoncpp_FOUND)
-add_executable(PropertyTreeExample2 PropertyTreeExample2.cxx)
-target_link_libraries(PropertyTreeExample2 PRIVATE SoDaUtils::sodautils Threads::Threads jsoncpp_lib)
-
+# PropertyTreeExample2 is optional -- it needs jsoncpp.  Fedora and Ubuntu
+# both ship jsoncpp.pc but neither ships jsoncppConfig.cmake, so locate
+# jsoncpp via pkg-config and skip the example if it (or pkg-config) isn't
+# available.  No warnings on distros that don't have it.
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+  pkg_check_modules(JSONCPP QUIET IMPORTED_TARGET jsoncpp)
+endif()
+if(TARGET PkgConfig::JSONCPP)
+  add_executable(PropertyTreeExample2 PropertyTreeExample2.cxx)
+  target_link_libraries(PropertyTreeExample2 PRIVATE
+                         SoDaUtils::sodautils Threads::Threads
+                         PkgConfig::JSONCPP)
 endif()
 
 

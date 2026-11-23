@@ -34,14 +34,17 @@ RUN set -eu; \
 # diagnosable from the log alone.
 RUN rm -rf /tmp/utils-examples \
  && cp -r /usr/share/SoDaUtils/examples /tmp/utils-examples \
- && cmake --loglevel=VERBOSE -S /tmp/utils-examples -B /tmp/utils-examples/build \
- && echo '=== link.txt for every target ===' \
- && for f in /tmp/utils-examples/build/CMakeFiles/*.dir/link.txt; do \
-        echo "--- $f ---"; cat "$f"; \
-    done \
- && echo '=== building ===' \
- && cmake --build /tmp/utils-examples/build --verbose
+ && cmake -S /tmp/utils-examples -B /tmp/utils-examples/build \
+ && cmake --build /tmp/utils-examples/build
 RUN rm -rf /tmp/signals-examples \
  && cp -r /usr/share/SoDaSignals/examples /tmp/signals-examples \
- && cmake --loglevel=VERBOSE -S /tmp/signals-examples -B /tmp/signals-examples/build \
- && cmake --build /tmp/signals-examples/build --verbose
+ && cmake -S /tmp/signals-examples -B /tmp/signals-examples/build \
+ && cmake --build /tmp/signals-examples/build
+
+# If we reach this instruction, every preceding RUN step succeeded:
+# package installed, every rpm -ql file present, every example built.
+RUN echo '' \
+ && echo '####################################################' \
+ && echo '####  TEST-INSTALL PASSED: sodalibs-devel RPM   ####' \
+ && echo '####  installs cleanly and all examples build.  ####' \
+ && echo '####################################################'
