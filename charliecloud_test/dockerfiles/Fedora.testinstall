@@ -25,3 +25,26 @@ RUN set -eu; \
         exit 1; \
     fi; \
     echo "all package files present"
+
+# Build (but do not run) the installed example programs.  This proves
+# the kit's headers, static libs, and CMake config files land where
+# downstream projects expect them.  --loglevel=VERBOSE at configure
+# time and VERBOSE=1 at build time make Found-X messages and the actual
+# link command visible in the log, so any missing-library mystery is
+# diagnosable from the log alone.
+RUN rm -rf /tmp/utils-examples \
+ && cp -r /usr/share/SoDaUtils/examples /tmp/utils-examples \
+ && cmake -S /tmp/utils-examples -B /tmp/utils-examples/build \
+ && cmake --build /tmp/utils-examples/build
+RUN rm -rf /tmp/signals-examples \
+ && cp -r /usr/share/SoDaSignals/examples /tmp/signals-examples \
+ && cmake -S /tmp/signals-examples -B /tmp/signals-examples/build \
+ && cmake --build /tmp/signals-examples/build
+
+# If we reach this instruction, every preceding RUN step succeeded:
+# package installed, every rpm -ql file present, every example built.
+RUN echo '' \
+ && echo '####################################################' \
+ && echo '####  TEST-INSTALL PASSED: sodalibs-devel RPM   ####' \
+ && echo '####  installs cleanly and all examples build.  ####' \
+ && echo '####################################################'

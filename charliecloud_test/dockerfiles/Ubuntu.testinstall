@@ -6,7 +6,7 @@ ARG PACKAGE_NAME
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-        cmake make g++ \
+        cmake make g++ pkg-config \
  && rm -rf /var/lib/apt/lists/*
 
 # /mnt/pkg is a bind mount of the host packages/ directory.
@@ -29,3 +29,23 @@ RUN set -eu; \
         exit 1; \
     fi; \
     echo "all package files present"
+
+# Build (but do not run) the installed example programs.  This proves
+# the kit's headers, static libs, and CMake config files land where
+# downstream projects expect them.
+RUN rm -rf /tmp/utils-examples \
+ && cp -r /usr/share/SoDaUtils/examples /tmp/utils-examples \
+ && cmake -S /tmp/utils-examples -B /tmp/utils-examples/build \
+ && cmake --build /tmp/utils-examples/build
+RUN rm -rf /tmp/signals-examples \
+ && cp -r /usr/share/SoDaSignals/examples /tmp/signals-examples \
+ && cmake -S /tmp/signals-examples -B /tmp/signals-examples/build \
+ && cmake --build /tmp/signals-examples/build
+
+# If we reach this instruction, every preceding RUN step succeeded:
+# package installed, every dpkg -L file present, every example built.
+RUN echo '' \
+ && echo '####################################################' \
+ && echo '####  TEST-INSTALL PASSED: sodalibs-devel DEB   ####' \
+ && echo '####  installs cleanly and all examples build.  ####' \
+ && echo '####################################################'

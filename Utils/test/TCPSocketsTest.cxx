@@ -327,7 +327,10 @@ static void testRejection(int port, const Certs &c) {
     // Child: wait for server to start, then try with an untrusted cert.
     close(sync_pipe[1]);
     char ch;
-    (void)read(sync_pipe[0], &ch, 1);
+    // Best-effort sync-pipe handshake; a read failure would also break the
+    // handshake-dependent test below, so no explicit error handling here.
+    ssize_t rn = read(sync_pipe[0], &ch, 1);
+    (void)rn;
     close(sync_pipe[0]);
     SoDa::TCP::ClientSocket::make("127.0.0.1", (size_t)port,
                                   c.ca_crt,    // child trusts same CA
@@ -340,7 +343,9 @@ static void testRejection(int port, const Certs &c) {
   close(sync_pipe[0]);
   auto srv = SoDa::TCP::ServerSocket::make("127.0.0.1", (size_t)port,
                                            c.ca_crt, c.srv_crt, c.srv_key);
-  (void)write(sync_pipe[1], "x", 1);
+  // Best-effort sync-pipe wake-up to the child; see note on the paired read().
+  ssize_t wn = write(sync_pipe[1], "x", 1);
+  (void)wn;
   close(sync_pipe[1]);
 
   auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);

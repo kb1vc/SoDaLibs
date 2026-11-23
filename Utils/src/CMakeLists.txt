@@ -17,7 +17,16 @@ set(UTILS_SRCS
 add_library(sodautils STATIC ${UTILS_SRCS})
 add_library(SoDaUtils::sodautils ALIAS sodautils)
 
-target_link_libraries(sodautils PRIVATE Threads::Threads OpenSSL::SSL OpenSSL::Crypto)
+# OpenSSL is PUBLIC: sodautils is a static library, so OpenSSL symbols
+# stay unresolved in libsodautils.a until the final executable link.
+# PUBLIC causes OpenSSL::SSL and OpenSSL::Crypto to be exported in the
+# target's INTERFACE_LINK_LIBRARIES so downstream consumers (via
+# find_package(SoDaUtils)) get -lssl -lcrypto on their link line
+# automatically.  Threads stays PRIVATE: headers only expose std::thread
+# in types where the consumer is already expected to pull in Threads itself.
+target_link_libraries(sodautils
+  PRIVATE Threads::Threads
+  PUBLIC  OpenSSL::SSL OpenSSL::Crypto)
 
 # Private build-time includes (version header, bundled JsonCpp).
 # Public headers are set in the parent CMakeLists.txt via target_include_directories.

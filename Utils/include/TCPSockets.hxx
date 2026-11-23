@@ -133,7 +133,8 @@
  *
  * - Only one client is active at a time; the server is single-threaded.
  * - OpenSSL headers are excluded from this public header; TLS state is
- *   stored as opaque `void*` members so consumers need not link OpenSSL.
+ *   stored as forward-declared opaque struct pointers (SslSession*,
+ *   SslContext*) so consumers need neither OpenSSL headers nor casts.
  * - Certificate revocation (CRL/OCSP) is not implemented.
  */
 
@@ -149,6 +150,28 @@
 
 namespace SoDa {
   namespace TCP {
+
+    /**
+     * @struct SslSession
+     * @brief Opaque handle for the TLS session owned by a NetSocket.
+     *
+     * The real underlying type is OpenSSL's @c SSL, but that typedef is
+     * deliberately not exposed in this header -- the mapping between
+     * @c SslSession* and @c SSL* is confined to TCPSockets.cxx so that
+     * consumers of SoDaUtils don't have to include any OpenSSL header.
+     * Using a dedicated forward-declared struct (instead of void*) means
+     * the compiler catches accidental mix-ups with SslContext.
+     */
+    struct SslSession;  // intentionally incomplete: used only as a typed pointer
+
+    /**
+     * @struct SslContext
+     * @brief Opaque handle for the TLS context owned by a NetSocket.
+     *
+     * Underlying type is OpenSSL's @c SSL_CTX; see SslSession for the
+     * reasoning behind the opaque forward-declaration pattern.
+     */
+    struct SslContext;  // intentionally incomplete: used only as a typed pointer
 
     /**
      * @class SocketError
@@ -174,16 +197,17 @@ namespace SoDa {
      * @brief Shared base holding TLS state and the put/get helpers used by
      *        ServerSocket and ClientSocket.
      *
-     * OpenSSL SSL* and SSL_CTX* objects are stored as @c void* to keep
-     * OpenSSL headers out of this public header.
+     * TLS state is stored via SslSession and SslContext pointers --
+     * forward-declared opaque structs whose real types live only in
+     * TCPSockets.cxx.
      */
     class NetSocket : public SocketBase {
     protected:
       int server_socket; ///< listening fd (ServerSocket only; -1 on ClientSocket)
       int conn_socket;   ///< connected fd after accept() / connect()
 
-      void *ssl; ///< opaque SSL*     — valid after handshake
-      void *ctx; ///< opaque SSL_CTX* — valid after constructor
+      SslSession *ssl;   ///< TLS session handle — valid after handshake
+      SslContext *ctx;   ///< TLS context handle — valid after constructor
 
       /**
        * @brief Build a TLS server context that requires and verifies a client
@@ -191,11 +215,11 @@ namespace SoDa {
        * @param ca_cert_path     PEM file of the trusted CA certificate.
        * @param server_cert_path PEM file of this server's certificate.
        * @param server_key_path  PEM file of this server's private key.
-       * @return opaque SSL_CTX*, or nullptr on failure.
+       * @return TLS context handle, or nullptr on failure.
        */
-      void *makeServerCTX(const std::string & ca_cert_path,
-                          const std::string & server_cert_path,
-                          const std::string & server_key_path);
+      SslContext *makeServerCTX(const std::string & ca_cert_path,
+                                const std::string & server_cert_path,
+                                const std::string & server_key_path);
 
       /**
        * @brief Build a TLS client context that presents a client certificate
@@ -203,11 +227,11 @@ namespace SoDa {
        * @param ca_cert_path     PEM file of the trusted CA certificate.
        * @param client_cert_path PEM file of this client's certificate.
        * @param client_key_path  PEM file of this client's private key.
-       * @return opaque SSL_CTX*, or nullptr on failure.
+       * @return TLS context handle, or nullptr on failure.
        */
-      void *makeClientCTX(const std::string & ca_cert_path,
-                          const std::string & client_cert_path,
-                          const std::string & client_key_path);
+      SslContext *makeClientCTX(const std::string & ca_cert_path,
+                                const std::string & client_cert_path,
+                                const std::string & client_key_path);
 
       /**
        * @brief Extract the Common Name from the peer's X.509 certificate.

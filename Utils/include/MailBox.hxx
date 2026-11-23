@@ -361,7 +361,7 @@ namespace SoDa {
      * spelling.
      *
      * @param name       Name of the mailbox.
-     * @param max_depth  per-subscriber queue high-water mark; put() throws
+     * @param max_depth  Per-subscriber queue high-water mark; put() throws
      *                   QueueFull before exceeding this. Defaults to
      *                   default_max_queue_depth. Pass SIZE_MAX to disable
      *                   the check (not recommended in production).
@@ -589,7 +589,7 @@ namespace SoDa {
    * it. Sure we could rely on good behavior, but why? 
    *
    * @param mname     Name of the mailbox.
-   * @param max_depth per-subscriber queue high-water mark; put() throws
+   * @param max_depth Per-subscriber queue high-water mark; put() throws
    *                  QueueFull before exceeding this. Defaults to
    *                  MailBox<T>::default_max_queue_depth. Pass SIZE_MAX
    *                  to disable the check (not recommended in production).

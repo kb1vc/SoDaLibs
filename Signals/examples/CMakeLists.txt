@@ -25,10 +25,10 @@ FIND_PACKAGE(SoDaUtils REQUIRED)
 
 # Export header files that are required to build loadable modules
 
-set(LIBS sodasignals sodautils)
+set(LIBS SoDaSignals::sodasignals SoDaUtils::sodautils)
 
 add_executable(TestLink FilterExample.cxx)
-target_link_libraries(TestLink PRIVATE  sodasignals sodautils)
+target_link_libraries(TestLink PRIVATE SoDaSignals::sodasignals SoDaUtils::sodautils)
 
 add_executable(FFTExample FFTExample.cxx)
 target_link_libraries(FFTExample PRIVATE ${LIBS})

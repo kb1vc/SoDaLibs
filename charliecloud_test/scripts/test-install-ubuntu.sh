@@ -28,3 +28,6 @@ run_logged "${log}" ch-image build --rebuild \
     -t "${image}" \
     -f "${DOCKERFILES_DIR}/Ubuntu.testinstall" \
     "${CT_ROOT}"
+
+echo_logged "${log}" ""
+echo_logged "${log}" "YES -- test-install-ubuntu ${version} / ${pkg} PASSED."

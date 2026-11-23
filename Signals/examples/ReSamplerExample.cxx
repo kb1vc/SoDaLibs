@@ -40,7 +40,7 @@ int main() {
 
   // down sample from 625 to 48
   // aim for about 50 ms. 
-  SoDa::ReSampler resamp(in_rate, out_rate, 0.05);
+  SoDa::ReSampler resamp(in_rate, out_rate, 0.05f);
 
   
   int in_buf_size = resamp.getInputBufferSize();

@@ -64,6 +64,24 @@ static constexpr size_t max_TCP_msg_size = 8u * 1024u * 1024u;
 // Internal helpers
 // ---------------------------------------------------------------------------
 
+// Bridge between the opaque handle types declared in TCPSockets.hxx
+// (SslSession*, SslContext*) and the real OpenSSL pointer types.  Using
+// named functions instead of scattered reinterpret_casts keeps the
+// boundary legible at every call site and localizes the only place in
+// the codebase that assumes SslSession is the same pointer as SSL.
+static inline SSL *toSSL(SslSession *p) {
+  return reinterpret_cast<SSL *>(p);
+}
+static inline SSL_CTX *toCTX(SslContext *p) {
+  return reinterpret_cast<SSL_CTX *>(p);
+}
+static inline SslSession *fromSSL(SSL *p) {
+  return reinterpret_cast<SslSession *>(p);
+}
+static inline SslContext *fromCTX(SSL_CTX *p) {
+  return reinterpret_cast<SslContext *>(p);
+}
+
 static void logSSLErrors(const char *tag) {
   unsigned long e;
   while ((e = ERR_get_error()) != 0) {
@@ -160,24 +178,31 @@ static SSL_CTX *buildCTX(bool is_server,
   return ctx;
 }
 
-void *NetSocket::makeServerCTX(const std::string & ca_cert_path,
-                                const std::string & server_cert_path,
-                                const std::string & server_key_path) {
-  return buildCTX(true, ca_cert_path, server_cert_path, server_key_path);
+SslContext *NetSocket::makeServerCTX(const std::string & ca_cert_path,
+                                      const std::string & server_cert_path,
+                                      const std::string & server_key_path) {
+  return fromCTX(buildCTX(true, ca_cert_path, server_cert_path, server_key_path));
 }
 
-void *NetSocket::makeClientCTX(const std::string & ca_cert_path,
-                                const std::string & client_cert_path,
-                                const std::string & client_key_path) {
-  return buildCTX(false, ca_cert_path, client_cert_path, client_key_path);
+SslContext *NetSocket::makeClientCTX(const std::string & ca_cert_path,
+                                      const std::string & client_cert_path,
+                                      const std::string & client_key_path) {
+  return fromCTX(buildCTX(false, ca_cert_path, client_cert_path, client_key_path));
 }
 
 std::string NetSocket::getPeerCN() {
-  X509 *peer = SSL_get_peer_certificate(static_cast<SSL *>(ssl));
+  X509 *peer = SSL_get_peer_certificate(toSSL(ssl));
   if (!peer) return "";
   char cn[256] = {};
+  // X509_NAME_get_text_by_NID is marked OSSL_DEPRECATEDIN_4_0; we silence
+  // the warning until OpenSSL 4.0 actually ships. Replacement when we migrate:
+  // iterate with X509_NAME_get_index_by_NID + X509_NAME_get_entry +
+  // X509_NAME_ENTRY_get_data + ASN1_STRING_get0_data.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   X509_NAME_get_text_by_NID(X509_get_subject_name(peer),
                              NID_commonName, cn, (int)sizeof(cn) - 1);
+#pragma GCC diagnostic pop
   X509_free(peer);
   return std::string(cn);
 }
@@ -187,7 +212,7 @@ std::string NetSocket::getPeerCN() {
 // ---------------------------------------------------------------------------
 
 int NetSocket::tlsPut(const void *ptr, unsigned int size, bool len_prefix) {
-  SSL *s = static_cast<SSL *>(ssl);
+  SSL *s = toSSL(ssl);
   if (len_prefix) {
     if (sslLoopWrite(s, &size, sizeof(unsigned int)) < 0) return -1;
   }
@@ -195,7 +220,7 @@ int NetSocket::tlsPut(const void *ptr, unsigned int size, bool len_prefix) {
 }
 
 int NetSocket::tlsGet(void *ptr, unsigned int size, bool len_prefix) {
-  SSL *s = static_cast<SSL *>(ssl);
+  SSL *s = toSSL(ssl);
   size_t rsize = size;
 
   if (len_prefix) {
@@ -255,7 +280,7 @@ ServerSocket::ServerSocket(const std::string & addr, size_t port_num,
   server_socket = socket(AF_INET, SOCK_STREAM, 0);
   if (server_socket < 0) {
     int e = errno;
-    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    SSL_CTX_free(toCTX(ctx));
     throw SocketError(Format("socket() failed: %0").addS(strerror(e)).str());
   }
 
@@ -275,7 +300,7 @@ ServerSocket::ServerSocket(const std::string & addr, size_t port_num,
   } else {
     if (inet_pton(AF_INET, addr.c_str(), &sa.sin_addr) != 1) {
       close(server_socket);
-      SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+      SSL_CTX_free(toCTX(ctx));
       throw SocketError(Format("bind address [%0] is not a valid IPv4 literal")
 			.addS(addr).str());
     }
@@ -284,7 +309,7 @@ ServerSocket::ServerSocket(const std::string & addr, size_t port_num,
   if (bind(server_socket, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
     int e = errno;
     close(server_socket);
-    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    SSL_CTX_free(toCTX(ctx));
     throw SocketError(Format("bind() failed on %0:%1: %2")
 		      .addS(addr)
 		      .addU(port_num)
@@ -293,7 +318,7 @@ ServerSocket::ServerSocket(const std::string & addr, size_t port_num,
   if (listen(server_socket, 1) < 0) {
     int e = errno;
     close(server_socket);
-    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    SSL_CTX_free(toCTX(ctx));
     throw SocketError(Format("listen() failed: %0").addS(strerror(e)).str());
   }
 }
@@ -301,10 +326,10 @@ ServerSocket::ServerSocket(const std::string & addr, size_t port_num,
 ServerSocket::~ServerSocket() {
   // ssl and conn_socket may already be nullptr/-1 if get() detected a
   // disconnect and cleaned up; the guards here prevent double-free.
-  if (ssl) { SSL_shutdown(static_cast<SSL *>(ssl)); SSL_free(static_cast<SSL *>(ssl)); }
+  if (ssl) { SSL_shutdown(toSSL(ssl)); SSL_free(toSSL(ssl)); }
   if (conn_socket >= 0)   close(conn_socket);
   if (server_socket >= 0) close(server_socket);
-  if (ctx) SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+  if (ctx) SSL_CTX_free(toCTX(ctx));
 }
 
 bool ServerSocket::isReady(size_t) {
@@ -313,7 +338,7 @@ bool ServerSocket::isReady(size_t) {
   // Free any leftover session from the previous client before accepting a
   // new one (avoids both a memory leak and a double-close on the old fd).
   if (ssl) {
-    SSL_free(static_cast<SSL *>(ssl));
+    SSL_free(toSSL(ssl));
     ssl = nullptr;
   }
   if (conn_socket >= 0) {
@@ -326,7 +351,7 @@ bool ServerSocket::isReady(size_t) {
   int ns = accept(server_socket, (struct sockaddr *)&client_addr, &ca_len);
   if (ns < 0) return false;
 
-  SSL *s = SSL_new(static_cast<SSL_CTX *>(ctx));
+  SSL *s = SSL_new(toCTX(ctx));
   SSL_set_fd(s, ns);
 
   if (SSL_accept(s) <= 0) {
@@ -337,7 +362,7 @@ bool ServerSocket::isReady(size_t) {
     return false;
   }
 
-  ssl         = s;
+  ssl         = fromSSL(s);
   conn_socket = ns;
   connected_identity = getPeerCN();
 
@@ -351,8 +376,8 @@ int ServerSocket::get(void *ptr, unsigned int size, bool len_prefix) {
     // Tear down the TLS session so isReady() can accept the next client
     // without leaking the SSL object or the connected file descriptor.
     if (ssl) {
-      SSL_shutdown(static_cast<SSL *>(ssl));
-      SSL_free(static_cast<SSL *>(ssl));
+      SSL_shutdown(toSSL(ssl));
+      SSL_free(toSSL(ssl));
       ssl = nullptr;
     }
     if (conn_socket >= 0) {
@@ -400,7 +425,7 @@ ClientSocket::ClientSocket(const std::string & addr, size_t port_num,
   struct addrinfo *res = nullptr;
   int gai = getaddrinfo(addr.c_str(), port_str.c_str(), &hints, &res);
   if (gai != 0 || !res) {
-    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    SSL_CTX_free(toCTX(ctx));
     throw SocketError(Format("getaddrinfo(%0:%1) failed: %2")
 		      .addS(addr)
 		      .addU(port_num)
@@ -422,17 +447,17 @@ ClientSocket::ClientSocket(const std::string & addr, size_t port_num,
   if (stat < 0) {
     int e = errno;
     if (conn_socket >= 0) close(conn_socket);
-    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    SSL_CTX_free(toCTX(ctx));
     throw SocketError(Format("connect() to %0:%1 failed: %2")
 		      .addS(addr)
 		      .addU(port_num)
 		      .addS(strerror(e)).str());
   }
 
-  SSL *s = SSL_new(static_cast<SSL_CTX *>(ctx));
+  SSL *s = SSL_new(toCTX(ctx));
   if (!s) {
     close(conn_socket);
-    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    SSL_CTX_free(toCTX(ctx));
     throw SocketError("SSL_new() returned null (out of memory?)");
   }
   SSL_set_fd(s, conn_socket);
@@ -446,14 +471,20 @@ ClientSocket::ClientSocket(const std::string & addr, size_t port_num,
     struct in6_addr v6;
     bool is_ip_literal = (inet_pton(AF_INET,  addr.c_str(), &v4) == 1)
                       || (inet_pton(AF_INET6, addr.c_str(), &v6) == 1);
+    // SSL_set1_host is marked OSSL_DEPRECATEDIN_4_0; silenced until 4.0 ships.
+    // Replacement when we migrate:
+    // X509_VERIFY_PARAM_set1_host(SSL_get0_param(s), addr.c_str(), 0).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     int ok = is_ip_literal
       ? X509_VERIFY_PARAM_set1_ip_asc(SSL_get0_param(s), addr.c_str())
       : SSL_set1_host(s, addr.c_str());
+#pragma GCC diagnostic pop
     if (ok != 1) {
       logSSLErrors("set peer identity");
       SSL_free(s);
       close(conn_socket);
-      SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+      SSL_CTX_free(toCTX(ctx));
       throw SocketError(Format("can't pin peer identity to [%0]").addS(addr).str());
     }
   }
@@ -462,22 +493,22 @@ ClientSocket::ClientSocket(const std::string & addr, size_t port_num,
     logSSLErrors("SSL_connect");
     SSL_free(s);
     close(conn_socket);
-    SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+    SSL_CTX_free(toCTX(ctx));
     throw SocketError(Format("TLS handshake with %0:%1 failed")
 		      .addS(addr)
 		      .addU(port_num).str());
   }
 
-  ssl = s;
+  ssl = fromSSL(s);
 }
 
 ClientSocket::~ClientSocket() {
   if (ssl) {
-    SSL_shutdown(static_cast<SSL *>(ssl));
-    SSL_free(static_cast<SSL *>(ssl));
+    SSL_shutdown(toSSL(ssl));
+    SSL_free(toSSL(ssl));
   }
   if (conn_socket >= 0) close(conn_socket);
-  if (ctx) SSL_CTX_free(static_cast<SSL_CTX *>(ctx));
+  if (ctx) SSL_CTX_free(toCTX(ctx));
 }
 
 int ClientSocket::get(void *ptr, unsigned int size, bool len_prefix) {
