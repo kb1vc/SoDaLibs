@@ -194,8 +194,15 @@ std::string NetSocket::getPeerCN() {
   X509 *peer = SSL_get_peer_certificate(toSSL(ssl));
   if (!peer) return "";
   char cn[256] = {};
+  // X509_NAME_get_text_by_NID is marked OSSL_DEPRECATEDIN_4_0; we silence
+  // the warning until OpenSSL 4.0 actually ships. Replacement when we migrate:
+  // iterate with X509_NAME_get_index_by_NID + X509_NAME_get_entry +
+  // X509_NAME_ENTRY_get_data + ASN1_STRING_get0_data.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   X509_NAME_get_text_by_NID(X509_get_subject_name(peer),
                              NID_commonName, cn, (int)sizeof(cn) - 1);
+#pragma GCC diagnostic pop
   X509_free(peer);
   return std::string(cn);
 }
@@ -464,9 +471,15 @@ ClientSocket::ClientSocket(const std::string & addr, size_t port_num,
     struct in6_addr v6;
     bool is_ip_literal = (inet_pton(AF_INET,  addr.c_str(), &v4) == 1)
                       || (inet_pton(AF_INET6, addr.c_str(), &v6) == 1);
+    // SSL_set1_host is marked OSSL_DEPRECATEDIN_4_0; silenced until 4.0 ships.
+    // Replacement when we migrate:
+    // X509_VERIFY_PARAM_set1_host(SSL_get0_param(s), addr.c_str(), 0).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     int ok = is_ip_literal
       ? X509_VERIFY_PARAM_set1_ip_asc(SSL_get0_param(s), addr.c_str())
       : SSL_set1_host(s, addr.c_str());
+#pragma GCC diagnostic pop
     if (ok != 1) {
       logSSLErrors("set peer identity");
       SSL_free(s);
